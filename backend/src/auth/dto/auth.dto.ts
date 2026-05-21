@@ -1,5 +1,5 @@
 import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
   @ApiProperty({ example: 'Nguyen Van A' })
@@ -26,4 +26,15 @@ export class LoginDto {
   @IsString()
   @MinLength(6)
   password: string;
+}
+
+export class FirebasePhoneDto {
+  @ApiProperty()
+  @IsString()
+  token: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  fullName?: string;
 }

@@ -1,29 +1,34 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_CLIENT } from '../supabase/supabase.module';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User, UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
   async findAll(page = 1, limit = 20) {
-    const from = (page - 1) * limit;
-    const { data, count } = await this.supabase
-      .from('users')
-      .select('id, email, full_name, role, plan, created_at', { count: 'exact' })
-      .range(from, from + limit - 1)
-      .order('created_at', { ascending: false });
-    return { data, total: count, page, limit };
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.userModel
+        .find({}, 'email phone fullName role plan createdAt')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.userModel.countDocuments().exec()
+    ]);
+    return { data, total, page, limit };
   }
 
   async findOne(id: string) {
-    const { data } = await this.supabase
-      .from('users')
-      .select('id, email, full_name, role, plan, target_score, created_at')
-      .eq('id', id)
-      .single();
+    const data = await this.userModel
+      .findById(id, 'email phone fullName role plan targetScore createdAt avatarUrl')
+      .exec();
+      
+    if (!data) throw new NotFoundException('User not found');
     return data;
   }
 }

@@ -1,30 +1,29 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_CLIENT } from '../supabase/supabase.module';
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { TestResult, TestResultDocument } from './schemas/test-result.schema';
+import { UserStreak, UserStreakDocument } from './schemas/user-streak.schema';
+import { StudyPlan, StudyPlanDocument } from './schemas/study-plan.schema';
 
 @Injectable()
 export class DashboardService {
   constructor(
-    @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+    @InjectModel(TestResult.name) private testResultModel: Model<TestResultDocument>,
+    @InjectModel(UserStreak.name) private userStreakModel: Model<UserStreakDocument>,
+    @InjectModel(StudyPlan.name) private studyPlanModel: Model<StudyPlanDocument>,
   ) {}
 
   async getStats(userId: string) {
-    // Get user's test results
-    const { data: results } = await this.supabase
-      .from('test_results')
-      .select('score, listening_score, reading_score, created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1);
+    const latest = await this.testResultModel
+      .findOne({ user_id: userId })
+      .select('score listening_score reading_score createdAt')
+      .sort({ createdAt: -1 })
+      .exec();
 
-    const latest = results?.[0];
-
-    // Get streak
-    const { data: streak } = await this.supabase
-      .from('user_streaks')
-      .select('current_streak, longest_streak, last_study_date')
-      .eq('user_id', userId)
-      .single();
+    const streak = await this.userStreakModel
+      .findOne({ user_id: userId })
+      .select('current_streak longest_streak last_study_date')
+      .exec();
 
     return {
       estimatedScore: latest?.score || 0,
@@ -37,41 +36,43 @@ export class DashboardService {
   }
 
   async getTodayPlan(userId: string) {
-    const { data } = await this.supabase
-      .from('study_plans')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('plan_date', new Date().toISOString().split('T')[0]);
-
+    const today = new Date().toISOString().split('T')[0];
+    const data = await this.studyPlanModel
+      .find({ user_id: userId, plan_date: today })
+      .exec();
     return data || [];
   }
 
   async getScoreProgression(userId: string) {
-    const { data } = await this.supabase
-      .from('test_results')
-      .select('score, created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(10);
+    const data = await this.testResultModel
+      .find({ user_id: userId })
+      .select('score createdAt')
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .exec();
 
-    return (data || []).reverse().map((r) => ({
-      date: new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    return data.reverse().map((r: any) => ({
+      date: new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       score: r.score,
     }));
   }
 
   async getRecentTests(userId: string) {
-    const { data } = await this.supabase
-      .from('test_results')
-      .select(`
-        id, score, listening_score, reading_score, duration_minutes,
-        created_at, status,
-        test_sets (name, total_questions, parts_count)
-      `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(5);
+    const data = await this.testResultModel
+      .find({ user_id: userId })
+      .select('score listening_score reading_score duration_minutes createdAt status test_set_id')
+      .populate('test_set_id', 'name total_questions parts_count')
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .exec();
 
-    return data || [];
+    return data.map((item: any) => {
+      const doc = item.toObject();
+      if (doc.test_set_id) {
+        doc.test_sets = doc.test_set_id;
+        delete doc.test_set_id;
+      }
+      return doc;
+    });
   }
 }

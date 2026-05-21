@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { MongooseModule } from '@nestjs/mongoose';
+
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { QuestionsModule } from './questions/questions.module';
 import { TestsModule } from './tests/tests.module';
-import { DashboardModule } from './dashboard/dashboard.module';
 import { AdminModule } from './admin/admin.module';
-import { SupabaseModule } from './supabase/supabase.module';
+import { QuestionsModule } from './questions/questions.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -15,13 +16,19 @@ import { SupabaseModule } from './supabase/supabase.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI'),
+      }),
+    }),
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
         limit: 60,
       },
     ]),
-    SupabaseModule,
     AuthModule,
     UsersModule,
     QuestionsModule,

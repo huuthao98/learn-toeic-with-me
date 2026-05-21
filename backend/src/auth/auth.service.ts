@@ -1,70 +1,56 @@
 import {
-  Injectable, UnauthorizedException, ConflictException, Inject,
+  Injectable, UnauthorizedException, ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { SupabaseClient } from '@supabase/supabase-js';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { SUPABASE_CLIENT } from '../supabase/supabase.module';
-import { RegisterDto, LoginDto } from './dto/auth.dto';
+import * as admin from 'firebase-admin';
+import { RegisterDto, LoginDto, FirebasePhoneDto } from './dto/auth.dto';
+import { User, UserDocument } from '../users/schemas/user.schema';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
-  ) {}
+  ) {
+    // Initialize Firebase Admin if not already initialized
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        // In production, configure with service account credentials from env
+        // credential: admin.credential.cert(...)
+      });
+    }
+  }
 
   async register(dto: RegisterDto) {
-    // Check existing user
-    const { data: existing } = await this.supabase
-      .from('users')
-      .select('id')
-      .eq('email', dto.email)
-      .single();
-
+    const existing = await this.userModel.findOne({ email: dto.email }).exec();
     if (existing) {
       throw new ConflictException('Email already in use');
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(dto.password, 12);
 
-    // Insert user
-    const { data: user, error } = await this.supabase
-      .from('users')
-      .insert({
-        email: dto.email,
-        full_name: dto.fullName,
-        password_hash: hashedPassword,
-        role: 'user',
-        plan: 'free',
-        target_score: 800,
-      })
-      .select('id, email, full_name, role, plan, target_score, avatar_url, created_at')
-      .single();
+    const newUser = new this.userModel({
+      email: dto.email,
+      fullName: dto.fullName,
+      passwordHash: hashedPassword,
+    });
+    
+    await newUser.save();
 
-    if (error) {
-      throw new ConflictException(error.message);
-    }
-
-    const token = this.signToken(user);
-    return { access_token: token, user: this.formatUser(user) };
+    const token = this.signToken(newUser);
+    return { access_token: token, user: this.formatUser(newUser) };
   }
 
   async login(dto: LoginDto) {
-    const { data: user, error } = await this.supabase
-      .from('users')
-      .select('id, email, full_name, role, plan, target_score, avatar_url, password_hash, created_at')
-      .eq('email', dto.email)
-      .single();
-
-    if (!user || error) {
+    const user = await this.userModel.findOne({ email: dto.email }).exec();
+    if (!user || !user.passwordHash) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const valid = await bcrypt.compare(dto.password, user.password_hash);
+    const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -73,37 +59,60 @@ export class AuthService {
     return { access_token: token, user: this.formatUser(user) };
   }
 
-  async getProfile(userId: string) {
-    const { data: user, error } = await this.supabase
-      .from('users')
-      .select('id, email, full_name, role, plan, target_score, avatar_url, created_at')
-      .eq('id', userId)
-      .single();
+  async verifyFirebasePhone(dto: FirebasePhoneDto) {
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(dto.token);
+      const phoneNumber = decodedToken.phone_number;
 
-    if (!user || error) {
+      if (!phoneNumber) {
+        throw new UnauthorizedException('No phone number found in token');
+      }
+
+      let user = await this.userModel.findOne({ phone: phoneNumber }).exec();
+
+      if (!user) {
+        // Create new user for this phone number
+        user = new this.userModel({
+          phone: phoneNumber,
+          fullName: dto.fullName || 'New User',
+        });
+        await user.save();
+      }
+
+      const token = this.signToken(user);
+      return { access_token: token, user: this.formatUser(user) };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid Firebase token');
+    }
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
       throw new UnauthorizedException('User not found');
     }
-
     return this.formatUser(user);
   }
 
   private signToken(user: any): string {
     return this.jwtService.sign({
-      sub: user.id,
+      sub: user._id || user.id,
       email: user.email,
+      phone: user.phone,
       role: user.role,
     });
   }
 
   private formatUser(user: any) {
     return {
-      id: user.id,
+      id: user._id || user.id,
       email: user.email,
-      fullName: user.full_name,
+      phone: user.phone,
+      fullName: user.fullName,
       role: user.role,
       plan: user.plan,
-      targetScore: user.target_score,
-      avatar: user.avatar_url,
+      targetScore: user.targetScore,
+      avatar: user.avatarUrl,
     };
   }
 }
