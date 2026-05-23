@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, IsNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -15,6 +15,11 @@ export class RegisterDto {
   @IsString()
   @MinLength(6)
   password: string;
+
+  @ApiPropertyOptional({ example: 20 })
+  @IsNumber()
+  @IsOptional()
+  age?: number;
 }
 
 export class LoginDto {

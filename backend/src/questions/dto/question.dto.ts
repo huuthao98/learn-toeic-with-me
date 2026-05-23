@@ -29,6 +29,11 @@ export class AnswerOptionDto {
 }
 
 export class CreateQuestionDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  testSetId?: string;
+
   @ApiProperty({ enum: ['1','2','3','4','5','6','7'] })
   @IsString()
   part: string;
