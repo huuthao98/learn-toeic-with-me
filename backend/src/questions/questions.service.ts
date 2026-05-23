@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Question, QuestionDocument } from './schemas/question.schema';
 import { CreateQuestionDto, UpdateQuestionDto } from './dto/question.dto';
 
@@ -10,7 +10,7 @@ export class QuestionsService {
     @InjectModel(Question.name) private questionModel: Model<QuestionDocument>,
   ) {}
 
-  async findAll(filters?: { part?: string; difficulty?: string; status?: string; page?: number; limit?: number }) {
+  async findAll(filters?: { part?: string; difficulty?: string; status?: string; testSetId?: string; page?: number; limit?: number }) {
     const page = filters?.page || 1;
     const limit = filters?.limit || 20;
     const skip = (page - 1) * limit;
@@ -19,6 +19,9 @@ export class QuestionsService {
     if (filters?.part) query.part = filters.part;
     if (filters?.difficulty) query.difficulty = filters.difficulty;
     if (filters?.status) query.status = filters.status;
+    if (filters?.testSetId) {
+      query.test_set_id = new Types.ObjectId(filters.testSetId);
+    }
 
     const [data, total] = await Promise.all([
       this.questionModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
@@ -36,6 +39,7 @@ export class QuestionsService {
 
   async create(dto: CreateQuestionDto) {
     const newQuestion = new this.questionModel({
+      test_set_id: dto.testSetId ? new Types.ObjectId(dto.testSetId) : undefined,
       part: dto.part,
       difficulty: dto.difficulty,
       question_text: dto.questionText,

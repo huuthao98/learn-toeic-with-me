@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type QuestionDocument = Question & Document;
 
@@ -14,6 +14,9 @@ export class AnswerOption {
 
 @Schema({ timestamps: true })
 export class Question {
+  @Prop({ type: Types.ObjectId, ref: 'TestSet' })
+  test_set_id?: Types.ObjectId;
+
   @Prop({ required: true })
   part: string;
 

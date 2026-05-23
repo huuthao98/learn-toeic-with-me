@@ -27,6 +27,9 @@ export class User {
   targetScore: number;
 
   @Prop()
+  age?: number;
+
+  @Prop()
   avatarUrl?: string;
 }
 
