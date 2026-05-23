@@ -51,3 +51,6 @@ Thumbs.db
 .env.test
 .env.production
 .env.development
+
+# Credentials / Secrets
+serviceAccountKey.json

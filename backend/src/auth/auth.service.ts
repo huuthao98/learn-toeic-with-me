@@ -17,9 +17,13 @@ export class AuthService {
   ) {
     // Initialize Firebase Admin if not already initialized
     if (!admin.apps.length) {
+      const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
       admin.initializeApp({
-        // In production, configure with service account credentials from env
-        // credential: admin.credential.cert(...)
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          privateKey: privateKey,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        }),
       });
     }
   }
@@ -82,6 +86,7 @@ export class AuthService {
       const token = this.signToken(user);
       return { access_token: token, user: this.formatUser(user) };
     } catch (error) {
+      console.error('Firebase token verification failed:', error);
       throw new UnauthorizedException('Invalid Firebase token');
     }
   }
