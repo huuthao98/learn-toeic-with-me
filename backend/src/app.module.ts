@@ -9,6 +9,9 @@ import { TestsModule } from './tests/tests.module';
 import { AdminModule } from './admin/admin.module';
 import { QuestionsModule } from './questions/questions.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { PlansModule } from './plans/plans.module';
+import { CheckInsModule } from './checkins/checkins.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -35,6 +38,9 @@ import { DashboardModule } from './dashboard/dashboard.module';
     TestsModule,
     DashboardModule,
     AdminModule,
+    PlansModule,
+    CheckInsModule,
+    TransactionsModule,
   ],
 })
 export class AppModule {}

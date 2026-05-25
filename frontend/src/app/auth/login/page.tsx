@@ -22,7 +22,7 @@ const emailLoginSchema = z.object({
 
 const phoneLoginSchema = z.object({
   phone: z.string().min(10, { message: "Số điện thoại không hợp lệ (tối thiểu 10 số)" }),
-  otp: z.string().min(6, { message: "Mã OTP gồm 6 ký tự" }).optional(),
+  otp: z.string().optional(),
 })
 
 type EmailLoginFormValues = z.infer<typeof emailLoginSchema>
@@ -86,11 +86,16 @@ export default function LoginPage() {
       return
     }
 
+    if (!values.otp || values.otp.length !== 6) {
+      phoneForm.setError("otp", { message: "Mã OTP gồm 6 ký tự" })
+      return
+    }
+
     // Call verify Firebase Token. In a real environment, you use the Firebase JS SDK
     // to authenticate, get an ID Token, and send it. Here we simulate/mock it.
     phoneMutation.mutate(
       {
-        token: `mock_firebase_otp_token_${values.otp}_${Date.now()}`,
+        token: `mock_firebase_otp_token_${values.otp}_${Date.now()}_${values.phone}`,
         fullName: `Học Viên SĐT ${values.phone.slice(-4)}`,
       },
       {

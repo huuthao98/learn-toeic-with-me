@@ -1,5 +1,4 @@
 import axios from "axios"
-import { useAuthStore } from "@/store/authStore"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
@@ -13,7 +12,18 @@ export const api = axios.create({
 // Inject authorization token into all outgoing requests
 api.interceptors.request.use(
   (config) => {
-    const token = useAuthStore.getState().token
+    let token = null
+    if (typeof window !== "undefined") {
+      try {
+        const authData = localStorage.getItem("learntoeic-auth")
+        if (authData) {
+          const parsed = JSON.parse(authData)
+          token = parsed?.state?.token
+        }
+      } catch (e) {
+        console.error("Failed to parse auth token from localStorage", e)
+      }
+    }
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -29,9 +39,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Clear token and user info on unauthorized request
-      useAuthStore.getState().clearAuth()
       if (typeof window !== "undefined") {
+        localStorage.removeItem("learntoeic-auth")
         window.location.href = "/auth/login"
       }
     }

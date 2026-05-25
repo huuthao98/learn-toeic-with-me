@@ -1,6 +1,15 @@
 import {
-  Controller, Get, Post, Patch, Delete, Body, Param,
-  Query, UseGuards, HttpCode, HttpStatus,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { QuestionsService } from './questions.service';
@@ -49,7 +58,13 @@ export class AdminQuestionsController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.questionsService.findAll({ part, difficulty, status, page, limit });
+    return this.questionsService.findAll({
+      part,
+      difficulty,
+      status,
+      page,
+      limit,
+    });
   }
 
   @Post()

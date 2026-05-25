@@ -15,7 +15,10 @@ import { User, UserSchema } from '../users/schemas/user.schema';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET') ?? 'fallback_secret',
-        signOptions: { expiresIn: (config.get<string>('JWT_EXPIRES_IN') ?? '7d') as `${number}${'s'|'m'|'h'|'d'|'w'|'y'}` },
+        signOptions: {
+          expiresIn: (config.get<string>('JWT_EXPIRES_IN') ??
+            '7d') as `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`,
+        },
       }),
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),

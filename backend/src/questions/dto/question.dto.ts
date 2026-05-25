@@ -1,6 +1,11 @@
 import {
-  IsString, IsEnum, IsArray, IsOptional, IsBoolean,
-  ValidateNested, IsUUID,
+  IsString,
+  IsEnum,
+  IsArray,
+  IsOptional,
+  IsBoolean,
+  ValidateNested,
+  IsUUID,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -29,7 +34,7 @@ export class AnswerOptionDto {
 }
 
 export class CreateQuestionDto {
-  @ApiProperty({ enum: ['1','2','3','4','5','6','7'] })
+  @ApiProperty({ enum: ['1', '2', '3', '4', '5', '6', '7'] })
   @IsString()
   part: string;
 

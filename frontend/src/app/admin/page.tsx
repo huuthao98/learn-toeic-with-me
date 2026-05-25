@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
@@ -21,13 +20,14 @@ import {
   ArrowRight,
   ExternalLink,
 } from "lucide-react"
+import { useEffect, useState } from "react"
 
 export default function AdminPage() {
   const router = useRouter()
   const { user } = useAuthStore()
 
   // Protect page
-  React.useEffect(() => {
+  useEffect(() => {
     if (user && user.role !== "admin") {
       router.push("/dashboard")
     }
@@ -40,8 +40,8 @@ export default function AdminPage() {
   const { data: questionsData, isLoading: loadingQuestions } = useFetchQuestions({ page: 1, limit: 100 })
   const deleteQuestionMutation = useDeleteQuestionMutation()
 
-  const [successMsg, setSuccessMsg] = React.useState<string | null>(null)
-  const [errorMsg, setErrorMsg] = React.useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleDeleteQuestion = (id: string) => {
     if (confirm("Bạn có chắc chắn muốn xóa câu hỏi này khỏi cơ sở dữ liệu?")) {
@@ -65,7 +65,7 @@ export default function AdminPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        
+
         {/* Title greeting */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -77,7 +77,7 @@ export default function AdminPage() {
               Quản lý đề thi thử TOEIC, danh sách câu hỏi trắc nghiệm và thống kê nội dung học tập.
             </p>
           </div>
-          
+
           <Link href="/admin/create-test">
             <Button className="font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 flex items-center gap-2">
               <PlusCircle className="h-4 w-4" />
@@ -138,7 +138,7 @@ export default function AdminPage() {
 
         {/* Two Sections Layout: Test Sets Table and Questions Table */}
         <div className="grid gap-6 lg:grid-cols-12">
-          
+
           {/* Test Sets Table (Admin list) */}
           <Card className="lg:col-span-4 glass-card flex flex-col">
             <CardHeader>
@@ -207,13 +207,12 @@ export default function AdminPage() {
                           </TableCell>
                           <TableCell className="font-bold text-xs text-emerald-600">{q.correct_answer}</TableCell>
                           <TableCell className="text-xs">
-                            <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
-                              q.difficulty === "easy"
+                            <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${q.difficulty === "easy"
                                 ? "bg-emerald-500/10 text-emerald-500"
                                 : q.difficulty === "medium"
-                                ? "bg-amber-500/10 text-amber-500"
-                                : "bg-destructive/10 text-destructive"
-                            }`}>
+                                  ? "bg-amber-500/10 text-amber-500"
+                                  : "bg-destructive/10 text-destructive"
+                              }`}>
                               {q.difficulty}
                             </span>
                           </TableCell>

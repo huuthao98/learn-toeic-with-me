@@ -5,9 +5,7 @@ import { User, UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async findAll(page = 1, limit = 20) {
     const skip = (page - 1) * limit;
@@ -18,16 +16,19 @@ export class UsersService {
         .skip(skip)
         .limit(limit)
         .exec(),
-      this.userModel.countDocuments().exec()
+      this.userModel.countDocuments().exec(),
     ]);
     return { data, total, page, limit };
   }
 
   async findOne(id: string) {
     const data = await this.userModel
-      .findById(id, 'email phone fullName role plan targetScore createdAt avatarUrl')
+      .findById(
+        id,
+        'email phone fullName role plan targetScore createdAt avatarUrl',
+      )
       .exec();
-      
+
     if (!data) throw new NotFoundException('User not found');
     return data;
   }

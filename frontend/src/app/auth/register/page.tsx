@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
@@ -13,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { KeyRound, Mail, Phone, User, Sparkles, BookOpen, AlertCircle, ArrowRight, Calendar, ShieldCheck } from "lucide-react"
+import { useEffect, useState } from "react"
 
 // Zod Validation Schemas
 const emailRegisterSchema = z.object({
@@ -26,7 +26,7 @@ const phoneRegisterSchema = z.object({
   phone: z.string().min(10, { message: "Số điện thoại không hợp lệ" }),
   fullName: z.string().min(2, { message: "Họ và tên phải có tối thiểu 2 ký tự" }),
   age: z.string().min(1, "Vui lòng nhập tuổi").refine((val) => !isNaN(Number(val)) && Number(val) >= 6, { message: "Tuổi phải là số từ 6 trở lên" }),
-  otp: z.string().min(6, { message: "Mã OTP gồm 6 ký tự" }).optional(),
+  otp: z.string().optional(),
 })
 
 type EmailRegisterFormValues = z.infer<typeof emailRegisterSchema>
@@ -39,12 +39,12 @@ export default function RegisterPage() {
   const registerMutation = useRegisterMutation()
   const phoneMutation = useFirebasePhoneMutation()
 
-  const [otpSent, setOtpSent] = React.useState(false)
-  const [errorMsg, setErrorMsg] = React.useState<string | null>(null)
-  const [passwordStrength, setPasswordStrength] = React.useState(0)
+  const [otpSent, setOtpSent] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [passwordStrength, setPasswordStrength] = useState(0)
 
   // Redirect if already logged in
-  React.useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated && token) {
       router.push("/dashboard")
     }
@@ -72,7 +72,7 @@ export default function RegisterPage() {
 
   // Watch password to show password strength
   const passwordVal = emailForm.watch("password")
-  React.useEffect(() => {
+  useEffect(() => {
     if (!passwordVal) {
       setPasswordStrength(0)
       return
@@ -114,9 +114,14 @@ export default function RegisterPage() {
       return
     }
 
+    if (!values.otp || values.otp.length !== 6) {
+      phoneForm.setError("otp", { message: "Mã OTP gồm 6 ký tự" })
+      return
+    }
+
     phoneMutation.mutate(
       {
-        token: `mock_firebase_otp_token_${values.otp}_${Date.now()}`,
+        token: `mock_firebase_otp_token_${values.otp}_${Date.now()}_${values.phone}`,
         fullName: values.fullName,
       },
       {
@@ -139,13 +144,13 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center lg:grid lg:grid-cols-12 overflow-hidden px-4 sm:px-0">
-      
+
       {/* Brand Column (Left) */}
       <div className="hidden lg:flex lg:col-span-6 xl:col-span-7 bg-slate-900 text-white min-h-screen flex-col justify-between p-12 relative overflow-hidden">
         {/* Background Gradients */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.25),transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(13,148,136,0.15),transparent_50%)]" />
-        
+
         {/* Brand Header */}
         <div className="flex items-center gap-2 relative z-10">
           <span className="p-2 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30">
@@ -201,7 +206,7 @@ export default function RegisterPage() {
             <CardDescription>Bắt đầu hành trình ôn tập TOEIC của bạn ngay hôm nay.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            
+
             {/* Global Error Banner */}
             {errorMsg && (
               <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-xs font-medium flex items-center gap-2">
@@ -393,8 +398,8 @@ export default function RegisterPage() {
                     {phoneMutation.isPending
                       ? "Đang xử lý..."
                       : otpSent
-                      ? "Xác Nhận OTP & Đăng Ký"
-                      : "Gửi Mã Xác Thực OTP"}
+                        ? "Xác Nhận OTP & Đăng Ký"
+                        : "Gửi Mã Xác Thực OTP"}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
 
@@ -411,7 +416,7 @@ export default function RegisterPage() {
               </TabsContent>
             </Tabs>
           </CardContent>
-          
+
           <CardFooter className="text-center justify-center">
             <div className="text-sm text-muted-foreground">
               Đã có tài khoản?{" "}

@@ -1,7 +1,16 @@
 import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { Request as ExpressRequest } from 'express';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { DashboardService } from './dashboard.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+interface AuthenticatedRequest extends ExpressRequest {
+  user: {
+    sub: string;
+    email: string;
+    role: string;
+  };
+}
 
 @ApiTags('Dashboard')
 @ApiBearerAuth()
@@ -12,25 +21,25 @@ export class DashboardController {
 
   @Get('stats')
   @ApiOperation({ summary: 'Get dashboard overview stats' })
-  getStats(@Request() req: any) {
+  getStats(@Request() req: AuthenticatedRequest) {
     return this.dashboardService.getStats(req.user.sub);
   }
 
   @Get('today-plan')
   @ApiOperation({ summary: "Get today's study plan" })
-  getTodayPlan(@Request() req: any) {
+  getTodayPlan(@Request() req: AuthenticatedRequest) {
     return this.dashboardService.getTodayPlan(req.user.sub);
   }
 
   @Get('score-progression')
   @ApiOperation({ summary: 'Get score progression for chart' })
-  getScoreProgression(@Request() req: any) {
+  getScoreProgression(@Request() req: AuthenticatedRequest) {
     return this.dashboardService.getScoreProgression(req.user.sub);
   }
 
   @Get('recent-tests')
   @ApiOperation({ summary: 'Get recent test results' })
-  getRecentTests(@Request() req: any) {
+  getRecentTests(@Request() req: AuthenticatedRequest) {
     return this.dashboardService.getRecentTests(req.user.sub);
   }
 }

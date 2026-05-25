@@ -10,7 +10,13 @@ export class QuestionsService {
     @InjectModel(Question.name) private questionModel: Model<QuestionDocument>,
   ) {}
 
-  async findAll(filters?: { part?: string; difficulty?: string; status?: string; page?: number; limit?: number }) {
+  async findAll(filters?: {
+    part?: string;
+    difficulty?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) {
     const page = filters?.page || 1;
     const limit = filters?.limit || 20;
     const skip = (page - 1) * limit;
@@ -21,8 +27,13 @@ export class QuestionsService {
     if (filters?.status) query.status = filters.status;
 
     const [data, total] = await Promise.all([
-      this.questionModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
-      this.questionModel.countDocuments(query).exec()
+      this.questionModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.questionModel.countDocuments(query).exec(),
     ]);
 
     return { data, total, page, limit };
@@ -54,9 +65,12 @@ export class QuestionsService {
     if (dto.difficulty) updateData.difficulty = dto.difficulty;
     if (dto.status) updateData.status = dto.status;
     if (dto.questionText) updateData.question_text = dto.questionText;
-    if (dto.isActive !== undefined) updateData.status = dto.isActive ? 'active' : 'draft';
+    if (dto.isActive !== undefined)
+      updateData.status = dto.isActive ? 'active' : 'draft';
 
-    const data = await this.questionModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
+    const data = await this.questionModel
+      .findByIdAndUpdate(id, updateData, { new: true })
+      .exec();
     if (!data) throw new NotFoundException('Question not found');
     return data;
   }

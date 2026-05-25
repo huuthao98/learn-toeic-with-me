@@ -1,23 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
-import { api } from "@/helpers/api"
 import { useAuthStore } from "@/store/authStore"
+import { usersApi } from "@/api/users"
 
-export interface UserItem {
-  _id: string
-  email?: string
-  phone?: string
-  fullName: string
-  role: string
-  plan: string
-  createdAt: string
-}
-
-interface FetchUsersResponse {
-  data: UserItem[]
-  total: number
-  page: number
-  limit: number
-}
+export type { UserItem } from "@/api/users"
 
 export const useUsers = () => {
   const token = useAuthStore((state) => state.token)
@@ -29,10 +14,7 @@ export const useUsers = () => {
   const useFetchUsers = (params?: { page?: number; limit?: number }) =>
     useQuery({
       queryKey: ["admin-users", params],
-      queryFn: async () => {
-        const response = await api.get<FetchUsersResponse>("/admin/users", { params })
-        return response.data
-      },
+      queryFn: () => usersApi.fetchUsers(params),
       enabled: !!token && isAdmin,
     })
 
@@ -40,10 +22,7 @@ export const useUsers = () => {
   const useFetchUserDetail = (id: string) =>
     useQuery({
       queryKey: ["admin-user-detail", id],
-      queryFn: async () => {
-        const response = await api.get<UserItem>(`/admin/users/${id}`)
-        return response.data
-      },
+      queryFn: () => usersApi.fetchUserDetail(id),
       enabled: !!token && isAdmin && !!id,
     })
 
