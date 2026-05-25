@@ -45,6 +45,7 @@ export class AuthService {
       email: dto.email,
       fullName: dto.fullName,
       passwordHash: hashedPassword,
+      age: dto.age,
     });
 
     await newUser.save();
@@ -136,6 +137,7 @@ export class AuthService {
       role: user.role,
       plan: user.plan,
       targetScore: user.targetScore,
+      age: user.age,
       avatar: user.avatarUrl,
     };
   }

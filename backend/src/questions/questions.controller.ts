@@ -28,10 +28,11 @@ export class QuestionsController {
   findAll(
     @Query('part') part?: string,
     @Query('difficulty') difficulty?: string,
+    @Query('testSetId') testSetId?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.questionsService.findAll({ part, difficulty, page, limit });
+    return this.questionsService.findAll({ part, difficulty, testSetId, page, limit });
   }
 
   @Get(':id')
@@ -55,6 +56,7 @@ export class AdminQuestionsController {
     @Query('part') part?: string,
     @Query('difficulty') difficulty?: string,
     @Query('status') status?: string,
+    @Query('testSetId') testSetId?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {

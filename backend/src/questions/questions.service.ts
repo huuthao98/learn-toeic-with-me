@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Question, QuestionDocument } from './schemas/question.schema';
 import { CreateQuestionDto, UpdateQuestionDto } from './dto/question.dto';
 
@@ -25,6 +25,9 @@ export class QuestionsService {
     if (filters?.part) query.part = filters.part;
     if (filters?.difficulty) query.difficulty = filters.difficulty;
     if (filters?.status) query.status = filters.status;
+    if (filters?.testSetId) {
+      query.test_set_id = new Types.ObjectId(filters.testSetId);
+    }
 
     const [data, total] = await Promise.all([
       this.questionModel
@@ -47,6 +50,7 @@ export class QuestionsService {
 
   async create(dto: CreateQuestionDto) {
     const newQuestion = new this.questionModel({
+      test_set_id: dto.testSetId ? new Types.ObjectId(dto.testSetId) : undefined,
       part: dto.part,
       difficulty: dto.difficulty,
       question_text: dto.questionText,
