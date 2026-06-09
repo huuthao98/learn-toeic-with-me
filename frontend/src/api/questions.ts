@@ -33,6 +33,8 @@ export const questionsApi = {
     explanation?: string
     audioUrl?: string
     imageUrl?: string
+    groupId?: string
+    passageText?: string
     isActive?: boolean
   }) => {
     const response = await api.post<Question>("/admin/questions", data)

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useAuthStore } from "@/store/authStore"
 import { dashboardApi } from "@/api/dashboard"
 
-export type { DashboardStats, StudyPlanItem, ScoreProgression, RecentTestResult } from "@/api/dashboard"
+export type { DashboardStats, StreakHistory, StudyPlanItem, ScoreProgression, RecentTestResult } from "@/api/dashboard"
 
 export const useDashboard = () => {
   const token = useAuthStore((state) => state.token)
@@ -11,6 +11,13 @@ export const useDashboard = () => {
     useQuery({
       queryKey: ["dashboard-stats"],
       queryFn: dashboardApi.getStats,
+      enabled: !!token,
+    })
+
+  const useStreakHistory = () =>
+    useQuery({
+      queryKey: ["dashboard-streak-history"],
+      queryFn: dashboardApi.getStreakHistory,
       enabled: !!token,
     })
 
@@ -37,6 +44,7 @@ export const useDashboard = () => {
 
   return {
     useStats,
+    useStreakHistory,
     useTodayPlan,
     useScoreProgression,
     useRecentTests,

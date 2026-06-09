@@ -1,45 +1,38 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { useAuthStore } from "@/store/authStore"
-import {
-  Bell,
-  Search,
-  Sun,
-  Moon,
-  TrendingUp,
-  Sparkles,
-  BookOpen,
-} from "lucide-react"
+import { useAuthStore } from '@/store/authStore';
+import { Bell, Search, Sun, Moon, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export function Header() {
-  const { user } = useAuthStore()
-  const [isDark, setIsDark] = React.useState(false)
+  const { user } = useAuthStore();
+  const [isDark, setIsDark] = useState(false);
 
   // Sync theme with document classList
-  React.useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains("dark")
-    setIsDark(isDarkMode)
-  }, [])
+  useEffect(() => {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    setIsDark(isDarkMode);
+  }, []);
 
   const toggleTheme = () => {
     if (isDark) {
-      document.documentElement.classList.remove("dark")
-      localStorage.setItem("theme", "light")
-      setIsDark(false)
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDark(false);
     } else {
-      document.documentElement.classList.add("dark")
-      localStorage.setItem("theme", "dark")
-      setIsDark(true)
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDark(true);
     }
-  }
+  };
 
   return (
-    <header className="glass-panel border-b border-border/40 h-16 sticky top-0 z-20 px-6 flex items-center justify-between">
+    <header className="bg-background/80 backdrop-blur-md border-b border-border/40 h-16 sticky top-0 z-20 px-6 flex items-center justify-between">
       {/* Welcome Title */}
       <div className="flex items-center gap-2">
         <span className="hidden sm:inline-block text-sm text-muted-foreground font-medium">
-          Xin chào, <span className="font-semibold text-foreground">{user?.fullName || "Học Viên"}</span> 👋
+          Xin chào,{' '}
+          <span className="font-semibold text-foreground">{user?.fullName || 'Học Viên'}</span> 👋
         </span>
       </div>
 
@@ -67,7 +60,11 @@ export function Header() {
           className="p-2 rounded-lg hover:bg-secondary/70 text-muted-foreground hover:text-foreground transition-all"
           title="Đổi giao diện"
         >
-          {isDark ? <Sun className="h-5 w-5 text-amber-500 animate-spin-slow" /> : <Moon className="h-5 w-5" />}
+          {isDark ? (
+            <Sun className="h-5 w-5 text-amber-500 animate-spin-slow" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
         </button>
 
         {/* Notifications Indicator */}
@@ -82,10 +79,10 @@ export function Header() {
         {/* User Mini Avatar */}
         <div className="flex items-center gap-2 pl-2 border-l border-border/40">
           <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-cyan-500 flex items-center justify-center text-white font-bold text-xs">
-            {user?.fullName.charAt(0).toUpperCase() || "U"}
+            {user?.fullName.charAt(0).toUpperCase() || 'U'}
           </div>
         </div>
       </div>
     </header>
-  )
+  );
 }

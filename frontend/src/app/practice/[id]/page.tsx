@@ -1,81 +1,139 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { useParams, useRouter } from "next/navigation"
-import { useTests, Question } from "@/hooks/useTests"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
+  Send,
   Clock,
-  Sparkles,
+  BookOpen,
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
-  Send,
   HelpCircle,
-  CheckCircle2,
-  BookOpen,
-} from "lucide-react"
+  Copy,
+  Check,
+} from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import { useTests, Question } from '@/hooks/useTests';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card';
+import {
+  Dialog,
+  DialogTitle,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+  DialogContent,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 export default function TakeExamPage() {
-  const params = useParams()
-  const router = useRouter()
-  const testSetId = params.id as string
+  const params = useParams();
+  const router = useRouter();
+  const testSetId = params.id as string;
 
-  const { useTestSet, useTestQuestions, useSubmitExamMutation } = useTests()
-  const { data: testSet, isLoading: loadingSet } = useTestSet(testSetId)
-  const { data: questions, isLoading: loadingQuestions } = useTestQuestions(testSetId)
-  const submitExamMutation = useSubmitExamMutation(testSetId)
+  const { useTestSet, useTestQuestions, useSubmitExamMutation } = useTests();
+  const { data: testSet, isLoading: loadingSet } = useTestSet(testSetId);
+  const { data: questions, isLoading: loadingQuestions } = useTestQuestions(testSetId);
+  const submitExamMutation = useSubmitExamMutation(testSetId);
 
   // Answers state: { questionId: selectedOption }
-  const [answers, setAnswers] = React.useState<{ [key: string]: string }>({})
-  const [activeQuestionIndex, setActiveQuestionIndex] = React.useState(0)
-  const [timeLeft, setTimeLeft] = React.useState(0) // in seconds
-  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = React.useState(false)
-  const [startTime] = React.useState<number>(Date.now())
+  const [answers, setAnswers] = useState<{ [key: string]: string }>({});
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0); // in seconds
+  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [startTime] = useState<number>(Date.now());
+  const [copied, setCopied] = useState(false);
+  const [copiedOpt, setCopiedOpt] = useState<string | null>(null);
+
+  const handleCopyText = (text: string, label: string) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        setCopiedOpt(label);
+        setTimeout(() => setCopiedOpt(null), 2000);
+      })
+      .catch((err) => {
+        console.error('Không thể sao chép: ', err);
+      });
+  };
+
+  const handleCopyQuestion = () => {
+    if (!currentQuestion) return;
+
+    let textToCopy = '';
+    if (currentQuestion.passage_text) {
+      textToCopy += `[Đoạn văn]\n${currentQuestion.passage_text}\n\n`;
+    }
+    if (currentQuestion.question_text) {
+      textToCopy += `[Câu hỏi]\n${currentQuestion.question_text}\n\n`;
+    }
+
+    if (currentQuestion.options && currentQuestion.options.length > 0) {
+      textToCopy += `[Lựa chọn]\n`;
+      currentQuestion.options.forEach((opt) => {
+        textToCopy += `${opt.label}. ${opt.text}\n`;
+      });
+    }
+
+    navigator.clipboard
+      .writeText(textToCopy.trim())
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch((err) => {
+        console.error('Không thể sao chép: ', err);
+      });
+  };
 
   // Initialize countdown timer (1 minute per question)
-  React.useEffect(() => {
+  useEffect(() => {
     if (questions && questions.length > 0) {
-      setTimeLeft(questions.length * 60)
+      setTimeLeft(questions.length * 60);
     }
-  }, [questions])
+  }, [questions]);
 
   // Timer interval
-  React.useEffect(() => {
-    if (timeLeft <= 0) return
+  useEffect(() => {
+    if (timeLeft <= 0) return;
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          clearInterval(timer)
+          clearInterval(timer);
           // Auto submit when time runs out
-          handleSubmitExam()
-          return 0
+          handleSubmitExam();
+          return 0;
         }
-        return prev - 1
-      })
-    }, 1000)
+        return prev - 1;
+      });
+    }, 1000);
 
-    return () => clearInterval(timer)
-  }, [timeLeft])
+    return () => clearInterval(timer);
+  }, [timeLeft]);
 
   // Select Option
   const handleSelectOption = (questionId: string, option: string) => {
-    setAnswers({ ...answers, [questionId]: option })
-  }
+    setAnswers({ ...answers, [questionId]: option });
+  };
 
   // Calculate duration
   const getDurationMinutes = () => {
-    const end = Date.now()
-    const diff = end - startTime
-    return Math.max(Math.round(diff / 60000), 1)
-  }
+    const end = Date.now();
+    const diff = end - startTime;
+    return Math.max(Math.round(diff / 60000), 1);
+  };
 
   // Submit Exam
   const handleSubmitExam = () => {
-    setIsSubmitDialogOpen(false)
+    setIsSubmitDialogOpen(false);
     submitExamMutation.mutate(
       {
         answers,
@@ -83,19 +141,21 @@ export default function TakeExamPage() {
       },
       {
         onSuccess: (data) => {
+          // Save answers to localStorage for review on results page
+          localStorage.setItem(`toeic-test-answers-${data.resultId}`, JSON.stringify(answers));
           // Redirect to results page, passing the newly created TestResult ID
-          router.push(`/practice/${testSetId}/results?resultId=${data.resultId}`)
+          router.push(`/practice/${testSetId}/results?resultId=${data.resultId}`);
         },
-      }
-    )
-  }
+      },
+    );
+  };
 
   // Format Timer Text
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   if (loadingSet || loadingQuestions) {
     return (
@@ -105,7 +165,7 @@ export default function TakeExamPage() {
           <p className="text-sm text-muted-foreground font-semibold">Đang chuẩn bị đề thi...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!testSet || !questions || questions.length === 0) {
@@ -113,24 +173,44 @@ export default function TakeExamPage() {
       <div className="flex h-screen w-screen flex-col items-center justify-center gap-4 bg-background">
         <HelpCircle className="h-12 w-12 text-muted-foreground" />
         <h4 className="text-lg font-bold">Không tìm thấy đề thi</h4>
-        <Button onClick={() => router.push("/practice")}>Quay lại thư viện</Button>
+        <Button onClick={() => router.push('/practice')}>Quay lại thư viện</Button>
       </div>
-    )
+    );
   }
 
-  const currentQuestion = questions[activeQuestionIndex]
-  const answeredCount = Object.keys(answers).length
+  const currentQuestion = questions[activeQuestionIndex];
+  const answeredCount = Object.keys(answers).length;
+
+  const getPartLabel = (part: string) => {
+    switch (part) {
+      case '1':
+        return 'Photos (Tranh tả cảnh)';
+      case '2':
+        return 'Question-Response (Hỏi & Đáp)';
+      case '3':
+        return 'Conversations (Hội thoại)';
+      case '4':
+        return 'Talks (Bài nói ngắn)';
+      case '5':
+        return 'Incomplete Sentences (Điền câu)';
+      case '6':
+        return 'Text Completion (Điền đoạn văn)';
+      case '7':
+        return 'Reading Comprehension (Đọc hiểu)';
+      default:
+        return 'Practice Test';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      
       {/* Exam Top Header (Fixed) */}
       <div className="glass-panel border-b border-border/40 h-16 sticky top-0 z-30 px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             onClick={() => {
-              if (confirm("Tiến trình thi sẽ bị hủy. Bạn có muốn thoát?")) {
-                router.push("/practice")
+              if (confirm('Tiến trình thi sẽ bị hủy. Bạn có muốn thoát?')) {
+                router.push('/practice');
               }
             }}
             className="p-2 rounded-lg bg-secondary/80 text-muted-foreground hover:text-foreground transition-all"
@@ -139,7 +219,7 @@ export default function TakeExamPage() {
           </button>
           <div>
             <h3 className="font-bold text-sm truncate max-w-xs sm:max-w-md">{testSet.name}</h3>
-            <p className="text-[10px] text-muted-foreground">TOEIC Reading Practice</p>
+            <p className="text-[10px] text-muted-foreground">TOEIC Practice Test</p>
           </div>
         </div>
 
@@ -148,59 +228,258 @@ export default function TakeExamPage() {
           <Clock className="h-4 w-4" />
           <span className="font-mono font-bold text-sm">{formatTime(timeLeft)}</span>
         </div>
+
+        {/* Action Buttons */}
+        <div className="p-2 border-t border-border/40">
+          <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
+            <DialogTrigger className="p-2 inline-flex items-center justify-center gap-2 rounded-md text-sm font-bold transition-all duration-200 bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90 w-full py-2.5 cursor-pointer">
+              <Send className="h-4 w-4" />
+              <span>Nộp bài thi</span>
+            </DialogTrigger>
+            <DialogContent className="glass-panel">
+              <DialogHeader>
+                <DialogTitle>Xác nhận nộp bài thi?</DialogTitle>
+                <DialogDescription>
+                  Bạn đã làm {answeredCount} trên tổng số {questions.length} câu hỏi. Bạn có chắc
+                  chắn muốn nộp bài để xem điểm số?
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="mt-4">
+                <Button variant="ghost" onClick={() => setIsSubmitDialogOpen(false)}>
+                  Làm tiếp
+                </Button>
+                <Button onClick={handleSubmitExam} disabled={submitExamMutation.isPending}>
+                  {submitExamMutation.isPending ? 'Đang chấm điểm...' : 'Nộp bài'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Main layout */}
-      <div className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto grid gap-6 lg:grid-cols-12 items-start">
-        
+      <div className="flex-1 p-2 md:p-4 max-w-7xl w-full mx-auto grid gap-2 lg:grid-cols-12 items-start">
         {/* Left column: Active Question Display */}
-        <div className="lg:col-span-8 space-y-6">
-          <Card className="glass-card border-l-4 border-l-primary">
+        <div className="lg:col-span-9 space-y-6 h-full">
+          <Card className="glass-card border-l-4 border-l-primary h-full justify-between">
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <div>
                 <span className="text-xs font-black uppercase tracking-wider text-primary">
                   Câu hỏi {activeQuestionIndex + 1} / {questions.length}
                 </span>
-                <CardDescription className="text-xs mt-0.5">Part {currentQuestion.part} - Độ khó: {currentQuestion.difficulty}</CardDescription>
+                <CardDescription className="text-xs mt-0.5">
+                  Độ khó: {currentQuestion.difficulty}
+                </CardDescription>
               </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground font-bold">
-                Incomplete Sentences
-              </span>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Question Text */}
-              <div className="text-base font-semibold leading-relaxed p-4 rounded-xl bg-secondary/30 border border-border/20 text-indigo-900 dark:text-indigo-200">
-                {currentQuestion.question_text}
-              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-secondary text-muted-foreground font-bold">
+                  {getPartLabel(currentQuestion.part)}
+                </span>
 
-              {/* Choices (Options) */}
-              <div className="space-y-3">
-                {currentQuestion.options.map((opt) => {
-                  const isSelected = answers[currentQuestion._id] === opt.label
-                  return (
-                    <button
-                      key={opt.label}
-                      onClick={() => handleSelectOption(currentQuestion._id, opt.label)}
-                      className={`flex items-center gap-4 w-full p-4 rounded-xl border text-left transition-all ${
-                        isSelected
-                          ? "border-primary bg-primary/5 text-primary shadow-sm font-semibold"
-                          : "border-border/40 hover:bg-secondary/40 hover:border-border text-foreground"
-                      }`}
-                    >
-                      <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
-                        isSelected
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-secondary text-muted-foreground"
-                      }`}>
-                        {opt.label}
-                      </span>
-                      <span className="text-sm">{opt.text}</span>
-                    </button>
-                  )
-                })}
+                {/* Copy Button */}
+                <button
+                  onClick={handleCopyQuestion}
+                  className="p-1.5 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-all flex items-center gap-1 text-[10px] font-bold border border-border/20 shadow-xs cursor-pointer active:scale-95 animate-fade-in"
+                  title="Sao chép câu hỏi để mang đi dịch"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
+                      <span className="text-emerald-500">Đã chép!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      <span>Sao chép</span>
+                    </>
+                  )}
+                </button>
               </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* If it's a group part with shared passages or media (Part 3, 4, 6, 7) */}
+              {['3', '4', '6', '7'].includes(currentQuestion.part) ? (
+                <div className="flex flex-col gap-5">
+                  {/* Shared Passage / Media */}
+                  <div className="space-y-4 p-4 rounded-xl bg-secondary/20 border border-border/30 max-h-[380px] overflow-y-auto w-full">
+                    <span className="text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 bg-primary/10 text-primary rounded w-fit block">
+                      {['6', '7'].includes(currentQuestion.part)
+                        ? 'Đoạn văn đọc'
+                        : 'Tập tin âm thanh'}
+                    </span>
+
+                    {/* Group Audio Player (Part 3, 4) */}
+                    {(currentQuestion.part === '3' || currentQuestion.part === '4') &&
+                      currentQuestion.audio_url && (
+                        <div className="space-y-1.5">
+                          <audio src={currentQuestion.audio_url} controls className="w-full" />
+                        </div>
+                      )}
+
+                    {/* Group Diagram Image (Part 3, 4, 7) */}
+                    {currentQuestion.image_url && (
+                      <div className="flex justify-center bg-background/50 rounded-lg p-2 border border-border/20">
+                        <img
+                          src={currentQuestion.image_url}
+                          alt="Diagram"
+                          className="max-h-44 object-contain rounded"
+                        />
+                      </div>
+                    )}
+
+                    {/* Group Passage Text (Part 6, 7) */}
+                    {currentQuestion.passage_text && (
+                      <div className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line font-serif pr-2">
+                        {currentQuestion.passage_text}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Question Form Area below */}
+                  <div className="space-y-4 w-full">
+                    {currentQuestion.question_text && (
+                      <div className="text-sm font-semibold leading-relaxed p-3.5 rounded-xl bg-secondary/35 border border-border/20 text-indigo-900 dark:text-indigo-200">
+                        {currentQuestion.question_text}
+                      </div>
+                    )}
+
+                    {/* Options list in 2 columns */}
+                    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                      {currentQuestion.options.map((opt) => {
+                        const isSelected = answers[currentQuestion._id] === opt.label;
+                        return (
+                          <button
+                            key={opt.label}
+                            onClick={() => handleSelectOption(currentQuestion._id, opt.label)}
+                            className={`relative group/opt flex items-center gap-3 w-full p-3 pr-10 rounded-xl border text-left transition-all ${
+                              isSelected
+                                ? 'border-primary bg-primary/5 text-primary shadow-sm font-semibold'
+                                : 'border-border/40 hover:bg-secondary/40 hover:border-border text-foreground'
+                            }`}
+                          >
+                            <span
+                              className={`h-5 w-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                                isSelected
+                                  ? 'bg-primary text-primary-foreground shadow-sm'
+                                  : 'bg-secondary text-muted-foreground'
+                              }`}
+                            >
+                              {opt.label}
+                            </span>
+                            <span className="text-xs mr-2">{opt.text}</span>
+
+                            {/* Copy option button */}
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                handleCopyText(opt.text, opt.label);
+                              }}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground opacity-0 group-hover/opt:opacity-100 transition-all cursor-pointer z-20 active:scale-95"
+                              title={`Sao chép lựa chọn ${opt.label}`}
+                            >
+                              {copiedOpt === opt.label ? (
+                                <Check className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Non-split parts (Part 1, 2, 5) */
+                <div className="space-y-5">
+                  {/* Part 1 Photo and Audio */}
+                  {currentQuestion.part === '1' && (
+                    <div className="space-y-4">
+                      {currentQuestion.image_url && (
+                        <div className="flex justify-center bg-secondary/10 rounded-xl p-3 border border-border/20">
+                          <img
+                            src={currentQuestion.image_url}
+                            alt="Part 1 Photo"
+                            className="max-h-64 object-contain rounded-lg shadow-sm"
+                          />
+                        </div>
+                      )}
+                      {currentQuestion.audio_url && (
+                        <div className="flex justify-center">
+                          <audio
+                            src={currentQuestion.audio_url}
+                            controls
+                            className="w-full max-w-md"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Part 2 Audio */}
+                  {currentQuestion.part === '2' && currentQuestion.audio_url && (
+                    <div className="flex justify-center p-4 bg-secondary/10 rounded-xl border border-border/10">
+                      <audio src={currentQuestion.audio_url} controls className="w-full max-w-md" />
+                    </div>
+                  )}
+
+                  {/* Question Text for Part 5 */}
+                  {currentQuestion.question_text && (
+                    <div className="text-base font-semibold leading-relaxed p-4 rounded-xl bg-secondary/30 border border-border/20 text-indigo-900 dark:text-indigo-200">
+                      {currentQuestion.question_text}
+                    </div>
+                  )}
+
+                  {/* Options */}
+                  <div className="space-y-3">
+                    {currentQuestion.options.map((opt) => {
+                      const isSelected = answers[currentQuestion._id] === opt.label;
+                      return (
+                        <button
+                          key={opt.label}
+                          onClick={() => handleSelectOption(currentQuestion._id, opt.label)}
+                          className={`relative group/opt flex items-center gap-4 w-full p-4 pr-10 rounded-xl border text-left transition-all ${
+                            isSelected
+                              ? 'border-primary bg-primary/5 text-primary shadow-sm font-semibold'
+                              : 'border-border/40 hover:bg-secondary/40 hover:border-border text-foreground'
+                          }`}
+                        >
+                          <span
+                            className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                              isSelected
+                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                : 'bg-secondary text-muted-foreground'
+                            }`}
+                          >
+                            {opt.label}
+                          </span>
+                          <span className="text-sm mr-2">{opt.text}</span>
+
+                          {/* Copy option button */}
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              handleCopyText(opt.text, opt.label);
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground opacity-0 group-hover/opt:opacity-100 transition-all cursor-pointer z-20 active:scale-95"
+                            title={`Sao chép lựa chọn ${opt.label}`}
+                          >
+                            {copiedOpt === opt.label ? (
+                              <Check className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5" />
+                            )}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </CardContent>
-            
+
             {/* Question footer navigator */}
             <CardFooter className="flex justify-between border-t border-border/40 pt-4">
               <Button
@@ -226,8 +505,8 @@ export default function TakeExamPage() {
         </div>
 
         {/* Right column: Sticky Navigator Widget */}
-        <div className="lg:col-span-4 sticky top-24">
-          <Card className="glass-card">
+        <div className="lg:col-span-3 sticky top-24 h-full">
+          <Card className="glass-card h-full">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-primary" />
@@ -237,64 +516,33 @@ export default function TakeExamPage() {
                 Hoàn thành {answeredCount} / {questions.length} câu hỏi.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 h-full flex flex-col justify-between">
               {/* Question Number Grid */}
-              <div className="grid grid-cols-5 sm:grid-cols-8 lg:grid-cols-5 gap-2 max-h-[220px] overflow-y-auto pr-1">
+              <div className="flex flex-wrap gap-2">
                 {questions.map((q, index) => {
-                  const isAnswered = !!answers[q._id]
-                  const isActive = activeQuestionIndex === index
+                  const isAnswered = !!answers[q._id];
+                  const isActive = activeQuestionIndex === index;
                   return (
                     <button
                       key={q._id}
                       onClick={() => setActiveQuestionIndex(index)}
-                      className={`h-9 rounded-lg text-xs font-bold transition-all ${
+                      className={`h-9 w-9 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
                         isActive
-                          ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105"
+                          ? 'bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105'
                           : isAnswered
-                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/35"
-                          : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/35'
+                            : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
                       }`}
                     >
                       {index + 1}
                     </button>
-                  )
+                  );
                 })}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-3 pt-4 border-t border-border/40">
-                <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
-                  <DialogTrigger className="inline-flex items-center justify-center gap-2 rounded-md text-sm font-bold transition-all duration-200 bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90 w-full py-2.5 cursor-pointer">
-                    <Send className="h-4 w-4" />
-                    <span>Nộp bài thi</span>
-                  </DialogTrigger>
-                  <DialogContent className="glass-panel">
-                    <DialogHeader>
-                      <DialogTitle>Xác nhận nộp bài thi?</DialogTitle>
-                      <DialogDescription>
-                        Bạn đã làm {answeredCount} trên tổng số {questions.length} câu hỏi. Bạn có chắc chắn muốn nộp bài để xem điểm số?
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="mt-4">
-                      <Button variant="ghost" onClick={() => setIsSubmitDialogOpen(false)}>
-                        Làm tiếp
-                      </Button>
-                      <Button onClick={handleSubmitExam} disabled={submitExamMutation.isPending}>
-                        {submitExamMutation.isPending ? "Đang chấm điểm..." : "Nộp bài"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-
-                <p className="text-[10px] text-center text-muted-foreground leading-normal">
-                  Đề thi tự động nộp khi bộ đếm ngược kết thúc. Vui lòng kiểm tra kỹ đáp án.
-                </p>
               </div>
             </CardContent>
           </Card>
         </div>
-
       </div>
     </div>
-  )
+  );
 }

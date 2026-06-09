@@ -31,12 +31,12 @@ export const useQuestions = () => {
     })
 
   // Update question mutation (Admin only)
-  const useUpdateQuestionMutation = (id: string) =>
+  const useUpdateQuestionMutation = () =>
     useMutation({
-      mutationFn: (data: any) => questionsApi.updateQuestion(id, data),
-      onSuccess: () => {
+      mutationFn: ({ id, data }: { id: string; data: any }) => questionsApi.updateQuestion(id, data),
+      onSuccess: (res, variables) => {
         queryClient.invalidateQueries({ queryKey: ["questions"] })
-        queryClient.invalidateQueries({ queryKey: ["test", id] })
+        queryClient.invalidateQueries({ queryKey: ["test", variables.id] })
         queryClient.invalidateQueries({ queryKey: ["test-questions"] })
       },
     })

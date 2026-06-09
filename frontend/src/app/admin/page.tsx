@@ -1,14 +1,5 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { DashboardLayout } from "@/components/layout/DashboardLayout"
-import { useAuthStore } from "@/store/authStore"
-import { useQuestions } from "@/hooks/useQuestions"
-import { useTests } from "@/hooks/useTests"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   ShieldCheck,
   PlusCircle,
@@ -17,61 +8,96 @@ import {
   Trash2,
   CheckCircle2,
   AlertCircle,
-  ArrowRight,
   ExternalLink,
-} from "lucide-react"
-import { useEffect, useState } from "react"
+} from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+import { useTests } from '@/hooks/useTests';
+import { useAuthStore } from '@/store/authStore';
+import { useQuestions } from '@/hooks/useQuestions';
 
 export default function AdminPage() {
-  const router = useRouter()
-  const { user } = useAuthStore()
+  const router = useRouter();
+  const { user } = useAuthStore();
 
   // Protect page
   useEffect(() => {
-    if (user && user.role !== "admin") {
-      router.push("/dashboard")
+    if (user && user.role !== 'admin') {
+      router.push('/dashboard');
     }
-  }, [user, router])
+  }, [user, router]);
 
-  const { useTestSets } = useTests()
-  const { useFetchQuestions, useDeleteQuestionMutation } = useQuestions()
+  const { useTestSets, useDeleteTestSetMutation } = useTests();
+  const { useFetchQuestions, useDeleteQuestionMutation } = useQuestions();
 
-  const { data: testSets, isLoading: loadingTests } = useTestSets()
-  const { data: questionsData, isLoading: loadingQuestions } = useFetchQuestions({ page: 1, limit: 100 })
-  const deleteQuestionMutation = useDeleteQuestionMutation()
+  const { data: testSets, isLoading: loadingTests } = useTestSets();
+  const { data: questionsData, isLoading: loadingQuestions } = useFetchQuestions({
+    page: 1,
+    limit: 100,
+  });
+  const deleteQuestionMutation = useDeleteQuestionMutation();
+  const deleteTestSetMutation = useDeleteTestSetMutation();
 
-  const [successMsg, setSuccessMsg] = useState<string | null>(null)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleDeleteQuestion = (id: string) => {
-    if (confirm("Bạn có chắc chắn muốn xóa câu hỏi này khỏi cơ sở dữ liệu?")) {
+    if (confirm('Bạn có chắc chắn muốn xóa câu hỏi này khỏi cơ sở dữ liệu?')) {
       deleteQuestionMutation.mutate(id, {
         onSuccess: () => {
-          setSuccessMsg("Xóa câu hỏi thành công!")
-          setTimeout(() => setSuccessMsg(null), 3000)
+          setSuccessMsg('Xóa câu hỏi thành công!');
+          setTimeout(() => setSuccessMsg(null), 3000);
         },
         onError: (err: any) => {
-          setErrorMsg(err.response?.data?.message || "Xóa câu hỏi thất bại.")
-          setTimeout(() => setErrorMsg(null), 3000)
+          setErrorMsg(err.response?.data?.message || 'Xóa câu hỏi thất bại.');
+          setTimeout(() => setErrorMsg(null), 3000);
         },
-      })
+      });
     }
-  }
+  };
 
-  if (user && user.role !== "admin") {
-    return null
+  const handleDeleteTestSet = (id: string) => {
+    if (confirm('Bạn có chắc chắn muốn xóa toàn bộ đề thi này? Mọi câu hỏi và kết quả thi liên quan cũng sẽ bị xóa vĩnh viễn!')) {
+      deleteTestSetMutation.mutate(id, {
+        onSuccess: () => {
+          setSuccessMsg('Xóa đề thi thành công!');
+          setTimeout(() => setSuccessMsg(null), 3000);
+        },
+        onError: (err: any) => {
+          setErrorMsg(err.response?.data?.message || 'Xóa đề thi thất bại.');
+          setTimeout(() => setErrorMsg(null), 3000);
+        },
+      });
+    }
+  };
+
+  if (user && user.role !== 'admin') {
+    return null;
   }
 
   return (
     <DashboardLayout>
       <div className="space-y-8">
-
         {/* Title greeting */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
-              <span className="text-gradient">Cổng Quản Trị</span>
               <ShieldCheck className="h-7 w-7 text-primary" />
+              <span className="text-gradient">Cổng Quản Trị</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Quản lý đề thi thử TOEIC, danh sách câu hỏi trắc nghiệm và thống kê nội dung học tập.
@@ -104,41 +130,52 @@ export default function AdminPage() {
         <div className="grid gap-6 sm:grid-cols-3">
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-sans">Tổng Số Đề Thi</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-sans">
+                Tổng Số Đề Thi
+              </span>
               <Layers className="h-5 w-5 text-indigo-500" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-black">{testSets?.length || 0}</div>
-              <p className="text-[10px] text-muted-foreground mt-1">Đề thi thử TOEIC kỹ năng Reading</p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Đề thi thử TOEIC kỹ năng Reading
+              </p>
             </CardContent>
           </Card>
 
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tổng Số Câu Hỏi</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Tổng Số Câu Hỏi
+              </span>
               <HelpCircle className="h-5 w-5 text-teal-500" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-black">{questionsData?.total || 0}</div>
-              <p className="text-[10px] text-muted-foreground mt-1">Câu hỏi trắc nghiệm trong thư viện</p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Câu hỏi trắc nghiệm trong thư viện
+              </p>
             </CardContent>
           </Card>
 
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phân Nhóm TOEIC</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Phân Nhóm TOEIC
+              </span>
               <ShieldCheck className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-black">Part 5, 6, 7</div>
-              <p className="text-[10px] text-muted-foreground mt-1">Các phần của đề đọc hiểu TOEIC</p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Các phần của đề đọc hiểu TOEIC
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Two Sections Layout: Test Sets Table and Questions Table */}
         <div className="grid gap-6 lg:grid-cols-12">
-
           {/* Test Sets Table (Admin list) */}
           <Card className="lg:col-span-4 glass-card flex flex-col">
             <CardHeader>
@@ -159,17 +196,37 @@ export default function AdminPage() {
                       className="p-3 rounded-lg border border-border/40 bg-secondary/20 flex items-center justify-between"
                     >
                       <div className="min-w-0">
-                        <h5 className="font-bold text-xs truncate" title={set.name}>{set.name}</h5>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">{set.total_questions} câu hỏi</p>
+                        <h5 className="font-bold text-xs truncate" title={set.name}>
+                          {set.name}
+                        </h5>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          {set.total_questions} câu hỏi
+                        </p>
                       </div>
-                      <Link href="/practice" className="p-1 text-primary hover:bg-primary/10 rounded transition-all shrink-0">
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </Link>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Link
+                          href={`/admin/tests/${set._id}`}
+                          className="p-1 text-primary hover:bg-primary/10 rounded transition-all"
+                          title="Xem chi tiết đề thi"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteTestSet(set._id)}
+                          disabled={deleteTestSetMutation.isPending}
+                          className="p-1 text-destructive hover:bg-destructive/10 rounded transition-all cursor-pointer"
+                          title="Xóa đề thi"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6 text-xs text-muted-foreground">Chưa có đề thi nào.</div>
+                <div className="text-center py-6 text-xs text-muted-foreground">
+                  Chưa có đề thi nào.
+                </div>
               )}
             </CardContent>
           </Card>
@@ -181,7 +238,9 @@ export default function AdminPage() {
                 <HelpCircle className="h-4 w-4 text-primary" />
                 <span>Thư Viện Câu Hỏi Trắc Nghiệm</span>
               </CardTitle>
-              <CardDescription>Danh sách các câu hỏi trắc nghiệm đã lưu trên hệ thống.</CardDescription>
+              <CardDescription>
+                Danh sách các câu hỏi trắc nghiệm đã lưu trên hệ thống.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {loadingQuestions ? (
@@ -205,14 +264,19 @@ export default function AdminPage() {
                           <TableCell className="text-xs max-w-sm truncate" title={q.question_text}>
                             {q.question_text}
                           </TableCell>
-                          <TableCell className="font-bold text-xs text-emerald-600">{q.correct_answer}</TableCell>
+                          <TableCell className="font-bold text-xs text-emerald-600">
+                            {q.correct_answer}
+                          </TableCell>
                           <TableCell className="text-xs">
-                            <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${q.difficulty === "easy"
-                                ? "bg-emerald-500/10 text-emerald-500"
-                                : q.difficulty === "medium"
-                                  ? "bg-amber-500/10 text-amber-500"
-                                  : "bg-destructive/10 text-destructive"
-                              }`}>
+                            <span
+                              className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
+                                q.difficulty === 'easy'
+                                  ? 'bg-emerald-500/10 text-emerald-500'
+                                  : q.difficulty === 'medium'
+                                    ? 'bg-amber-500/10 text-amber-500'
+                                    : 'bg-destructive/10 text-destructive'
+                              }`}
+                            >
                               {q.difficulty}
                             </span>
                           </TableCell>
@@ -235,14 +299,15 @@ export default function AdminPage() {
                 <div className="text-center py-10 border border-dashed border-border rounded-lg bg-secondary/15 flex flex-col items-center justify-center">
                   <HelpCircle className="h-10 w-10 text-muted-foreground/60 mb-2" />
                   <h5 className="font-semibold text-sm">Chưa có câu hỏi nào</h5>
-                  <p className="text-xs text-muted-foreground mt-1">Nhấp nút bên phải để bắt đầu soạn câu hỏi.</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Nhấp nút bên phải để bắt đầu soạn câu hỏi.
+                  </p>
                 </div>
               )}
             </CardContent>
           </Card>
-
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

@@ -48,73 +48,114 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ==========================================
+   🎨 CONFIGURABLE BRAND THEME
+   Thay đổi các giá trị ở đây để tùy chỉnh giao diện
+   ========================================== */
 :root {
-  --background: oklch(0.985 0.008 240);
-  --foreground: oklch(0.141 0.018 240);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.018 240);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.018 240);
-  --primary: oklch(0.585 0.233 264.38);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.92 0.015 240);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.96 0.01 240);
-  --muted-foreground: oklch(0.45 0.015 240);
-  --accent: oklch(0.92 0.04 200);
-  --accent-foreground: oklch(0.15 0.04 200);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0.008 240);
-  --input: oklch(0.922 0.008 240);
-  --ring: oklch(0.585 0.233 264.38 / 50%);
-  --chart-1: oklch(0.585 0.233 264.38);
-  --chart-2: oklch(0.65 0.18 200);
-  --chart-3: oklch(0.75 0.15 150);
-  --chart-4: oklch(0.85 0.1 100);
-  --chart-5: oklch(0.95 0.05 50);
+  /* Brand Theme Colors */
+  --brand-primary: #6366f1;                 /* Màu chính (Indigo 500) */
+  --brand-accent: #0ea5e9;                  /* Màu nhấn phụ (Sky 500) */
+  --brand-success: #10b981;                 /* Màu trạng thái thành công (Emerald 500) */
+  --brand-warning: #f59e0b;                 /* Màu trạng thái cảnh báo (Amber 500) */
+  --brand-danger: #ef4444;                  /* Màu trạng thái lỗi/nguy hiểm (Red 500) */
+
+  /* Light Theme UI variables */
+  --background: #f8fafc;                    /* Nền ứng dụng (Slate 50) */
+  --foreground: #0f172a;                    /* Màu chữ chính (Slate 900) */
+  
+  --card: #ffffff;                          /* Nền của Card/Box */
+  --card-foreground: #0f172a;               /* Chữ trong Card */
+  
+  --popover: #ffffff;                       /* Nền của Dropdown/Tooltip/Modal */
+  --popover-foreground: #0f172a;            /* Chữ trong Dropdown/Tooltip/Modal */
+  
+  --primary: var(--brand-primary);          
+  --primary-foreground: #ffffff;            /* Chữ trên nền màu chính */
+  
+  --secondary: #f1f5f9;                     /* Nền phụ (Slate 100) */
+  --secondary-foreground: #0f172a;          /* Chữ trên nền phụ */
+  
+  --muted: #f8fafc;                         
+  --muted-foreground: #64748b;              /* Màu chữ nhạt (Slate 500) */
+  
+  --accent: #e0f2fe;                        /* Màu nhấn nền (Sky 100) */
+  --accent-foreground: #0369a1;             /* Màu nhấn chữ (Sky 700) */
+  
+  --destructive: var(--brand-danger);       
+  --destructive-foreground: #ffffff;
+  
+  --border: #e2e8f0;                        /* Đường viền (Slate 200) */
+  --input: #e2e8f0;                         /* Đường viền ô nhập liệu */
+  --ring: rgba(99, 102, 241, 0.4);          /* Viền focus (Indigo 500 40%) */
+  
+  --chart-1: var(--brand-primary);
+  --chart-2: var(--brand-accent);
+  --chart-3: var(--brand-success);
+  --chart-4: var(--brand-warning);
+  --chart-5: #ec4899;
+  
   --radius: 0.75rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.585 0.233 264.38);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Sidebar styling */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: var(--brand-primary);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f8fafc;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: rgba(99, 102, 241, 0.4);
 }
 
 .dark {
-  --background: oklch(0.105 0.015 240);
-  --foreground: oklch(0.985 0.005 240);
-  --card: oklch(0.135 0.015 240);
-  --card-foreground: oklch(0.985 0.005 240);
-  --popover: oklch(0.135 0.015 240);
-  --popover-foreground: oklch(0.985 0.005 240);
-  --primary: oklch(0.685 0.21 264.38);
-  --primary-foreground: oklch(0.105 0.015 240);
-  --secondary: oklch(0.18 0.015 240);
-  --secondary-foreground: oklch(0.985 0.005 240);
-  --muted: oklch(0.18 0.015 240);
-  --muted-foreground: oklch(0.65 0.01 240);
-  --accent: oklch(0.22 0.04 200);
-  --accent-foreground: oklch(0.95 0.04 200);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.22 0.015 240);
-  --input: oklch(0.22 0.015 240);
-  --ring: oklch(0.685 0.21 264.38 / 50%);
-  --chart-1: oklch(0.685 0.21 264.38);
-  --chart-2: oklch(0.7 0.15 200);
-  --chart-3: oklch(0.78 0.12 150);
-  --chart-4: oklch(0.85 0.08 100);
-  --chart-5: oklch(0.92 0.05 50);
-  --sidebar: oklch(0.135 0.015 240);
-  --sidebar-foreground: oklch(0.985 0.005 240);
-  --sidebar-primary: oklch(0.685 0.21 264.38);
-  --sidebar-primary-foreground: oklch(0.105 0.015 240);
-  --sidebar-accent: oklch(0.18 0.015 240);
-  --sidebar-accent-foreground: oklch(0.985 0.005 240);
-  --sidebar-border: oklch(0.22 0.015 240);
-  --sidebar-ring: oklch(0.685 0.21 264.38);
+  /* Brand Theme Colors for Dark Mode */
+  --brand-primary: #818cf8;                 /* Màu chính Dark Mode (Indigo 400) */
+  --brand-accent: #38bdf8;                  /* Màu nhấn phụ Dark Mode (Sky 400) */
+  
+  /* Dark Theme UI variables */
+  --background: #0f172a;                    /* Nền ứng dụng tối (Slate 900) */
+  --foreground: #f8fafc;                    /* Màu chữ sáng (Slate 50) */
+  
+  --card: #1e293b;                          /* Nền của Card/Box tối (Slate 800) */
+  --card-foreground: #f8fafc;
+  
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  
+  --primary: var(--brand-primary);
+  --primary-foreground: #0f172a;
+  
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;              /* Chữ nhạt chế độ tối (Slate 400) */
+  
+  --accent: #0c4a6e;                        /* Nền nhấn tối (Sky 900) */
+  --accent-foreground: #e0f2fe;             /* Chữ nhấn tối (Sky 100) */
+  
+  --destructive: #f87171;                   /* Đỏ sáng hơn cho Dark Mode */
+  --destructive-foreground: #0f172a;
+  
+  --border: #334155;                        /* Đường viền tối (Slate 700) */
+  --input: #334155;
+  --ring: rgba(129, 140, 248, 0.4);
+  
+  --chart-1: var(--brand-primary);
+  --chart-2: var(--brand-accent);
+  --chart-3: var(--brand-success);
+  --chart-4: var(--brand-warning);
+  --chart-5: #f472b6;
+  
+  --sidebar: #1e293b;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: var(--brand-primary);
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #334155;
+  --sidebar-ring: rgba(129, 140, 248, 0.4);
 }
 
 @layer base {
@@ -135,7 +176,8 @@
 
 /* Glassmorphism custom classes */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.45);
+  /* background: rgba(255, 255, 255, 0.45); */
+  background: rgb(241, 242, 246);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -152,7 +194,7 @@
   background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.03);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

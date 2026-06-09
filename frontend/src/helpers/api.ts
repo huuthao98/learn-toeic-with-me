@@ -1,6 +1,18 @@
 import axios from "axios"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
+let API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
+
+if (typeof window !== "undefined") {
+  try {
+    if (API_URL.startsWith("http://") || API_URL.startsWith("https://")) {
+      const urlObj = new URL(API_URL)
+      urlObj.hostname = window.location.hostname
+      API_URL = urlObj.toString()
+    }
+  } catch (e) {
+    console.error("Failed to parse API_URL dynamically:", e)
+  }
+}
 
 export const api = axios.create({
   baseURL: API_URL,

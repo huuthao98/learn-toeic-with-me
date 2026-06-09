@@ -20,6 +20,8 @@ export interface Question {
   explanation?: string
   audio_url?: string
   image_url?: string
+  group_id?: string
+  passage_text?: string
   status: string
 }
 
@@ -46,6 +48,14 @@ export const testsApi = {
   },
   createTestSet: async (data: { name: string; description?: string; total_questions?: number; parts_count?: number }) => {
     const response = await api.post<TestSet>("/tests/admin/create", data)
+    return response.data
+  },
+  updateTestSet: async (id: string, data: { name: string; description?: string }) => {
+    const response = await api.patch<TestSet>(`/tests/admin/${id}`, data)
+    return response.data
+  },
+  deleteTestSet: async (id: string) => {
+    const response = await api.delete<any>(`/tests/admin/${id}`)
     return response.data
   },
 }

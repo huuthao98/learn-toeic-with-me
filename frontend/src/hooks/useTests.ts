@@ -62,6 +62,26 @@ export const useTests = () => {
       },
     })
 
+  // Update a test set (Admin only)
+  const useUpdateTestSetMutation = (id: string) =>
+    useMutation({
+      mutationFn: (data: { name: string; description?: string }) =>
+        testsApi.updateTestSet(id, data),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["tests"] })
+        queryClient.invalidateQueries({ queryKey: ["test", id] })
+      },
+    })
+
+  // Delete a test set (Admin only)
+  const useDeleteTestSetMutation = () =>
+    useMutation({
+      mutationFn: testsApi.deleteTestSet,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["tests"] })
+      },
+    })
+
   return {
     useTestSets,
     useTestSet,
@@ -69,5 +89,7 @@ export const useTests = () => {
     useTestResult,
     useSubmitExamMutation,
     useCreateTestSetMutation,
+    useUpdateTestSetMutation,
+    useDeleteTestSetMutation,
   }
 }

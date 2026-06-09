@@ -1,12 +1,18 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import Link from "next/link"
-import { DashboardLayout } from "@/components/layout/DashboardLayout"
-import { useDashboard } from "@/hooks/useDashboard"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import Link from 'next/link';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useDashboard } from '@/hooks/useDashboard';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {
   Flame,
   Award,
@@ -17,7 +23,7 @@ import {
   Clock,
   ArrowUpRight,
   BookOpen,
-} from "lucide-react"
+} from 'lucide-react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -26,41 +32,41 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-} from "recharts"
+} from 'recharts';
+import { useEffect, useState } from 'react';
 
 export default function DashboardPage() {
-  const { useStats, useTodayPlan, useScoreProgression, useRecentTests } = useDashboard()
+  const { useStats, useTodayPlan, useScoreProgression, useRecentTests } = useDashboard();
 
-  const { data: stats, isLoading: statsLoading } = useStats()
-  const { data: todayPlan, isLoading: planLoading } = useTodayPlan()
-  const { data: progression, isLoading: chartLoading } = useScoreProgression()
-  const { data: recentTests, isLoading: testsLoading } = useRecentTests()
+  const { data: stats, isLoading: statsLoading } = useStats();
+  const { data: todayPlan, isLoading: planLoading } = useTodayPlan();
+  const { data: progression, isLoading: chartLoading } = useScoreProgression();
+  const { data: recentTests, isLoading: testsLoading } = useRecentTests();
 
-  const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const targetProgress = stats
     ? Math.min(Math.round((stats.estimatedScore / stats.targetScore) * 100), 100)
-    : 0
+    : 0;
 
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        
         {/* Title greeting */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
-              <span className="text-gradient">Bảng Điều Khiển</span>
               <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+              <span className="text-gradient">Bảng điều khiển</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Theo dõi kết quả thi thử TOEIC, chỉ số chuyên cần và lộ trình ôn luyện mỗi ngày.
             </p>
           </div>
-          
+
           <Link href="/practice">
             <Button className="font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 group">
               <span>Vào thi thử ngay</span>
@@ -74,7 +80,9 @@ export default function DashboardPage() {
           {/* Estimated Score */}
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Điểm TOEIC Dự Tính</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Điểm TOEIC Dự Tính
+              </span>
               <Award className="h-5 w-5 text-indigo-500" />
             </CardHeader>
             <CardContent>
@@ -94,7 +102,9 @@ export default function DashboardPage() {
           {/* Daily Streak */}
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Chuỗi Ngày Học</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Chuỗi Ngày Học
+              </span>
               <Flame className="h-5 w-5 text-orange-500 animate-bounce" />
             </CardHeader>
             <CardContent>
@@ -117,7 +127,9 @@ export default function DashboardPage() {
           {/* Target Score */}
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Mục Tiêu Luyện Thi</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Mục Tiêu Luyện Thi
+              </span>
               <Target className="h-5 w-5 text-teal-500" />
             </CardHeader>
             <CardContent>
@@ -125,10 +137,15 @@ export default function DashboardPage() {
                 <div className="h-8 w-24 bg-secondary/80 animate-pulse rounded" />
               ) : (
                 <div className="space-y-2">
-                  <div className="text-3xl font-black text-teal-500">{stats?.targetScore || 800}đ</div>
+                  <div className="text-3xl font-black text-teal-500">
+                    {stats?.targetScore || 800}đ
+                  </div>
                   <div className="space-y-1">
                     <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                      <div className="h-full bg-teal-500 rounded-full" style={{ width: `${targetProgress}%` }} />
+                      <div
+                        className="h-full bg-teal-500 rounded-full"
+                        style={{ width: `${targetProgress}%` }}
+                      />
                     </div>
                     <div className="flex justify-between text-[9px] text-muted-foreground font-semibold">
                       <span>Đạt {targetProgress}% mục tiêu</span>
@@ -142,7 +159,9 @@ export default function DashboardPage() {
           {/* Today's study tasks summary */}
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nhiệm Vụ Hôm Nay</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Nhiệm Vụ Hôm Nay
+              </span>
               <CalendarDays className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
@@ -151,13 +170,13 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-1">
                   <div className="text-3xl font-black">
-                    {todayPlan?.filter(p => p.status === "completed").length || 0}/
+                    {todayPlan?.filter((p) => p.status === 'completed').length || 0}/
                     {todayPlan?.length || 0}
                   </div>
                   <p className="text-[10px] text-muted-foreground">
                     {todayPlan && todayPlan.length > 0
-                      ? `Bạn còn ${todayPlan.filter(p => p.status !== "completed").length} nhiệm vụ ôn thi`
-                      : "Không có kế hoạch cho hôm nay"}
+                      ? `Bạn còn ${todayPlan.filter((p) => p.status !== 'completed').length} nhiệm vụ ôn thi`
+                      : 'Không có kế hoạch cho hôm nay'}
                   </p>
                 </div>
               )}
@@ -174,7 +193,9 @@ export default function DashboardPage() {
                 <TrendingUp className="h-4 w-4 text-primary" />
                 <span>Biểu Đồ Tiến Trình Điểm</span>
               </CardTitle>
-              <CardDescription>Biến động điểm TOEIC dự toán qua 10 bài thi gần nhất.</CardDescription>
+              <CardDescription>
+                Biến động điểm TOEIC dự toán qua 10 bài thi gần nhất.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px] w-full pt-4">
@@ -184,16 +205,19 @@ export default function DashboardPage() {
                   </div>
                 ) : progression && progression.length > 0 && mounted ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={progression} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                    <LineChart
+                      data={progression}
+                      margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
                       <XAxis dataKey="date" fontSize={11} stroke="var(--muted-foreground)" />
                       <YAxis domain={[0, 990]} fontSize={11} stroke="var(--muted-foreground)" />
                       <Tooltip
                         contentStyle={{
-                          background: "var(--card)",
-                          borderColor: "var(--border)",
-                          borderRadius: "8px",
-                          fontSize: "12px",
+                          background: 'var(--card)',
+                          borderColor: 'var(--border)',
+                          borderRadius: '8px',
+                          fontSize: '12px',
                         }}
                       />
                       <Line
@@ -210,7 +234,9 @@ export default function DashboardPage() {
                   <div className="h-full w-full flex flex-col items-center justify-center text-center p-6 border border-dashed border-border rounded-lg bg-secondary/15">
                     <TrendingUp className="h-10 w-10 text-muted-foreground/60 mb-2" />
                     <h5 className="font-semibold text-sm">Chưa có lịch sử làm bài</h5>
-                    <p className="text-xs text-muted-foreground mt-1">Luyện tập thi thử để vẽ biểu đồ theo dõi tiến độ học.</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Luyện tập thi thử để vẽ biểu đồ theo dõi tiến độ học.
+                    </p>
                   </div>
                 )}
               </div>
@@ -247,12 +273,12 @@ export default function DashboardPage() {
                       </div>
                       <span
                         className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${
-                          item.status === "completed"
-                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                            : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                          item.status === 'completed'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
                         }`}
                       >
-                        {item.status === "completed" ? "Đã xong" : "Chưa làm"}
+                        {item.status === 'completed' ? 'Đã xong' : 'Chưa làm'}
                       </span>
                     </div>
                   ))}
@@ -261,7 +287,9 @@ export default function DashboardPage() {
                 <div className="h-full flex flex-col items-center justify-center text-center py-8 px-4 border border-dashed border-border rounded-lg bg-secondary/15">
                   <CalendarDays className="h-8 w-8 text-muted-foreground/60 mb-2" />
                   <h5 className="font-semibold text-sm">Tất cả nhiệm vụ đã xong</h5>
-                  <p className="text-xs text-muted-foreground mt-1">Hôm nay không có nhiệm vụ cụ thể. Bạn có thể tự do luyện đề thi.</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Hôm nay không có nhiệm vụ cụ thể. Bạn có thể tự do luyện đề thi.
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -278,7 +306,10 @@ export default function DashboardPage() {
               </CardTitle>
               <CardDescription>Lịch sử 5 bài thi thử TOEIC bạn làm gần đây nhất.</CardDescription>
             </div>
-            <Link href="/profile" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+            <Link
+              href="/profile"
+              className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+            >
               <span>Xem tất cả</span>
               <ArrowUpRight className="h-3 w-3" />
             </Link>
@@ -306,13 +337,13 @@ export default function DashboardPage() {
                     {recentTests.map((test) => (
                       <TableRow key={test._id} className="hover:bg-secondary/20">
                         <TableCell className="font-bold">
-                          {test.test_sets?.name || "Đề luyện thi TOEIC"}
+                          {test.test_sets?.name || 'Đề luyện thi TOEIC'}
                         </TableCell>
                         <TableCell className="text-muted-foreground text-xs">
-                          {new Date(test.createdAt).toLocaleDateString("vi-VN", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
+                          {new Date(test.createdAt).toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
                           })}
                         </TableCell>
                         <TableCell className="text-muted-foreground text-xs">
@@ -336,12 +367,14 @@ export default function DashboardPage() {
               <div className="text-center py-8 border border-dashed border-border rounded-lg bg-secondary/15 flex flex-col items-center justify-center">
                 <BookOpen className="h-8 w-8 text-muted-foreground/60 mb-2" />
                 <h5 className="font-semibold text-sm">Chưa có bài thi nào</h5>
-                <p className="text-xs text-muted-foreground mt-1">Hãy bắt đầu làm bài kiểm tra thử đầu tiên của bạn.</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Hãy bắt đầu làm bài kiểm tra thử đầu tiên của bạn.
+                </p>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
     </DashboardLayout>
-  )
+  );
 }

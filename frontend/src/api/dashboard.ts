@@ -39,9 +39,19 @@ export interface RecentTestResult {
   }
 }
 
+export interface StreakHistory {
+  streak: number
+  longestStreak: number
+  activeDates: string[]
+}
+
 export const dashboardApi = {
   getStats: async () => {
     const response = await api.get<DashboardStats>("/dashboard/stats")
+    return response.data
+  },
+  getStreakHistory: async () => {
+    const response = await api.get<StreakHistory>("/dashboard/streak-history")
     return response.data
   },
   getTodayPlan: async () => {

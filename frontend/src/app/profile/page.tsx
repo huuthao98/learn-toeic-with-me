@@ -1,103 +1,106 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { DashboardLayout } from "@/components/layout/DashboardLayout"
-import { useAuthStore } from "@/store/authStore"
-import { useDashboard } from "@/hooks/useDashboard"
-import { useTests } from "@/hooks/useTests"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
 import {
   User,
-  CalendarDays,
-  History,
-  ShieldCheck,
-  Flame,
-  Award,
-  BookOpen,
   Mail,
   Phone,
-  Sparkles,
+  Flame,
+  Award,
+  History,
   Layers,
+  BookOpen,
   ArrowRight,
-} from "lucide-react"
+  CalendarDays,
+} from 'lucide-react';
+import { useMemo } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { useTests } from '@/hooks/useTests';
+import { useAuthStore } from '@/store/authStore';
+import { Button } from '@/components/ui/button';
+import { useDashboard } from '@/hooks/useDashboard';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 export default function ProfilePage() {
-  const router = useRouter()
-  const { user } = useAuthStore()
+  const router = useRouter();
+  const { user } = useAuthStore();
 
-  const { useRecentTests, useStats } = useDashboard()
-  const { useTestSets } = useTests()
+  const { useRecentTests, useStats, useStreakHistory } = useDashboard();
+  const { useTestSets } = useTests();
 
-  const { data: recentTests, isLoading: loadingHistory } = useRecentTests()
-  const { data: stats, isLoading: loadingStats } = useStats()
-  const { data: testSets, isLoading: loadingTests } = useTestSets()
-
-  const isAdmin = user?.role === "admin"
+  const { data: recentTests, isLoading: loadingHistory } = useRecentTests();
+  const { data: stats, isLoading: loadingStats } = useStats();
+  const { data: streakHistory } = useStreakHistory();
+  const { data: testSets, isLoading: loadingTests } = useTestSets();
+  const isAdmin = user?.role === 'admin';
 
   // Generate Check-in Heatmap Cells for the current month
-  const heatmapDays = React.useMemo(() => {
-    const today = new Date()
-    const year = today.getFullYear()
-    const month = today.getMonth()
-    
+  const heatmapDays = useMemo(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+
     // First day of the month
-    const firstDay = new Date(year, month, 1)
-    const totalDays = new Date(year, month + 1, 0).getDate()
-    const startingDayOfWeek = firstDay.getDay() // 0 is Sunday, 1 is Monday...
+    const firstDay = new Date(year, month, 1);
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const startingDayOfWeek = firstDay.getDay(); // 0 is Sunday, 1 is Monday...
 
-    // Populate past dates that have study entries
-    // For simplicity, we scan recentTests dates and stats.streak dates
-    const activeDates = new Set<string>()
-    if (recentTests) {
-      recentTests.forEach((t) => {
-        const dateStr = new Date(t.createdAt).toISOString().split("T")[0]
-        activeDates.add(dateStr)
-      })
-    }
-    // Also include today if there's a study streak recorded today
-    const todayStr = today.toISOString().split("T")[0]
-    if (stats?.streak && stats.streak > 0) {
-      activeDates.add(todayStr)
-    }
+    // Populate past dates that have study entries from streak history API
+    const activeDates = new Set<string>(streakHistory?.activeDates || []);
 
-    const cells = []
+    const cells = [];
     // Pad previous month days
     for (let i = 0; i < (startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1); i++) {
-      cells.push({ day: null, active: false })
+      cells.push({ day: null, active: false });
     }
 
     // Add days of this month
     for (let day = 1; day <= totalDays; day++) {
-      const cellDate = new Date(year, month, day)
-      const cellDateStr = cellDate.toISOString().split("T")[0]
-      const isActive = activeDates.has(cellDateStr)
-      
+      const cellDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const isActive = activeDates.has(cellDateStr);
+
       cells.push({
         day,
         active: isActive,
-        isToday: day === today.getDate() && month === today.getMonth() && year === today.getFullYear(),
-      })
+        isToday:
+          day === today.getDate() && month === today.getMonth() && year === today.getFullYear(),
+      });
     }
 
-    return cells
-  }, [recentTests, stats])
+    return cells;
+  }, [streakHistory]);
 
-  const weekdays = ["Hai", "Ba", "Tư", "Năm", "Sáu", "Bảy", "CN"]
-  const currentMonthName = new Date().toLocaleDateString("vi-VN", { month: "long", year: "numeric" })
+  const weekdays = ['Hai', 'Ba', 'Tư', 'Năm', 'Sáu', 'Bảy', 'CN'];
+  const currentMonthName = new Date().toLocaleDateString('vi-VN', {
+    month: 'long',
+    year: 'numeric',
+  });
 
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        
         {/* Title Heading */}
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
-            <span className="text-gradient">Hồ Sơ Học Viên</span>
             <User className="h-6 w-6 text-primary" />
+            <span className="text-gradient">Hồ Sơ Học Viên</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Quản lý tài khoản cá nhân, xem biểu đồ tích lũy chuyên cần và lịch sử luyện thi.
@@ -105,23 +108,22 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-12 items-start">
-          
           {/* User Details & Heatmap (Left Column) */}
           <div className="lg:col-span-5 space-y-6">
             {/* Account Card */}
             <Card className="glass-card overflow-hidden">
               <CardContent className="pt-8 pb-6 text-center space-y-4">
                 <div className="h-20 w-20 rounded-full bg-gradient-to-tr from-primary to-cyan-500 mx-auto flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-primary/20">
-                  {user?.fullName?.charAt(0).toUpperCase() || "U"}
+                  {user?.fullName?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold">{user?.fullName || "Học Viên"}</h3>
+                  <h3 className="text-xl font-bold">{user?.fullName || 'Học Viên'}</h3>
                   <div className="flex items-center justify-center gap-2 mt-1.5">
                     <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary">
-                      {user?.role === "admin" ? "Quản Trị Viên" : "Học Viên"}
+                      {user?.role === 'admin' ? 'Quản Trị Viên' : 'Học Viên'}
                     </span>
                     <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-teal-500/10 text-teal-600 dark:text-teal-400">
-                      Gói: {user?.plan || "Miễn phí"}
+                      Gói: {user?.plan || 'Miễn phí'}
                     </span>
                   </div>
                 </div>
@@ -147,7 +149,10 @@ export default function ProfilePage() {
                   )}
                   <div className="flex items-center gap-2.5">
                     <Award className="h-4 w-4 text-primary" />
-                    <span>Mục tiêu điểm số: <strong className="text-foreground">{user?.targetScore || 800}đ</strong></span>
+                    <span>
+                      Mục tiêu điểm số:{' '}
+                      <strong className="text-foreground">{user?.targetScore || 800}đ</strong>
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -165,7 +170,6 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                
                 {/* Heatmap Grid */}
                 <div>
                   <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-muted-foreground mb-2">
@@ -179,14 +183,14 @@ export default function ProfilePage() {
                         key={idx}
                         className={`heatmap-cell flex items-center justify-center text-xs font-bold ${
                           cell.day === null
-                            ? "bg-transparent opacity-0 pointer-events-none"
+                            ? 'bg-transparent opacity-0 pointer-events-none'
                             : cell.active
-                            ? "bg-emerald-500 text-white shadow shadow-emerald-500/20"
-                            : cell.isToday
-                            ? "bg-primary/10 text-primary border border-primary animate-pulse-ring"
-                            : "bg-secondary text-muted-foreground/60 border border-border/20"
+                              ? 'bg-emerald-500 text-white shadow shadow-emerald-500/20'
+                              : cell.isToday
+                                ? 'bg-primary/10 text-primary border border-primary animate-pulse-ring'
+                                : 'bg-secondary text-muted-foreground/60 border border-border/20'
                         }`}
-                        title={cell.active ? `Đã điểm danh học tập!` : ""}
+                        title={cell.active ? `Đã điểm danh học tập!` : ''}
                       >
                         {cell.day}
                       </div>
@@ -205,17 +209,15 @@ export default function ProfilePage() {
                   </div>
                   <div className="flex items-center gap-1.5 text-orange-500">
                     <Flame className="h-3.5 w-3.5 fill-orange-500" />
-                    <span>Học liên tục: {stats?.streak || 0} ngày</span>
+                    <span>Học liên tục: {streakHistory?.streak ?? stats?.streak ?? 0} ngày</span>
                   </div>
                 </div>
-
               </CardContent>
             </Card>
           </div>
 
           {/* Test History Table & Authored Tests (Right Column) */}
           <div className="lg:col-span-7 space-y-6">
-            
             {/* Test History Table */}
             <Card className="glass-card">
               <CardHeader>
@@ -245,13 +247,13 @@ export default function ProfilePage() {
                         {recentTests.map((t) => (
                           <TableRow key={t._id} className="hover:bg-secondary/20">
                             <TableCell className="font-bold text-xs">
-                              {t.test_sets?.name || "Đề thi TOEIC Reading"}
+                              {t.test_sets?.name || 'Đề thi TOEIC Reading'}
                             </TableCell>
                             <TableCell className="text-muted-foreground text-[10px]">
-                              {new Date(t.createdAt).toLocaleDateString("vi-VN", {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
+                              {new Date(t.createdAt).toLocaleDateString('vi-VN', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
                               })}
                             </TableCell>
                             <TableCell className="text-muted-foreground text-xs">
@@ -268,8 +270,12 @@ export default function ProfilePage() {
                 ) : (
                   <div className="text-center py-10 border border-dashed border-border rounded-lg bg-secondary/15">
                     <BookOpen className="h-8 w-8 text-muted-foreground/60 mx-auto mb-2" />
-                    <h5 className="font-semibold text-xs text-muted-foreground">Chưa có kết quả làm bài</h5>
-                    <p className="text-[10px] text-muted-foreground mt-1">Truy cập Thư viện đề thi để khởi chạy bài kiểm tra thử đầu tiên.</p>
+                    <h5 className="font-semibold text-xs text-muted-foreground">
+                      Chưa có kết quả làm bài
+                    </h5>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      Truy cập Thư viện đề thi để khởi chạy bài kiểm tra thử đầu tiên.
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -305,12 +311,14 @@ export default function ProfilePage() {
                           {testSets.map((set) => (
                             <TableRow key={set._id} className="hover:bg-secondary/20">
                               <TableCell className="font-bold text-xs">{set.name}</TableCell>
-                              <TableCell className="text-xs">{set.total_questions} câu hỏi</TableCell>
+                              <TableCell className="text-xs">
+                                {set.total_questions} câu hỏi
+                              </TableCell>
                               <TableCell className="text-muted-foreground text-[10px]">
-                                {new Date(set.createdAt).toLocaleDateString("vi-VN", {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
+                                {new Date(set.createdAt).toLocaleDateString('vi-VN', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
                                 })}
                               </TableCell>
                               <TableCell className="text-right">
@@ -329,13 +337,15 @@ export default function ProfilePage() {
                   ) : (
                     <div className="text-center py-10 border border-dashed border-border rounded-lg bg-secondary/15">
                       <Layers className="h-8 w-8 text-muted-foreground/60 mx-auto mb-2" />
-                      <h5 className="font-semibold text-xs text-muted-foreground">Chưa có đề thi được thiết kế</h5>
+                      <h5 className="font-semibold text-xs text-muted-foreground">
+                        Chưa có đề thi được thiết kế
+                      </h5>
                     </div>
                   )}
                 </CardContent>
                 <CardFooter className="pt-2">
                   <Button
-                    onClick={() => router.push("/admin/create-test")}
+                    onClick={() => router.push('/admin/create-test')}
                     className="w-full text-xs font-bold flex items-center gap-1.5"
                     variant="outline"
                   >
@@ -345,11 +355,9 @@ export default function ProfilePage() {
                 </CardFooter>
               </Card>
             )}
-
           </div>
-
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }

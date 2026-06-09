@@ -1,51 +1,56 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { useRouter } from "next/navigation"
-import { useAuthStore } from "@/store/authStore"
-import { Sidebar } from "./Sidebar"
-import { Header } from "./Header"
-import { cn } from "@/lib/utils"
+import { useRouter } from 'next/navigation';
+import { ReactNode, useEffect, useState } from 'react';
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const { isAuthenticated, token } = useAuthStore()
-  const [isCollapsed, setIsCollapsed] = React.useState(false)
-  const [mounted, setMounted] = React.useState(false)
+import { useAuthStore } from '@/store/authStore';
+import { useLayoutStore } from '@/store/layoutStore';
+import { Sidebar } from './Sidebar';
+import { Header } from './Header';
+import { cn } from '@/lib/utils';
+
+let isAppMounted = false;
+
+export function DashboardLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const { isAuthenticated, token } = useAuthStore();
+  const isCollapsed = useLayoutStore((state) => state.isCollapsed);
+  const [mounted, setMounted] = useState(isAppMounted);
 
   // Ensure state hydration completes before rendering protected pages
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  useEffect(() => {
+    isAppMounted = true;
+    setMounted(true);
+  }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (mounted && (!isAuthenticated || !token)) {
-      router.push("/auth/login")
+      router.push('/auth/login');
     }
-  }, [mounted, isAuthenticated, token, router])
+  }, [mounted, isAuthenticated, token, router]);
 
   if (!mounted) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated || !token) {
-    return null
+    return null;
   }
 
   return (
     <div className="min-h-screen bg-background">
       {/* Sidebar navigation */}
-      <Sidebar onCollapseToggle={setIsCollapsed} />
+      <Sidebar />
 
       {/* Main viewport */}
       <div
         className={cn(
-          "flex flex-col min-h-screen transition-all duration-300",
-          isCollapsed ? "pl-16" : "pl-64"
+          'flex flex-col min-h-screen transition-all duration-300',
+          isCollapsed ? 'pl-16' : 'pl-64',
         )}
       >
         <Header />
@@ -54,5 +59,5 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </div>
-  )
+  );
 }
