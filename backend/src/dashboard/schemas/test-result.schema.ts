@@ -25,6 +25,9 @@ export class TestResult {
 
   @Prop({ default: 'completed' })
   status: string;
+
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export const TestResultSchema = SchemaFactory.createForClass(TestResult);

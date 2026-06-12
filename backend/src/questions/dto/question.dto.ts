@@ -6,6 +6,7 @@ import {
   IsBoolean,
   ValidateNested,
   IsUUID,
+  IsNumber,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -34,9 +35,18 @@ export class AnswerOptionDto {
 }
 
 export class CreateQuestionDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  testSetId?: string;
+
   @ApiProperty({ enum: ['1', '2', '3', '4', '5', '6', '7'] })
   @IsString()
   part: string;
+
+  @ApiProperty()
+  @IsNumber()
+  questionNumber: number;
 
   @ApiProperty({ enum: DifficultyLevel })
   @IsEnum(DifficultyLevel)
@@ -71,6 +81,16 @@ export class CreateQuestionDto {
   @IsOptional()
   imageUrl?: string;
 
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  groupId?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  passageText?: string;
+
   @ApiPropertyOptional({ default: true })
   @IsBoolean()
   @IsOptional()
@@ -78,18 +98,74 @@ export class CreateQuestionDto {
 }
 
 export class UpdateQuestionDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  testSetId?: string;
+
+  @ApiPropertyOptional({ enum: ['1', '2', '3', '4', '5', '6', '7'] })
+  @IsString()
+  @IsOptional()
+  part?: string;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  questionNumber?: number;
+
+  @ApiPropertyOptional({ enum: DifficultyLevel })
   @IsEnum(DifficultyLevel)
   @IsOptional()
   difficulty?: DifficultyLevel;
 
+  @ApiPropertyOptional({ enum: QuestionStatus })
   @IsEnum(QuestionStatus)
   @IsOptional()
   status?: QuestionStatus;
 
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   questionText?: string;
 
+  @ApiPropertyOptional({ type: [AnswerOptionDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AnswerOptionDto)
+  @IsOptional()
+  options?: AnswerOptionDto[];
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  correctAnswer?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  explanation?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  audioUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  groupId?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  passageText?: string;
+
+  @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;

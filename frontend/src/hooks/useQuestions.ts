@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthStore } from "@/store/authStore"
-import { Question } from "@/api/tests"
 import { questionsApi } from "@/api/questions"
 
 export type { FetchQuestionsResponse, FetchQuestionsParams } from "@/api/questions"
@@ -24,6 +23,16 @@ export const useQuestions = () => {
   const useCreateQuestionMutation = () =>
     useMutation({
       mutationFn: questionsApi.createQuestion,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["questions"] })
+        queryClient.invalidateQueries({ queryKey: ["test-questions"] })
+      },
+    })
+
+  // Upsert questions mutation (Admin only)
+  const useUpsertQuestionsMutation = () =>
+    useMutation({
+      mutationFn: questionsApi.upsertBulk,
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["questions"] })
         queryClient.invalidateQueries({ queryKey: ["test-questions"] })
@@ -54,6 +63,7 @@ export const useQuestions = () => {
   return {
     useFetchQuestions,
     useCreateQuestionMutation,
+    useUpsertQuestionsMutation,
     useUpdateQuestionMutation,
     useDeleteQuestionMutation,
   }

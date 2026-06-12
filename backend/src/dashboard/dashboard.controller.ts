@@ -25,6 +25,12 @@ export class DashboardController {
     return this.dashboardService.getStats(req.user.sub);
   }
 
+  @Get('streak-history')
+  @ApiOperation({ summary: 'Get practice streak history' })
+  getStreakHistory(@Request() req: AuthenticatedRequest) {
+    return this.dashboardService.getStreakHistory(req.user.sub);
+  }
+
   @Get('today-plan')
   @ApiOperation({ summary: "Get today's study plan" })
   getTodayPlan(@Request() req: AuthenticatedRequest) {

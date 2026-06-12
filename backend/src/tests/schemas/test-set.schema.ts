@@ -11,6 +11,12 @@ export class TestSet {
   @Prop()
   description?: string;
 
+  @Prop()
+  audioUrl?: string;
+
+  @Prop({ default: 'draft', enum: ['draft', 'public', 'private'] })
+  status: string;
+
   @Prop({ default: 0 })
   total_questions: number;
 

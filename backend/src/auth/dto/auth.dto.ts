@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength, IsOptional, IsNumber } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, IsNumber, IsIn } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -20,6 +20,12 @@ export class RegisterDto {
   @IsNumber()
   @IsOptional()
   age?: number;
+
+  @ApiPropertyOptional({ example: 'user', enum: ['user', 'admin'] })
+  @IsString()
+  @IsOptional()
+  @IsIn(['user', 'admin'])
+  role?: string;
 }
 
 export class LoginDto {
@@ -42,4 +48,10 @@ export class FirebasePhoneDto {
   @IsString()
   @IsOptional()
   fullName?: string;
+
+  @ApiPropertyOptional({ example: 'user', enum: ['user', 'admin'] })
+  @IsString()
+  @IsOptional()
+  @IsIn(['user', 'admin'])
+  role?: string;
 }

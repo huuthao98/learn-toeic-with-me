@@ -47,6 +47,7 @@ import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { MediaUploadInput } from '@/components/MediaUploadInput';
 
 import { useTests } from '@/hooks/useTests';
 import { useQuestions } from '@/hooks/useQuestions';
@@ -56,6 +57,8 @@ import { useAuthStore } from '@/store/authStore';
 const editTestSetSchema = z.object({
   name: z.string().trim().min(1, 'Tên đề thi không được để trống'),
   description: z.string(),
+  audioUrl: z.string().optional(),
+  status: z.enum(['draft', 'public', 'private']).optional(),
 });
 
 type EditTestSetFormValues = z.infer<typeof editTestSetSchema>;
@@ -125,6 +128,8 @@ export default function TestSetDetailsPage() {
     defaultValues: {
       name: '',
       description: '',
+      audioUrl: '',
+      status: 'draft',
     },
   });
 
@@ -160,6 +165,8 @@ export default function TestSetDetailsPage() {
       editForm.reset({
         name: testSet.name,
         description: testSet.description || '',
+        audioUrl: testSet.audioUrl || '',
+        status: (testSet.status as "draft" | "public" | "private") || 'draft',
       });
     }
   }, [testSet, editForm]);
@@ -169,6 +176,8 @@ export default function TestSetDetailsPage() {
       {
         name: values.name,
         description: values.description,
+        audioUrl: values.audioUrl,
+        status: values.status,
       },
       {
         onSuccess: () => {
@@ -378,7 +387,7 @@ export default function TestSetDetailsPage() {
                             control={editForm.control}
                             name="description"
                             render={({ field }) => (
-                              <FormItem className="space-y-1.5">
+                              <FormItem className="space-y-1.5 mt-4">
                                 <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
                                   Mô tả đề thi
                                 </FormLabel>
@@ -388,6 +397,50 @@ export default function TestSetDetailsPage() {
                                     {...field}
                                   />
                                 </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={editForm.control}
+                            name="audioUrl"
+                            render={({ field }) => (
+                              <FormItem className="space-y-1.5 mt-4">
+                                <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                                  File Âm Thanh Chung (Audio URL)
+                                </FormLabel>
+                                <FormControl>
+                                  <MediaUploadInput
+                                    value={field.value || ''}
+                                    onChange={field.onChange}
+                                    placeholder="Tải lên hoặc dán link Audio (.mp3)"
+                                    type="audio"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={editForm.control}
+                            name="status"
+                            render={({ field }) => (
+                              <FormItem className="space-y-1.5 mt-4">
+                                <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                                  Trạng thái
+                                </FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Chọn trạng thái" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="draft">Bản Nháp (Draft)</SelectItem>
+                                    <SelectItem value="public">Công Khai (Public)</SelectItem>
+                                    <SelectItem value="private">Riêng Tư (Private)</SelectItem>
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -779,7 +832,7 @@ export default function TestSetDetailsPage() {
                                 URL âm thanh dùng chung
                               </FormLabel>
                               <FormControl>
-                                <Input placeholder="Ví dụ: audio/conversation1.mp3" {...field} />
+                                <MediaUploadInput acceptTypes="audio/*,video/*" placeholder="Ví dụ: audio/conversation1.mp3" {...field} onUploadError={setErrorMsg} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -796,7 +849,7 @@ export default function TestSetDetailsPage() {
                                 URL hình ảnh dùng chung (Nếu có)
                               </FormLabel>
                               <FormControl>
-                                <Input placeholder="Ví dụ: images/diagram1.png" {...field} />
+                                <MediaUploadInput acceptTypes="image/*" placeholder="Ví dụ: images/diagram1.png" {...field} onUploadError={setErrorMsg} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -839,7 +892,7 @@ export default function TestSetDetailsPage() {
                             URL âm thanh tả cảnh
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="Ví dụ: audio/part1_q1.mp3" {...field} />
+                            <MediaUploadInput acceptTypes="audio/*,video/*" placeholder="Ví dụ: audio/part1_q1.mp3" {...field} onUploadError={setErrorMsg} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -854,7 +907,7 @@ export default function TestSetDetailsPage() {
                             URL hình ảnh tranh vẽ
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="Ví dụ: images/part1_q1.jpg" {...field} />
+                            <MediaUploadInput acceptTypes="image/*" placeholder="Ví dụ: images/part1_q1.jpg" {...field} onUploadError={setErrorMsg} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -874,7 +927,7 @@ export default function TestSetDetailsPage() {
                             URL âm thanh câu hỏi phản hồi
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="Ví dụ: audio/part2_q1.mp3" {...field} />
+                            <MediaUploadInput acceptTypes="audio/*,video/*" placeholder="Ví dụ: audio/part2_q1.mp3" {...field} onUploadError={setErrorMsg} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

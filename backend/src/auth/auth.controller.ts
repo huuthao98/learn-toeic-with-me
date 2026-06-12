@@ -5,6 +5,8 @@ import {
   Body,
   UseGuards,
   Request,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -32,12 +34,14 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login and receive JWT' })
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
 
   @Post('firebase-phone')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login or Register with Firebase Phone Auth token' })
   verifyFirebasePhone(@Body() dto: FirebasePhoneDto) {
     return this.authService.verifyFirebasePhone(dto);

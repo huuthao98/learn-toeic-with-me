@@ -17,27 +17,33 @@ export interface FetchQuestionsParams {
   limit?: number
 }
 
+export interface CreateQuestionData {
+  testSetId?: string
+  part: string
+  difficulty: string
+  questionText: string
+  options: { label: string; text: string }[]
+  correctAnswer: string
+  explanation?: string
+  audioUrl?: string
+  imageUrl?: string
+  groupId?: string
+  passageText?: string
+  isActive?: boolean
+}
+
 export const questionsApi = {
   fetchQuestions: async (isAdmin: boolean, params: FetchQuestionsParams) => {
     const endpoint = isAdmin ? "/admin/questions" : "/questions"
     const response = await api.get<FetchQuestionsResponse>(endpoint, { params })
     return response.data
   },
-  createQuestion: async (data: {
-    testSetId?: string
-    part: string
-    difficulty: string
-    questionText: string
-    options: { label: string; text: string }[]
-    correctAnswer: string
-    explanation?: string
-    audioUrl?: string
-    imageUrl?: string
-    groupId?: string
-    passageText?: string
-    isActive?: boolean
-  }) => {
+  createQuestion: async (data: CreateQuestionData) => {
     const response = await api.post<Question>("/admin/questions", data)
+    return response.data
+  },
+  upsertBulk: async (data: { testSetId: string; questions: Partial<CreateQuestionData & { questionNumber: number }>[] }) => {
+    const response = await api.post("/admin/questions/bulk-upsert", data)
     return response.data
   },
   updateQuestion: async (

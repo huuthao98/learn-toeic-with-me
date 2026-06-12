@@ -65,7 +65,7 @@ export const useTests = () => {
   // Update a test set (Admin only)
   const useUpdateTestSetMutation = (id: string) =>
     useMutation({
-      mutationFn: (data: { name: string; description?: string }) =>
+      mutationFn: (data: { name: string; description?: string; audioUrl?: string; status?: string }) =>
         testsApi.updateTestSet(id, data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["tests"] })

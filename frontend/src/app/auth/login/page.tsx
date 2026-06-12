@@ -143,7 +143,7 @@ export default function LoginPage() {
           <span className="p-2 rounded-lg bg-indigo-600 text-white flex items-center shadow-lg shadow-indigo-500/30">
             <Sparkles className="h-5 w-5" />
           </span>
-          <span className="font-bold text-2xl tracking-tight">LearnTOEIC</span>
+          <span className="font-bold text-2xl tracking-tight">learnEverything</span>
         </div>
 
         {/* Feature Presentation */}
@@ -189,8 +189,8 @@ export default function LoginPage() {
 
         {/* Footer info */}
         <div className="text-slate-500 text-xs relative z-10 flex justify-between">
-          <span>© 2026 LearnTOEIC Inc.</span>
-          <span>Hỗ trợ kỹ thuật: support@learntoeic.vn</span>
+          <span>© 2026 Learn Everything Inc.</span>
+          <span>Hỗ trợ kỹ thuật: support@learneverything.vn</span>
         </div>
       </div>
 

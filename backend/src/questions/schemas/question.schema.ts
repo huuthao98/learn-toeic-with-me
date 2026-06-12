@@ -20,6 +20,9 @@ export class Question {
   @Prop({ required: true })
   part: string;
 
+  @Prop({ required: true })
+  question_number: number;
+
   @Prop({ required: true, enum: ['easy', 'medium', 'hard'] })
   difficulty: string;
 
@@ -40,6 +43,12 @@ export class Question {
 
   @Prop()
   image_url?: string;
+
+  @Prop()
+  group_id?: string;
+
+  @Prop()
+  passage_text?: string;
 
   @Prop({ default: 'active', enum: ['active', 'draft', 'archived', 'review'] })
   status: string;

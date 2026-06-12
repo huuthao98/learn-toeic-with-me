@@ -1,17 +1,18 @@
 import {
-  Controller,
   Get,
   Post,
-  Patch,
-  Delete,
   Body,
-  Param,
+  Patch,
   Query,
+  Param,
+  Delete,
   UseGuards,
   HttpCode,
   HttpStatus,
+  Controller,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+
 import { QuestionsService } from './questions.service';
 import { CreateQuestionDto, UpdateQuestionDto } from './dto/question.dto';
 import { JwtAuthGuard, AdminGuard } from '../auth/guards/jwt-auth.guard';
@@ -64,6 +65,7 @@ export class AdminQuestionsController {
       part,
       difficulty,
       status,
+      testSetId,
       page,
       limit,
     });
@@ -73,6 +75,12 @@ export class AdminQuestionsController {
   @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: CreateQuestionDto) {
     return this.questionsService.create(dto);
+  }
+
+  @Post('bulk-upsert')
+  @HttpCode(HttpStatus.OK)
+  upsertBulk(@Body() body: { testSetId: string; questions: Partial<CreateQuestionDto>[] }) {
+    return this.questionsService.upsertBulk(body.testSetId, body.questions);
   }
 
   @Patch(':id')

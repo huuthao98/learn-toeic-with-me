@@ -2,11 +2,9 @@
 
 import {
   User,
-  Menu,
   LogOut,
   Sparkles,
   BookOpen,
-  PlusCircle,
   ChevronLeft,
   ShieldCheck,
   ChevronRight,
@@ -14,7 +12,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HTMLAttributes, useState, useEffect } from 'react';
+import { HTMLAttributes } from 'react';
 
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -62,6 +60,12 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
           // icon: PlusCircle,
           roles: ['admin'],
         },
+        {
+          name: 'Quản Lý Media',
+          href: '/admin/media',
+          // icon: Image,
+          roles: ['admin'],
+        },
       ],
     },
   ];
@@ -90,7 +94,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
             <span className="p-1.5 rounded-lg bg-primary text-primary-foreground animate-pulse-ring">
               <Sparkles className="h-4 w-4" />
             </span>
-            <span className="text-gradient">LearnTOEIC</span>
+            <span className="text-gradient">learnEverything</span>
           </Link>
         ) : (
           <Link href="/dashboard" className="flex items-center justify-center animate-fade-in">

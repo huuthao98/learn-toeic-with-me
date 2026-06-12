@@ -1,18 +1,74 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TestsService } from './tests.service';
 import { JwtAuthGuard, AdminGuard } from '../auth/guards/jwt-auth.guard';
 
+import { IsString, IsOptional, IsNumber, Min, IsObject } from 'class-validator';
+
 class SubmitExamDto {
+  @ApiProperty({ example: { 'questionId123': 'A' } })
+  @IsObject()
   answers: { [questionId: string]: string };
+
+  @ApiPropertyOptional({ example: 45 })
+  @IsNumber()
+  @IsOptional()
   durationMinutes?: number;
 }
 
 class CreateTestSetDto {
+  @ApiProperty({ example: 'Toeic exam 2025' })
+  @IsString()
   name: string;
+
+  @ApiPropertyOptional({ example: 'Description' })
+  @IsString()
+  @IsOptional()
   description?: string;
+
+  @ApiPropertyOptional({ example: 200 })
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
   total_questions?: number;
+
+  @ApiPropertyOptional({ example: 7 })
+  @IsNumber()
+  @IsOptional()
+  @Min(1)
   parts_count?: number;
+
+  @ApiPropertyOptional({ example: 'audio/test1.mp3' })
+  @IsString()
+  @IsOptional()
+  audioUrl?: string;
+
+  @ApiPropertyOptional({ example: 'draft', enum: ['draft', 'public', 'private'] })
+  @IsString()
+  @IsOptional()
+  status?: string;
+}
+
+class UpdateTestSetDto {
+  @ApiPropertyOptional({ example: 'Updated TOEIC Exam 2026' })
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @ApiPropertyOptional({ example: 'Updated Description' })
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @ApiPropertyOptional({ example: 'audio/test1_updated.mp3' })
+  @IsString()
+  @IsOptional()
+  audioUrl?: string;
+
+  @ApiPropertyOptional({ example: 'public', enum: ['draft', 'public', 'private'] })
+  @IsString()
+  @IsOptional()
+  status?: string;
 }
 
 @ApiTags('Tests')
@@ -70,5 +126,21 @@ export class TestsController {
   @ApiOperation({ summary: 'Create a new test set (Admin)' })
   createTestSet(@Body() dto: CreateTestSetDto) {
     return this.testsService.create(dto);
+  }
+
+  @Patch('admin/:id')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a test set (Admin)' })
+  updateTestSet(@Param('id') id: string, @Body() dto: UpdateTestSetDto) {
+    return this.testsService.update(id, dto);
+  }
+
+  @Delete('admin/:id')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a test set (Admin)' })
+  deleteTestSet(@Param('id') id: string) {
+    return this.testsService.delete(id);
   }
 }

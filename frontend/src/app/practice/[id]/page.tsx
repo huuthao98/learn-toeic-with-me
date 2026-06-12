@@ -11,8 +11,8 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
 
 import { useTests, Question } from '@/hooks/useTests';
 import { Button } from '@/components/ui/button';
@@ -33,10 +33,18 @@ import {
   DialogContent,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { ListeningInstructions } from '@/components/ListeningInstructions';
+import { Part2Instructions } from '@/components/Part2Instructions';
+import { Part3Instructions } from '@/components/Part3Instructions';
+import { Part4Instructions } from '@/components/Part4Instructions';
+import { Part5Instructions } from '@/components/Part5Instructions';
+import { Part6Instructions } from '@/components/Part6Instructions';
+import { Part7Instructions } from '@/components/Part7Instructions';
 
 export default function TakeExamPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const testSetId = params.id as string;
 
   const { useTestSet, useTestQuestions, useSubmitExamMutation } = useTests();
@@ -52,6 +60,7 @@ export default function TakeExamPage() {
   const [startTime] = useState<number>(Date.now());
   const [copied, setCopied] = useState(false);
   const [copiedOpt, setCopiedOpt] = useState<string | null>(null);
+  const [showInstructions, setShowInstructions] = useState(true);
 
   const handleCopyText = (text: string, label: string) => {
     navigator.clipboard
@@ -94,12 +103,31 @@ export default function TakeExamPage() {
       });
   };
 
-  // Initialize countdown timer (1 minute per question)
+  // Initialize countdown timer (2 hours = 7200 seconds)
   useEffect(() => {
     if (questions && questions.length > 0) {
-      setTimeLeft(questions.length * 60);
+      const isListeningFirst = questions[0]?.part === '1';
+      setShowInstructions(isListeningFirst);
+      setTimeLeft(7200);
     }
   }, [questions]);
+
+  // Auto-play audio if navigated with ?autoplay=true
+  useEffect(() => {
+    if (testSet?.audioUrl && searchParams.get('autoplay') === 'true') {
+      const timer = setTimeout(() => {
+        const audio = document.getElementById('global-audio-player') as HTMLAudioElement;
+        if (audio) {
+          audio.play().catch((err) => {
+            console.warn('Autoplay prevented by browser policy. User must interact first.');
+          });
+          // Remove ?autoplay=true from URL so refreshing the page doesn't try to play again
+          router.replace(`/practice/${testSetId}`, { scroll: false });
+        }
+      }, 500); // Give the DOM a tiny bit of time to render the audio player
+      return () => clearTimeout(timer);
+    }
+  }, [testSet?.audioUrl, searchParams, router, testSetId]);
 
   // Timer interval
   useEffect(() => {
@@ -181,6 +209,19 @@ export default function TakeExamPage() {
   const currentQuestion = questions[activeQuestionIndex];
   const answeredCount = Object.keys(answers).length;
 
+  // Index of the first Part 2 question
+  const firstPart2Index = questions.findIndex((q) => q.part === '2');
+  // Index of the first Part 3 question
+  const firstPart3Index = questions.findIndex((q) => q.part === '3');
+  // Index of the first Part 4 question
+  const firstPart4Index = questions.findIndex((q) => q.part === '4');
+  // Index of the first Part 5 question
+  const firstPart5Index = questions.findIndex((q) => q.part === '5');
+  // Index of the first Part 6 question
+  const firstPart6Index = questions.findIndex((q) => q.part === '6');
+  // Index of the first Part 7 question
+  const firstPart7Index = questions.findIndex((q) => q.part === '7');
+
   const getPartLabel = (part: string) => {
     switch (part) {
       case '1':
@@ -257,146 +298,191 @@ export default function TakeExamPage() {
         </div>
       </div>
 
+      {/* Global Audio Player for the entire Test Set */}
+      {testSet.audioUrl && (
+        <div className="bg-secondary/20 border-b border-border/40 px-4 py-3 flex justify-center sticky top-16 z-20 backdrop-blur-md">
+          <audio
+            id="global-audio-player"
+            src={testSet.audioUrl}
+            controls
+            className="w-full max-w-2xl h-10 shadow-sm rounded-full"
+          />
+        </div>
+      )}
+
       {/* Main layout */}
       <div className="flex-1 p-2 md:p-4 max-w-7xl w-full mx-auto grid gap-2 lg:grid-cols-12 items-start">
         {/* Left column: Active Question Display */}
-        <div className="lg:col-span-9 space-y-6 h-full">
-          <Card className="glass-card border-l-4 border-l-primary h-full justify-between">
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <div>
-                <span className="text-xs font-black uppercase tracking-wider text-primary">
-                  Câu hỏi {activeQuestionIndex + 1} / {questions.length}
-                </span>
-                <CardDescription className="text-xs mt-0.5">
-                  Độ khó: {currentQuestion.difficulty}
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-secondary text-muted-foreground font-bold">
-                  {getPartLabel(currentQuestion.part)}
-                </span>
+        <div className={`space-y-6 h-full justify-center ${showInstructions ? 'lg:col-span-12' : 'lg:col-span-9'}`}>
+          {/* TOEIC-style Instruction Panel — shown only on Question 1 Part 1 */}
+          {showInstructions && activeQuestionIndex === 0 && currentQuestion.part === '1' ? (
+            <ListeningInstructions onStart={() => setShowInstructions(false)} />
+          ) : (
+            <>
+              {/* Part 2 directions */}
+              {firstPart2Index !== -1 && activeQuestionIndex === firstPart2Index && (
+                <Part2Instructions />
+              )}
 
-                {/* Copy Button */}
-                <button
-                  onClick={handleCopyQuestion}
-                  className="p-1.5 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-all flex items-center gap-1 text-[10px] font-bold border border-border/20 shadow-xs cursor-pointer active:scale-95 animate-fade-in"
-                  title="Sao chép câu hỏi để mang đi dịch"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
-                      <span className="text-emerald-500">Đã chép!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3.5 w-3.5" />
-                      <span>Sao chép</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* If it's a group part with shared passages or media (Part 3, 4, 6, 7) */}
-              {['3', '4', '6', '7'].includes(currentQuestion.part) ? (
-                <div className="flex flex-col gap-5">
-                  {/* Shared Passage / Media */}
-                  <div className="space-y-4 p-4 rounded-xl bg-secondary/20 border border-border/30 max-h-[380px] overflow-y-auto w-full">
-                    <span className="text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 bg-primary/10 text-primary rounded w-fit block">
-                      {['6', '7'].includes(currentQuestion.part)
-                        ? 'Đoạn văn đọc'
-                        : 'Tập tin âm thanh'}
+              {/* Part 3 directions */}
+              {firstPart3Index !== -1 && activeQuestionIndex === firstPart3Index && (
+                <Part3Instructions />
+              )}
+
+              {/* Part 4 directions */}
+              {firstPart4Index !== -1 && activeQuestionIndex === firstPart4Index && (
+                <Part4Instructions />
+              )}
+
+              {/* Part 5 directions (Reading Test intro) */}
+              {firstPart5Index !== -1 && activeQuestionIndex === firstPart5Index && (
+                <Part5Instructions />
+              )}
+
+              {/* Part 6 directions */}
+              {firstPart6Index !== -1 && activeQuestionIndex === firstPart6Index && (
+                <Part6Instructions />
+              )}
+
+              {/* Part 7 directions */}
+              {firstPart7Index !== -1 && activeQuestionIndex === firstPart7Index && (
+                <Part7Instructions />
+              )}
+
+              <Card className="glass-card border-l-4 border-l-primary h-full justify-start">
+                <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                  <div>
+                    <span className="text-xs font-black uppercase tracking-wider text-primary">
+                      Câu hỏi {activeQuestionIndex + 1} / {questions.length}
+                    </span>
+                    <CardDescription className="text-xs mt-0.5">
+                      Độ khó: {currentQuestion.difficulty}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-secondary text-muted-foreground font-bold">
+                      {getPartLabel(currentQuestion.part)}
                     </span>
 
-                    {/* Group Audio Player (Part 3, 4) */}
-                    {(currentQuestion.part === '3' || currentQuestion.part === '4') &&
-                      currentQuestion.audio_url && (
-                        <div className="space-y-1.5">
-                          <audio src={currentQuestion.audio_url} controls className="w-full" />
-                        </div>
+                    {/* Copy Button */}
+                    <button
+                      onClick={handleCopyQuestion}
+                      className="p-1.5 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-all flex items-center gap-1 text-[10px] font-bold border border-border/20 shadow-xs cursor-pointer active:scale-95 animate-fade-in"
+                      title="Sao chép câu hỏi để mang đi dịch"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
+                          <span className="text-emerald-500">Đã chép!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" />
+                          <span>Sao chép</span>
+                        </>
                       )}
-
-                    {/* Group Diagram Image (Part 3, 4, 7) */}
-                    {currentQuestion.image_url && (
-                      <div className="flex justify-center bg-background/50 rounded-lg p-2 border border-border/20">
-                        <img
-                          src={currentQuestion.image_url}
-                          alt="Diagram"
-                          className="max-h-44 object-contain rounded"
-                        />
-                      </div>
-                    )}
-
-                    {/* Group Passage Text (Part 6, 7) */}
-                    {currentQuestion.passage_text && (
-                      <div className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line font-serif pr-2">
-                        {currentQuestion.passage_text}
-                      </div>
-                    )}
+                    </button>
                   </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* If it's a group part with shared passages or media (Part 3, 4, 6, 7) */}
+                  {['3', '4', '6', '7'].includes(currentQuestion.part) ? (
+                    <div className="flex flex-col gap-5">
+                      {/* Shared Passage / Media */}
+                      <div className="space-y-4 p-4 rounded-xl bg-secondary/20 border border-border/30 max-h-[380px] overflow-y-auto w-full">
+                        <span className="text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 bg-primary/10 text-primary rounded w-fit block">
+                          {['6', '7'].includes(currentQuestion.part)
+                            ? 'Đoạn văn đọc'
+                            : 'Tập tin âm thanh'}
+                        </span>
 
-                  {/* Question Form Area below */}
-                  <div className="space-y-4 w-full">
-                    {currentQuestion.question_text && (
-                      <div className="text-sm font-semibold leading-relaxed p-3.5 rounded-xl bg-secondary/35 border border-border/20 text-indigo-900 dark:text-indigo-200">
-                        {currentQuestion.question_text}
+                        {/* Group Audio Player (Part 3, 4) */}
+                        {(currentQuestion.part === '3' || currentQuestion.part === '4') &&
+                          currentQuestion.audio_url && (
+                            <div className="space-y-1.5">
+                              <audio src={currentQuestion.audio_url} controls className="w-full" />
+                            </div>
+                          )}
+
+                        {/* Group Diagram Image (Part 3, 4, 7) */}
+                        {currentQuestion.image_url && (
+                          <div className="flex justify-center bg-background/50 rounded-lg p-2 border border-border/20">
+                            <img
+                              src={currentQuestion.image_url}
+                              alt="Diagram"
+                              className="max-h-44 object-contain rounded"
+                            />
+                          </div>
+                        )}
+
+                        {/* Group Passage Text (Part 6, 7) */}
+                        {currentQuestion.passage_text && (
+                          <div className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line font-serif pr-2">
+                            {currentQuestion.passage_text}
+                          </div>
+                        )}
                       </div>
-                    )}
 
-                    {/* Options list in 2 columns */}
-                    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-                      {currentQuestion.options.map((opt) => {
-                        const isSelected = answers[currentQuestion._id] === opt.label;
-                        return (
-                          <button
-                            key={opt.label}
-                            onClick={() => handleSelectOption(currentQuestion._id, opt.label)}
-                            className={`relative group/opt flex items-center gap-3 w-full p-3 pr-10 rounded-xl border text-left transition-all ${
-                              isSelected
-                                ? 'border-primary bg-primary/5 text-primary shadow-sm font-semibold'
-                                : 'border-border/40 hover:bg-secondary/40 hover:border-border text-foreground'
-                            }`}
-                          >
-                            <span
-                              className={`h-5 w-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
-                                isSelected
-                                  ? 'bg-primary text-primary-foreground shadow-sm'
-                                  : 'bg-secondary text-muted-foreground'
-                              }`}
-                            >
-                              {opt.label}
-                            </span>
-                            <span className="text-xs mr-2">{opt.text}</span>
+                      {/* Question Form Area below */}
+                      <div className="space-y-4 w-full">
+                        {currentQuestion.question_text && (
+                          <div className="text-sm font-semibold leading-relaxed p-3.5 rounded-xl bg-secondary/35 border border-border/20 text-indigo-900 dark:text-indigo-200">
+                            {currentQuestion.question_text}
+                          </div>
+                        )}
 
-                            {/* Copy option button */}
-                            <span
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                handleCopyText(opt.text, opt.label);
-                              }}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground opacity-0 group-hover/opt:opacity-100 transition-all cursor-pointer z-20 active:scale-95"
-                              title={`Sao chép lựa chọn ${opt.label}`}
-                            >
-                              {copiedOpt === opt.label ? (
-                                <Check className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
-                              ) : (
-                                <Copy className="h-3.5 w-3.5" />
-                              )}
-                            </span>
-                          </button>
-                        );
-                      })}
+                        {/* Options list in 2 columns */}
+                        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                          {currentQuestion.options.map((opt) => {
+                            const isSelected = answers[currentQuestion._id] === opt.label;
+                            return (
+                              <button
+                                key={opt.label}
+                                onClick={() => handleSelectOption(currentQuestion._id, opt.label)}
+                                className={`relative group/opt flex items-center gap-3 w-full p-3 pr-10 rounded-xl border text-left transition-all ${
+                                  isSelected
+                                    ? 'border-primary bg-primary/5 text-primary shadow-sm font-semibold'
+                                    : 'border-border/40 hover:bg-secondary/40 hover:border-border text-foreground'
+                                }`}
+                              >
+                                <span
+                                  className={`h-5 w-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                                    isSelected
+                                      ? 'bg-primary text-primary-foreground shadow-sm'
+                                      : 'bg-secondary text-muted-foreground'
+                                  }`}
+                                >
+                                  {opt.label}
+                                </span>
+                                <span className="text-xs mr-2">{opt.text}</span>
+
+                                {/* Copy option button */}
+                                <span
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    handleCopyText(opt.text, opt.label);
+                                  }}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground opacity-0 group-hover/opt:opacity-100 transition-all cursor-pointer z-20 active:scale-95"
+                                  title={`Sao chép lựa chọn ${opt.label}`}
+                                >
+                                  {copiedOpt === opt.label ? (
+                                    <Check className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
+                                  ) : (
+                                    <Copy className="h-3.5 w-3.5" />
+                                  )}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ) : (
-                /* Non-split parts (Part 1, 2, 5) */
-                <div className="space-y-5">
-                  {/* Part 1 Photo and Audio */}
-                  {currentQuestion.part === '1' && (
-                    <div className="space-y-4">
-                      {currentQuestion.image_url && (
+                  ) : (
+                    /* Non-split parts (Part 1, 2, 5) */
+                    <div className="space-y-5 flex flex-col ">
+                      {/* Part 1: Image display */}
+                      {currentQuestion.part === '1' && currentQuestion.image_url && (
                         <div className="flex justify-center bg-secondary/10 rounded-xl p-3 border border-border/20">
                           <img
                             src={currentQuestion.image_url}
@@ -405,8 +491,10 @@ export default function TakeExamPage() {
                           />
                         </div>
                       )}
-                      {currentQuestion.audio_url && (
-                        <div className="flex justify-center">
+
+                      {/* Part 2: Per-question audio (nếu có) */}
+                      {currentQuestion.part === '2' && currentQuestion.audio_url && (
+                        <div className="flex justify-center p-4 bg-secondary/10 rounded-xl border border-border/10">
                           <audio
                             src={currentQuestion.audio_url}
                             controls
@@ -414,134 +502,174 @@ export default function TakeExamPage() {
                           />
                         </div>
                       )}
+
+                      {/* Question Text for Part 5 */}
+                      {currentQuestion.question_text && (
+                        <div className="text-base font-semibold leading-relaxed p-4 rounded-xl bg-secondary/30 border border-border/20 text-indigo-900 dark:text-indigo-200">
+                          {currentQuestion.question_text}
+                        </div>
+                      )}
+
+                      {/* Options */}
+                      <div className="space-y-3">
+                        {currentQuestion.options.map((opt) => {
+                          const isSelected = answers[currentQuestion._id] === opt.label;
+                          return (
+                            <button
+                              key={opt.label}
+                              onClick={() => handleSelectOption(currentQuestion._id, opt.label)}
+                              className={`relative group/opt flex items-center gap-4 w-full p-4 pr-10 rounded-xl border text-left transition-all ${
+                                isSelected
+                                  ? 'border-primary bg-primary/5 text-primary shadow-sm font-semibold'
+                                  : 'border-border/40 hover:bg-secondary/40 hover:border-border text-foreground'
+                              }`}
+                            >
+                              <span
+                                className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                                  isSelected
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'bg-secondary text-muted-foreground'
+                                }`}
+                              >
+                                {opt.label}
+                              </span>
+                              <span className="text-sm mr-2">{opt.text}</span>
+
+                              {/* Copy option button */}
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  handleCopyText(opt.text, opt.label);
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground opacity-0 group-hover/opt:opacity-100 transition-all cursor-pointer z-20 active:scale-95"
+                                title={`Sao chép lựa chọn ${opt.label}`}
+                              >
+                                {copiedOpt === opt.label ? (
+                                  <Check className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
+                                ) : (
+                                  <Copy className="h-3.5 w-3.5" />
+                                )}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
+                </CardContent>
 
-                  {/* Part 2 Audio */}
-                  {currentQuestion.part === '2' && currentQuestion.audio_url && (
-                    <div className="flex justify-center p-4 bg-secondary/10 rounded-xl border border-border/10">
-                      <audio src={currentQuestion.audio_url} controls className="w-full max-w-md" />
-                    </div>
-                  )}
-
-                  {/* Question Text for Part 5 */}
-                  {currentQuestion.question_text && (
-                    <div className="text-base font-semibold leading-relaxed p-4 rounded-xl bg-secondary/30 border border-border/20 text-indigo-900 dark:text-indigo-200">
-                      {currentQuestion.question_text}
-                    </div>
-                  )}
-
-                  {/* Options */}
-                  <div className="space-y-3">
-                    {currentQuestion.options.map((opt) => {
-                      const isSelected = answers[currentQuestion._id] === opt.label;
-                      return (
-                        <button
-                          key={opt.label}
-                          onClick={() => handleSelectOption(currentQuestion._id, opt.label)}
-                          className={`relative group/opt flex items-center gap-4 w-full p-4 pr-10 rounded-xl border text-left transition-all ${
-                            isSelected
-                              ? 'border-primary bg-primary/5 text-primary shadow-sm font-semibold'
-                              : 'border-border/40 hover:bg-secondary/40 hover:border-border text-foreground'
-                          }`}
-                        >
-                          <span
-                            className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
-                              isSelected
-                                ? 'bg-primary text-primary-foreground shadow-sm'
-                                : 'bg-secondary text-muted-foreground'
-                            }`}
-                          >
-                            {opt.label}
-                          </span>
-                          <span className="text-sm mr-2">{opt.text}</span>
-
-                          {/* Copy option button */}
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              handleCopyText(opt.text, opt.label);
-                            }}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground opacity-0 group-hover/opt:opacity-100 transition-all cursor-pointer z-20 active:scale-95"
-                            title={`Sao chép lựa chọn ${opt.label}`}
-                          >
-                            {copiedOpt === opt.label ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" />
-                            )}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-
-            {/* Question footer navigator */}
-            <CardFooter className="flex justify-between border-t border-border/40 pt-4">
-              <Button
-                variant="outline"
-                disabled={activeQuestionIndex === 0}
-                onClick={() => setActiveQuestionIndex(activeQuestionIndex - 1)}
-                className="text-xs"
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                <span>Câu trước</span>
-              </Button>
-              <Button
-                variant="outline"
-                disabled={activeQuestionIndex === questions.length - 1}
-                onClick={() => setActiveQuestionIndex(activeQuestionIndex + 1)}
-                className="text-xs"
-              >
-                <span>Câu sau</span>
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </CardFooter>
-          </Card>
+                {/* Question footer navigator */}
+                <CardFooter className="flex justify-between border-t border-border/40 pt-4">
+                  <Button
+                    variant="outline"
+                    disabled={activeQuestionIndex === 0 && currentQuestion.part !== '1'}
+                    onClick={() => {
+                      if (activeQuestionIndex === 0) {
+                        setShowInstructions(true);
+                      } else {
+                        setActiveQuestionIndex(activeQuestionIndex - 1);
+                      }
+                    }}
+                    className="text-xs"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    <span>
+                      {activeQuestionIndex === 0 && currentQuestion.part === '1'
+                        ? 'Quay lại'
+                        : 'Câu trước'}
+                    </span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={activeQuestionIndex === questions.length - 1}
+                    onClick={() => setActiveQuestionIndex(activeQuestionIndex + 1)}
+                    className="text-xs"
+                  >
+                    <span>Câu sau</span>
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </CardFooter>
+              </Card>
+            </>
+          )}
         </div>
 
-        {/* Right column: Sticky Navigator Widget */}
-        <div className="lg:col-span-3 sticky top-24 h-full">
-          <Card className="glass-card h-full">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-bold flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-primary" />
-                <span>Tiến Độ Làm Bài</span>
-              </CardTitle>
-              <CardDescription>
-                Hoàn thành {answeredCount} / {questions.length} câu hỏi.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 h-full flex flex-col justify-between">
-              {/* Question Number Grid */}
-              <div className="flex flex-wrap gap-2">
-                {questions.map((q, index) => {
-                  const isAnswered = !!answers[q._id];
-                  const isActive = activeQuestionIndex === index;
+        {!showInstructions && (
+          <div className="lg:col-span-3 sticky top-24 h-full">
+            <Card className="glass-card h-full">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                  <span>Tiến Độ Làm Bài</span>
+                </CardTitle>
+                <CardDescription>
+                  Hoàn thành {answeredCount} / {questions.length} câu hỏi.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 overflow-y-auto max-h-[calc(100vh-12rem)] pr-1">
+                {/* Question Number Grid grouped by Part */}
+                {(['1', '2', '3', '4', '5', '6', '7'] as const).map((part) => {
+                  const partQuestions = questions
+                    .map((q, index) => ({ q, index }))
+                    .filter(({ q }) => q.part === part);
+                  if (partQuestions.length === 0) return null;
+
+                  const partLabels: Record<string, string> = {
+                    '1': 'Part 1 · Photos',
+                    '2': 'Part 2 · Q&A',
+                    '3': 'Part 3 · Conversations',
+                    '4': 'Part 4 · Talks',
+                    '5': 'Part 5 · Sentences',
+                    '6': 'Part 6 · Paragraphs',
+                    '7': 'Part 7 · Reading',
+                  };
+
+                  const firstNum = partQuestions[0].index + 1;
+                  const lastNum = partQuestions[partQuestions.length - 1].index + 1;
+                  const answeredInPart = partQuestions.filter(({ q }) => !!answers[q._id]).length;
+
                   return (
-                    <button
-                      key={q._id}
-                      onClick={() => setActiveQuestionIndex(index)}
-                      className={`h-9 w-9 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
-                        isActive
-                          ? 'bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105'
-                          : isAnswered
-                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/35'
-                            : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
-                      }`}
-                    >
-                      {index + 1}
-                    </button>
+                    <div key={part} className="space-y-1.5">
+                      {/* Part header */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary">
+                          {partLabels[part]}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground font-medium">
+                          {answeredInPart}/{partQuestions.length}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {partQuestions.map(({ q, index }) => {
+                          const isAnswered = !!answers[q._id];
+                          const isActive = activeQuestionIndex === index;
+                          return (
+                            <button
+                              key={q._id}
+                              onClick={() => setActiveQuestionIndex(index)}
+                              className={`h-7 w-7 flex items-center justify-center rounded-md text-[10px] font-bold transition-all ${
+                                isActive
+                                  ? 'bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 scale-110'
+                                  : isAnswered
+                                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/35'
+                                    : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
+                              }`}
+                            >
+                              {index + 1}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {/* Subtle separator */}
+                      <div className="h-px bg-border/40 mt-1" />
+                    </div>
                   );
                 })}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

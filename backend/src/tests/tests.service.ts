@@ -27,18 +27,23 @@ export class TestsService {
     return testSet;
   }
 
-  async create(dto: { name: string; description?: string; total_questions?: number; parts_count?: number }) {
+  async create(dto: { name: string; description?: string; total_questions?: number; parts_count?: number; audioUrl?: string; status?: string }) {
     const newTestSet = new this.testSetModel({
       name: dto.name,
       description: dto.description,
       total_questions: dto.total_questions || 0,
       parts_count: dto.parts_count || 1,
+      audioUrl: dto.audioUrl,
+      status: dto.status || 'draft',
     });
     return newTestSet.save();
   }
 
   async findQuestions(testSetId: string) {
-    return this.questionModel.find({ test_set_id: new Types.ObjectId(testSetId) }).exec();
+    return this.questionModel
+      .find({ test_set_id: new Types.ObjectId(testSetId) })
+      .sort({ part: 1, createdAt: 1 })
+      .exec();
   }
 
   async findResult(resultId: string) {
@@ -155,5 +160,32 @@ export class TestsService {
       totalQuestions: questions.length,
       currentStreak: streak.current_streak,
     };
+  }
+
+  async update(id: string, dto: { name?: string; description?: string; audioUrl?: string; status?: string }) {
+    const testSet = await this.findOne(id);
+    if (dto.name !== undefined) testSet.name = dto.name;
+    if (dto.description !== undefined) testSet.description = dto.description;
+    if (dto.audioUrl !== undefined) testSet.audioUrl = dto.audioUrl;
+    if (dto.status !== undefined) testSet.status = dto.status;
+    return testSet.save();
+  }
+
+  async delete(id: string) {
+    const testSet = await this.testSetModel.findById(id).exec();
+    if (!testSet) {
+      throw new NotFoundException('Test set not found');
+    }
+
+    // Cascading delete questions belonging to this test set
+    await this.questionModel.deleteMany({ test_set_id: new Types.ObjectId(id) }).exec();
+
+    // Cascading delete test results belonging to this test set
+    await this.testResultModel.deleteMany({ test_set_id: new Types.ObjectId(id) }).exec();
+
+    // Delete the test set itself
+    await this.testSetModel.findByIdAndDelete(id).exec();
+
+    return { message: 'Test set and all associated questions/results deleted successfully' };
   }
 }

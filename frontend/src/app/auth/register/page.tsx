@@ -184,7 +184,7 @@ export default function RegisterPage() {
           <span className="p-2 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30">
             <Sparkles className="h-5 w-5" />
           </span>
-          <span className="font-bold text-2xl tracking-tight">LearnTOEIC</span>
+          <span className="font-bold text-2xl tracking-tight">learnEverything</span>
         </div>
 
         {/* Feature Presentation */}
@@ -229,8 +229,8 @@ export default function RegisterPage() {
 
         {/* Footer info */}
         <div className="text-slate-500 text-xs relative z-10 flex justify-between">
-          <span>© 2026 LearnTOEIC Inc.</span>
-          <span>Hỗ trợ kỹ thuật: support@learntoeic.vn</span>
+          <span>© 2026 learnEverything Inc.</span>
+          <span>Hỗ trợ kỹ thuật: support@learnEverything.vn</span>
         </div>
       </div>
 

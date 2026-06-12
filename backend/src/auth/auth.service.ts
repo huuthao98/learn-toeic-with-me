@@ -46,6 +46,7 @@ export class AuthService {
       fullName: dto.fullName,
       passwordHash: hashedPassword,
       age: dto.age,
+      role: dto.role || 'user',
     });
 
     await newUser.save();
@@ -99,6 +100,7 @@ export class AuthService {
         user = new this.userModel({
           phone: phoneNumber,
           fullName: dto.fullName || 'New User',
+          role: dto.role || 'user',
         });
         await user.save();
       }

@@ -4,6 +4,8 @@ export interface TestSet {
   _id: string
   name: string
   description?: string
+  audioUrl?: string
+  status: string
   total_questions: number
   parts_count: number
   createdAt: string
@@ -46,11 +48,11 @@ export const testsApi = {
     const response = await api.post(`/tests/${id}/submit`, data)
     return response.data
   },
-  createTestSet: async (data: { name: string; description?: string; total_questions?: number; parts_count?: number }) => {
+  createTestSet: async (data: { name: string; description?: string; total_questions?: number; parts_count?: number; audioUrl?: string; status?: string }) => {
     const response = await api.post<TestSet>("/tests/admin/create", data)
     return response.data
   },
-  updateTestSet: async (id: string, data: { name: string; description?: string }) => {
+  updateTestSet: async (id: string, data: { name?: string; description?: string; audioUrl?: string; status?: string }) => {
     const response = await api.patch<TestSet>(`/tests/admin/${id}`, data)
     return response.data
   },
