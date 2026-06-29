@@ -1,3 +1,7 @@
 # Custom folders to ignore
 locket-plan-spend-app/
 admin-ui-example/
+node_modules/
+.env
+proxy-server/
+img/

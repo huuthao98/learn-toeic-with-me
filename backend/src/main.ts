@@ -31,8 +31,8 @@ async function bootstrap() {
 
   // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle('LearnTOEIC API')
-    .setDescription('Backend API for LearnTOEIC application')
+    .setTitle('Learn Everything API')
+    .setDescription('Backend API for Learn Everything application')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
