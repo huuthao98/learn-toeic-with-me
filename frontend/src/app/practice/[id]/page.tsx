@@ -34,12 +34,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { ListeningInstructions } from '@/components/ListeningInstructions';
-import { Part2Instructions } from '@/components/Part2Instructions';
-import { Part3Instructions } from '@/components/Part3Instructions';
-import { Part4Instructions } from '@/components/Part4Instructions';
-import { Part5Instructions } from '@/components/Part5Instructions';
-import { Part6Instructions } from '@/components/Part6Instructions';
-import { Part7Instructions } from '@/components/Part7Instructions';
 
 export default function TakeExamPage() {
   const params = useParams();
@@ -75,19 +69,27 @@ export default function TakeExamPage() {
   };
 
   const handleCopyQuestion = () => {
-    if (!currentQuestion) return;
+    if (!questions) return;
+    const cQ = questions[activeQuestionIndex];
+    if (!cQ) return;
+
+    let groupPassageText = cQ.passage_text;
+    if (!groupPassageText && cQ.group_id) {
+      const gQ = questions.find((q: any) => q.group_id === cQ.group_id && q.passage_text);
+      if (gQ) groupPassageText = gQ.passage_text;
+    }
 
     let textToCopy = '';
-    if (currentQuestion.passage_text) {
-      textToCopy += `[Đoạn văn]\n${currentQuestion.passage_text}\n\n`;
+    if (groupPassageText) {
+      textToCopy += `[Đoạn văn]\n${groupPassageText}\n\n`;
     }
-    if (currentQuestion.question_text) {
-      textToCopy += `[Câu hỏi]\n${currentQuestion.question_text}\n\n`;
+    if (cQ.question_text) {
+      textToCopy += `[Câu hỏi]\n${cQ.question_text}\n\n`;
     }
 
-    if (currentQuestion.options && currentQuestion.options.length > 0) {
+    if (cQ.options && cQ.options.length > 0) {
       textToCopy += `[Lựa chọn]\n`;
-      currentQuestion.options.forEach((opt) => {
+      cQ.options.forEach((opt: any) => {
         textToCopy += `${opt.label}. ${opt.text}\n`;
       });
     }
@@ -313,42 +315,14 @@ export default function TakeExamPage() {
       {/* Main layout */}
       <div className="flex-1 p-2 md:p-4 max-w-7xl w-full mx-auto grid gap-2 lg:grid-cols-12 items-start">
         {/* Left column: Active Question Display */}
-        <div className={`space-y-6 h-full justify-center ${showInstructions ? 'lg:col-span-12' : 'lg:col-span-9'}`}>
+        <div
+          className={`space-y-6 h-full justify-center ${showInstructions ? 'lg:col-span-12' : 'lg:col-span-9'}`}
+        >
           {/* TOEIC-style Instruction Panel — shown only on Question 1 Part 1 */}
           {showInstructions && activeQuestionIndex === 0 && currentQuestion.part === '1' ? (
             <ListeningInstructions onStart={() => setShowInstructions(false)} />
           ) : (
             <>
-              {/* Part 2 directions */}
-              {firstPart2Index !== -1 && activeQuestionIndex === firstPart2Index && (
-                <Part2Instructions />
-              )}
-
-              {/* Part 3 directions */}
-              {firstPart3Index !== -1 && activeQuestionIndex === firstPart3Index && (
-                <Part3Instructions />
-              )}
-
-              {/* Part 4 directions */}
-              {firstPart4Index !== -1 && activeQuestionIndex === firstPart4Index && (
-                <Part4Instructions />
-              )}
-
-              {/* Part 5 directions (Reading Test intro) */}
-              {firstPart5Index !== -1 && activeQuestionIndex === firstPart5Index && (
-                <Part5Instructions />
-              )}
-
-              {/* Part 6 directions */}
-              {firstPart6Index !== -1 && activeQuestionIndex === firstPart6Index && (
-                <Part6Instructions />
-              )}
-
-              {/* Part 7 directions */}
-              {firstPart7Index !== -1 && activeQuestionIndex === firstPart7Index && (
-                <Part7Instructions />
-              )}
-
               <Card className="glass-card border-l-4 border-l-primary h-full justify-start">
                 <CardHeader className="pb-3 flex flex-row items-center justify-between">
                   <div>
@@ -385,8 +359,26 @@ export default function TakeExamPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* If it's a group part with shared passages or media (Part 3, 4, 6, 7) */}
-                  {['3', '4', '6', '7'].includes(currentQuestion.part) ? (
+                  {testSet.testType === 'interview' ? (
+                    <div className="space-y-5 flex flex-col">
+                      <div className="text-base font-semibold leading-relaxed p-4 rounded-xl bg-secondary/30 border border-border/20 text-indigo-900 dark:text-indigo-200">
+                        {currentQuestion.category && (
+                          <span className="text-xs font-bold text-primary mr-2 uppercase tracking-wider">
+                            [{currentQuestion.category}]
+                          </span>
+                        )}
+                        {currentQuestion.question_text}
+                      </div>
+                      <div className="space-y-3">
+                        <textarea
+                          value={answers[currentQuestion._id] || ''}
+                          onChange={(e) => handleSelectOption(currentQuestion._id, e.target.value)}
+                          placeholder="Nhập câu trả lời của bạn vào đây..."
+                          className="w-full min-h-[200px] p-4 rounded-xl border border-border/40 bg-background resize-y focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        />
+                      </div>
+                    </div>
+                  ) : ['3', '4', '6', '7'].includes(currentQuestion.part) ? (
                     <div className="flex flex-col gap-5">
                       {/* Shared Passage / Media */}
                       <div className="space-y-4 p-4 rounded-xl bg-secondary/20 border border-border/30 max-h-[380px] overflow-y-auto w-full">
@@ -397,30 +389,63 @@ export default function TakeExamPage() {
                         </span>
 
                         {/* Group Audio Player (Part 3, 4) */}
-                        {(currentQuestion.part === '3' || currentQuestion.part === '4') &&
-                          currentQuestion.audio_url && (
-                            <div className="space-y-1.5">
-                              <audio src={currentQuestion.audio_url} controls className="w-full" />
-                            </div>
-                          )}
+                        {(() => {
+                          let audioUrl = currentQuestion.audio_url;
+                          if (!audioUrl && currentQuestion.group_id) {
+                            const gQ = questions.find(
+                              (q: any) => q.group_id === currentQuestion.group_id && q.audio_url,
+                            );
+                            if (gQ) audioUrl = gQ.audio_url;
+                          }
+                          return (
+                            (currentQuestion.part === '3' || currentQuestion.part === '4') &&
+                            audioUrl && (
+                              <div className="space-y-1.5">
+                                <audio src={audioUrl} controls className="w-full" />
+                              </div>
+                            )
+                          );
+                        })()}
 
                         {/* Group Diagram Image (Part 3, 4, 7) */}
-                        {currentQuestion.image_url && (
-                          <div className="flex justify-center bg-background/50 rounded-lg p-2 border border-border/20">
-                            <img
-                              src={currentQuestion.image_url}
-                              alt="Diagram"
-                              className="max-h-44 object-contain rounded"
-                            />
-                          </div>
-                        )}
+                        {(() => {
+                          let imageUrl = currentQuestion.image_url;
+                          if (!imageUrl && currentQuestion.group_id) {
+                            const gQ = questions.find(
+                              (q: any) => q.group_id === currentQuestion.group_id && q.image_url,
+                            );
+                            if (gQ) imageUrl = gQ.image_url;
+                          }
+                          return (
+                            imageUrl && (
+                              <div className="flex justify-center bg-background/50 rounded-lg p-2 border border-border/20">
+                                <img
+                                  src={imageUrl}
+                                  alt="Diagram"
+                                  className="max-h-44 object-contain rounded"
+                                />
+                              </div>
+                            )
+                          );
+                        })()}
 
                         {/* Group Passage Text (Part 6, 7) */}
-                        {currentQuestion.passage_text && (
-                          <div className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line font-serif pr-2">
-                            {currentQuestion.passage_text}
-                          </div>
-                        )}
+                        {(() => {
+                          let passageText = currentQuestion.passage_text;
+                          if (!passageText && currentQuestion.group_id) {
+                            const gQ = questions.find(
+                              (q: any) => q.group_id === currentQuestion.group_id && q.passage_text,
+                            );
+                            if (gQ) passageText = gQ.passage_text;
+                          }
+                          return (
+                            passageText && (
+                              <div className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line font-serif pr-2">
+                                {passageText}
+                              </div>
+                            )
+                          );
+                        })()}
                       </div>
 
                       {/* Question Form Area below */}
@@ -609,63 +634,97 @@ export default function TakeExamPage() {
               </CardHeader>
               <CardContent className="space-y-4 overflow-y-auto max-h-[calc(100vh-12rem)] pr-1">
                 {/* Question Number Grid grouped by Part */}
-                {(['1', '2', '3', '4', '5', '6', '7'] as const).map((part) => {
-                  const partQuestions = questions
-                    .map((q, index) => ({ q, index }))
-                    .filter(({ q }) => q.part === part);
-                  if (partQuestions.length === 0) return null;
-
-                  const partLabels: Record<string, string> = {
-                    '1': 'Part 1 · Photos',
-                    '2': 'Part 2 · Q&A',
-                    '3': 'Part 3 · Conversations',
-                    '4': 'Part 4 · Talks',
-                    '5': 'Part 5 · Sentences',
-                    '6': 'Part 6 · Paragraphs',
-                    '7': 'Part 7 · Reading',
-                  };
-
-                  const firstNum = partQuestions[0].index + 1;
-                  const lastNum = partQuestions[partQuestions.length - 1].index + 1;
-                  const answeredInPart = partQuestions.filter(({ q }) => !!answers[q._id]).length;
-
-                  return (
-                    <div key={part} className="space-y-1.5">
-                      {/* Part header */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary">
-                          {partLabels[part]}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground font-medium">
-                          {answeredInPart}/{partQuestions.length}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {partQuestions.map(({ q, index }) => {
-                          const isAnswered = !!answers[q._id];
-                          const isActive = activeQuestionIndex === index;
-                          return (
-                            <button
-                              key={q._id}
-                              onClick={() => setActiveQuestionIndex(index)}
-                              className={`h-7 w-7 flex items-center justify-center rounded-md text-[10px] font-bold transition-all ${
-                                isActive
-                                  ? 'bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 scale-110'
-                                  : isAnswered
-                                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/35'
-                                    : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
-                              }`}
-                            >
-                              {index + 1}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {/* Subtle separator */}
-                      <div className="h-px bg-border/40 mt-1" />
+                {testSet.testType === 'interview' ? (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary">
+                        Câu hỏi phỏng vấn
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-medium">
+                        {answeredCount}/{questions.length}
+                      </span>
                     </div>
-                  );
-                })}
+                    <div className="flex flex-wrap gap-1.5">
+                      {questions.map((q: any, index: number) => {
+                        const isAnswered = !!answers[q._id];
+                        const isActive = activeQuestionIndex === index;
+                        return (
+                          <button
+                            key={q._id}
+                            onClick={() => setActiveQuestionIndex(index)}
+                            className={`h-7 w-7 flex items-center justify-center rounded-md text-[10px] font-bold transition-all ${
+                              isActive
+                                ? 'bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 scale-110'
+                                : isAnswered
+                                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/35'
+                                  : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
+                            }`}
+                          >
+                            {index + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  (['1', '2', '3', '4', '5', '6', '7'] as const).map((part) => {
+                    const partQuestions = questions
+                      .map((q: any, index: number) => ({ q, index }))
+                      .filter(({ q }: { q: any }) => q.part === part);
+                    if (partQuestions.length === 0) return null;
+
+                    const partLabels: Record<string, string> = {
+                      '1': 'Part 1 · Photos',
+                      '2': 'Part 2 · Q&A',
+                      '3': 'Part 3 · Conversations',
+                      '4': 'Part 4 · Talks',
+                      '5': 'Part 5 · Sentences',
+                      '6': 'Part 6 · Paragraphs',
+                      '7': 'Part 7 · Reading',
+                    };
+
+                    const firstNum = partQuestions[0].index + 1;
+                    const lastNum = partQuestions[partQuestions.length - 1].index + 1;
+                    const answeredInPart = partQuestions.filter(({ q }) => !!answers[q._id]).length;
+
+                    return (
+                      <div key={part} className="space-y-1.5">
+                        {/* Part header */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary">
+                            {partLabels[part]}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground font-medium">
+                            {answeredInPart}/{partQuestions.length}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {partQuestions.map(({ q, index }) => {
+                            const isAnswered = !!answers[q._id];
+                            const isActive = activeQuestionIndex === index;
+                            return (
+                              <button
+                                key={q._id}
+                                onClick={() => setActiveQuestionIndex(index)}
+                                className={`h-7 w-7 flex items-center justify-center rounded-md text-[10px] font-bold transition-all ${
+                                  isActive
+                                    ? 'bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 scale-110'
+                                    : isAnswered
+                                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/35'
+                                      : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
+                                }`}
+                              >
+                                {index + 1}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {/* Subtle separator */}
+                        <div className="h-px bg-border/40 mt-1" />
+                      </div>
+                    );
+                  })
+                )}
               </CardContent>
             </Card>
           </div>

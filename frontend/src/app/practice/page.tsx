@@ -28,7 +28,7 @@ export default function PracticeCatalogPage() {
   const { useTestSets } = useTests();
   const { useRecentTests } = useDashboard();
 
-  const { data: testSets, isLoading: loadingTests } = useTestSets();
+  const { data: testSets, isLoading: loadingTests } = useTestSets('toeic');
   const { data: recentTests, isLoading: loadingHistory } = useRecentTests();
 
   // Track completed test IDs
@@ -154,7 +154,7 @@ export default function PracticeCatalogPage() {
                         </CardContent>
 
                         <CardFooter className="bg-secondary/20 px-6 py-3 border-t border-border/10 flex justify-end">
-                          <Link href={`/practice/${set._id}?autoplay=true`} className="w-full">
+                          <Link href={set.pdfUrl ? `/practice-v2/${set._id}` : `/practice/${set._id}?autoplay=true`} className="w-full">
                             <Button
                               className="w-full text-xs font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-all flex items-center justify-center gap-1.5"
                               variant={isCompleted ? 'secondary' : 'default'}

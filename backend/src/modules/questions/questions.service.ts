@@ -74,6 +74,7 @@ export class QuestionsService {
     const bulkOps = questions.map((q) => {
       const updateData: any = {};
 
+      if (q.questionNumber !== undefined) updateData.question_number = q.questionNumber;
       if (q.questionText !== undefined) updateData.question_text = q.questionText;
       if (q.correctAnswer) updateData.correct_answer = q.correctAnswer;
       if (q.explanation !== undefined) updateData.explanation = q.explanation;
@@ -83,6 +84,7 @@ export class QuestionsService {
         updateOne: {
           filter: {
             test_set_id: new Types.ObjectId(testSetId),
+            question_number: q.questionNumber,
           },
           update: { $set: updateData },
           upsert: true,

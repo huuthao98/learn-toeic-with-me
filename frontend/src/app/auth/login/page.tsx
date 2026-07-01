@@ -1,14 +1,16 @@
 'use client';
 
 import {
-  KeyRound,
   Mail,
   Phone,
-  Sparkles,
   BookOpen,
+  Calendar,
   AlertCircle,
   ArrowRight,
+  Target,
+  Trophy,
   ShieldCheck,
+  KeyRound,
 } from 'lucide-react';
 import * as z from 'zod';
 import Link from 'next/link';
@@ -140,10 +142,7 @@ export default function LoginPage() {
 
         {/* Brand Header */}
         <div className="flex items-center gap-2 relative z-10">
-          <span className="p-2 rounded-lg bg-indigo-600 text-white flex items-center shadow-lg shadow-indigo-500/30">
-            <Sparkles className="h-5 w-5" />
-          </span>
-          <span className="font-bold text-2xl tracking-tight">learnEverything</span>
+          <span className="font-bold text-2xl tracking-tight">Learn-Everything</span>
         </div>
 
         {/* Feature Presentation */}
@@ -153,7 +152,7 @@ export default function LoginPage() {
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300">
               TOEIC Reading
             </span>{' '}
-            của bạn
+            của bạn. Ngôn ngữ là chìa khóa của tương lai
           </h1>
           <p className="text-slate-400 text-lg mb-8">
             Học thông minh, thi hiệu quả. Hệ thống hóa lộ trình học, theo dõi chuỗi ngày chuyên cần

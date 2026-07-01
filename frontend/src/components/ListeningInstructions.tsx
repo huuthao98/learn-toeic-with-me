@@ -1,5 +1,3 @@
-'use client';
-
 import examplePart1 from '@/assets/img/example-part1.png';
 
 interface ListeningInstructionsProps {

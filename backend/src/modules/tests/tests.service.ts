@@ -15,9 +15,34 @@ export class TestsService {
     @InjectModel(UserStreak.name) private userStreakModel: Model<UserStreakDocument>,
   ) {}
 
-  async findAll(testType?: string) {
-    const filter = testType ? { testType } : {};
-    return this.testSetModel.find(filter).sort({ createdAt: -1 }).exec();
+  async findAll(testType?: string, status?: string) {
+    const query: any = {};
+    if (testType) query.testType = testType;
+    if (status) query.status = status;
+    const matchStage = { $match: query };
+
+    return this.testSetModel.aggregate([
+      matchStage,
+      {
+        $lookup: {
+          from: 'questions',
+          localField: '_id',
+          foreignField: 'test_set_id',
+          as: 'questions',
+        },
+      },
+      {
+        $addFields: {
+          total_questions: { $size: '$questions' },
+        },
+      },
+      {
+        $project: {
+          questions: 0,
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
   }
 
   async findOne(id: string) {
@@ -31,8 +56,6 @@ export class TestsService {
   async create(dto: {
     name: string;
     description?: string;
-    total_questions?: number;
-    parts_count?: number;
     audioUrl?: string;
     status?: string;
     pdfUrl?: string;
@@ -44,8 +67,6 @@ export class TestsService {
       newTestSet = new this.testSetModel({
       name: dto.name,
       description: dto.description,
-      total_questions: dto.total_questions || 0,
-      parts_count: dto.parts_count || 1,
       audioUrl: dto.audioUrl,
       status: dto.status || 'draft',
       pdfUrl: dto.pdfUrl,
@@ -55,7 +76,6 @@ export class TestsService {
       newTestSet = new this.testSetModel({
         name: dto.name,
         description: dto.description,
-        total_questions: dto.total_questions || 0,
         status: dto.status || 'draft',
         testType: dto.testType,
       });
@@ -192,7 +212,6 @@ export class TestsService {
       description?: string;
       audioUrl?: string;
       status?: string;
-      isV2?: boolean;
       pdfUrl?: string;
     },
   ) {
@@ -201,7 +220,6 @@ export class TestsService {
     if (dto.description !== undefined) testSet.description = dto.description;
     if (dto.audioUrl !== undefined) testSet.audioUrl = dto.audioUrl;
     if (dto.status !== undefined) testSet.status = dto.status;
-    // if (dto.isV2 !== undefined) testSet.isV2 = dto.isV2;
     if (dto.pdfUrl !== undefined) testSet.pdfUrl = dto.pdfUrl;
     return testSet.save();
   }

@@ -6,15 +6,17 @@ export interface TestSet {
   description?: string
   audioUrl?: string
   status: string
-  total_questions: number
-  parts_count: number
+  pdfUrl?: string
   createdAt: string
+  testType?:string
+  total_questions:number
 }
 
 export interface Question {
   _id: string
   test_set_id?: string
   part: string
+  question_number: number
   difficulty: "easy" | "medium" | "hard"
   question_text: string
   options: { label: string; text: string }[]
@@ -25,11 +27,20 @@ export interface Question {
   group_id?: string
   passage_text?: string
   status: string
+  category?:string
 }
 
 export const testsApi = {
-  fetchTestSets: async () => {
-    const response = await api.get<TestSet[]>("/tests")
+  fetchTestSets: async (testType?: string,status?:string) => {
+    let query = ""
+    if(testType && status){
+      query = `?testType=${testType}&status=${status}`
+    }else if(testType){
+      query = `?testType=${testType}`
+    }else if(status){
+      query = `?status=${status}`
+    }
+    const response = await api.get<TestSet[]>(`/tests${query}`)
     return response.data
   },
   fetchTestSet: async (id: string) => {
@@ -48,11 +59,11 @@ export const testsApi = {
     const response = await api.post(`/tests/${id}/submit`, data)
     return response.data
   },
-  createTestSet: async (data: { name: string; description?: string; total_questions?: number; parts_count?: number; audioUrl?: string; status?: string }) => {
+  createTestSet: async (data: { name: string; description?: string; audioUrl?: string; status?: string; pdfUrl?: string; testType?: string;}) => {
     const response = await api.post<TestSet>("/tests/admin/create", data)
     return response.data
   },
-  updateTestSet: async (id: string, data: { name?: string; description?: string; audioUrl?: string; status?: string }) => {
+  updateTestSet: async (id: string, data: { name?: string; description?: string; audioUrl?: string; status?: string; pdfUrl?: string; testType?: string }) => {
     const response = await api.patch<TestSet>(`/tests/admin/${id}`, data)
     return response.data
   },

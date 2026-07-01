@@ -20,9 +20,6 @@ export class TestSet {
   @Prop({ default: 0 })
   total_questions: number;
 
-  @Prop({ default: 0 })
-  parts_count: number;
-
   @Prop({ default: 'toeic', enum: ['toeic', 'interview'] })
   testType: string;
 

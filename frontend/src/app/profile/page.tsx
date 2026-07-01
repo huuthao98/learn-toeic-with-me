@@ -345,7 +345,7 @@ export default function ProfilePage() {
                 </CardContent>
                 <CardFooter className="pt-2">
                   <Button
-                    onClick={() => router.push('/admin/create-test')}
+                    onClick={() => router.push('/admin/create-test-v2')}
                     className="w-full text-xs font-bold flex items-center gap-1.5"
                     variant="outline"
                   >

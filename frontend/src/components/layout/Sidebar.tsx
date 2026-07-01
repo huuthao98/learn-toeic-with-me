@@ -3,7 +3,6 @@
 import {
   User,
   LogOut,
-  Sparkles,
   BookOpen,
   ChevronLeft,
   ShieldCheck,
@@ -11,13 +10,14 @@ import {
   LayoutDashboard,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { HTMLAttributes } from 'react';
+import { usePathname } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 import { useLayoutStore } from '@/store/layoutStore';
+
 interface SidebarProps extends HTMLAttributes<HTMLDivElement> {
   onCollapseToggle?: (collapsed: boolean) => void;
 }
@@ -26,8 +26,8 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
   const { user } = useAuthStore();
-  const isCollapsed = useLayoutStore((state) => state.isCollapsed);
-  const toggleCollapse = useLayoutStore((state) => state.toggleCollapse);
+  const isCollapsed = useLayoutStore(state => state.isCollapsed);
+  const toggleCollapse = useLayoutStore(state => state.toggleCollapse);
 
   const menuItems = [
     {
@@ -37,16 +37,40 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
       roles: ['user', 'admin'],
     },
     {
-      name: 'Luyện Thi TOEIC',
-      href: '/practice',
-      icon: BookOpen,
-      roles: ['user', 'admin'],
-    },
-    {
       name: 'Trang Cá Nhân',
       href: '/profile',
       icon: User,
       roles: ['user', 'admin'],
+    },
+    {
+      name: 'Luyện Tập',
+      href: '/practice',
+      icon: BookOpen,
+      roles: ['user', 'admin'],
+      children: [
+        {
+          name: 'Bài Thi Tiếng Anh',
+          href: '/practice',
+          roles: ['user', 'admin'],
+        },
+        {
+          name: 'Luyện với AI',
+          href: '/practice-interview-AI',
+          roles: ['user', 'admin'],
+        },
+        {
+          name: 'Luyện phỏng vấn',
+          href: '/practice-interview',
+          roles: ['user', 'admin'],
+        },
+      ],
+    },
+
+    {
+      name: 'Quản lý người dùng',
+      href: '/user',
+      icon: User,
+      roles: ['admin'],
     },
     {
       name: 'Quản Lý Đề Thi',
@@ -55,9 +79,13 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
       roles: ['admin'],
       children: [
         {
-          name: 'Tạo Đề Mới',
-          href: '/admin/create-test',
-          // icon: PlusCircle,
+          name: 'Tạo Bài Phỏng Vấn',
+          href: '/admin/create-interview-test',
+          roles: ['admin'],
+        },
+        {
+          name: 'Tạo Đề Mới (V2 - PDF)',
+          href: '/admin/create-test-v2',
           roles: ['admin'],
         },
         {
@@ -70,7 +98,9 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
     },
   ];
 
-  const filteredItems = menuItems.filter((item) => item.roles.includes(user?.role || 'user'));
+  const filteredItems = menuItems.filter(item =>
+    item.roles.includes(user?.role || 'user'),
+  );
   return (
     <aside
       className={cn(
@@ -91,16 +121,14 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
             href="/dashboard"
             className="flex items-center gap-2 font-bold text-xl tracking-tight animate-fade-in"
           >
-            <span className="p-1.5 rounded-lg bg-primary text-primary-foreground animate-pulse-ring">
-              <Sparkles className="h-4 w-4" />
-            </span>
             <span className="text-gradient">learnEverything</span>
           </Link>
         ) : (
-          <Link href="/dashboard" className="flex items-center justify-center animate-fade-in">
-            <span className="flex p-1.5 rounded-lg bg-primary text-primary-foreground">
-              <Sparkles className="h-4 w-4" />
-            </span>
+          <Link
+            href="/dashboard"
+            className="flex items-center justify-center animate-fade-in"
+          >
+            {/* Logo */}
           </Link>
         )}
         <button
@@ -126,10 +154,13 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
           const Icon = item.icon;
           const isActive =
             pathname === item.href ||
-            (pathname.startsWith(item.href + '/') && item.href !== '/dashboard');
+            (pathname.startsWith(item.href + '/') &&
+              item.href !== '/dashboard');
 
           const filteredChildren =
-            item.children?.filter((child: any) => child.roles.includes(user?.role || 'user')) || [];
+            item.children?.filter((child: any) =>
+              child.roles.includes(user?.role || 'user'),
+            ) || [];
 
           return (
             <div key={item.href} className="space-y-1">
@@ -148,7 +179,9 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
                 <Icon
                   className={cn(
                     'h-5 w-5 shrink-0',
-                    isActive ? '' : 'text-muted-foreground group-hover:text-foreground',
+                    isActive
+                      ? ''
+                      : 'text-muted-foreground group-hover:text-foreground',
                   )}
                 />
                 {!isCollapsed && <span>{item.name}</span>}
@@ -161,7 +194,9 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
 
               {/* Render Children (Sub-menu) */}
               {filteredChildren.length > 0 && (
-                <div className={cn('space-y-1', isCollapsed ? 'hidden' : 'block')}>
+                <div
+                  className={cn('space-y-1', isCollapsed ? 'hidden' : 'block')}
+                >
                   {filteredChildren.map((child: any) => {
                     const ChildIcon = child.icon;
                     const isChildActive = pathname === child.href;

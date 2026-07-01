@@ -3,7 +3,6 @@ import {
   Mail,
   Phone,
   User,
-  Sparkles,
   KeyRound,
   BookOpen,
   Calendar,
@@ -181,10 +180,7 @@ export default function RegisterPage() {
 
         {/* Brand Header */}
         <div className="flex items-center gap-2 relative z-10">
-          <span className="p-2 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <Sparkles className="h-5 w-5" />
-          </span>
-          <span className="font-bold text-2xl tracking-tight">learnEverything</span>
+          <span className="font-bold text-2xl tracking-tight">Learn-Everything</span>
         </div>
 
         {/* Feature Presentation */}

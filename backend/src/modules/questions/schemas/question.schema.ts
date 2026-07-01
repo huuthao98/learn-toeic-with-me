@@ -18,6 +18,9 @@ export class Question {
   @Prop({ type: Types.ObjectId, ref: 'TestSet' })
   test_set_id?: Types.ObjectId;
 
+  @Prop()
+  question_number?: number;
+
   @Prop({ required: true })
   question_text: string;
 

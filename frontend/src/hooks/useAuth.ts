@@ -23,8 +23,8 @@ export const useAuth = () => {
       mutationFn: authApi.register,
       onSuccess: (data) => {
         // Automatically login the user after registration if token returned
-        if (data.access_token && data.user) {
-          setAuth(data.user, data.access_token)
+        if (data.accessToken && data.user) {
+          setAuth(data.user, data.accessToken)
         }
       },
     })
@@ -34,8 +34,8 @@ export const useAuth = () => {
     useMutation({
       mutationFn: authApi.login,
       onSuccess: (data) => {
-        if (data.access_token && data.user) {
-          setAuth(data.user, data.access_token)
+        if (data.token.accessToken && data.user) {
+          setAuth(data.user, data.token.accessToken)
           queryClient.invalidateQueries({ queryKey: ["profile"] })
         }
       },
@@ -46,8 +46,8 @@ export const useAuth = () => {
     useMutation({
       mutationFn: authApi.verifyFirebasePhone,
       onSuccess: (data) => {
-        if (data.access_token && data.user) {
-          setAuth(data.user, data.access_token)
+        if (data.accessToken && data.user) {
+          setAuth(data.user, data.accessToken)
           queryClient.invalidateQueries({ queryKey: ["profile"] })
         }
       },

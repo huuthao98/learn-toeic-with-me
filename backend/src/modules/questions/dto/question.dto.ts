@@ -40,6 +40,11 @@ export class CreateQuestionDto {
   @IsOptional()
   testSetId?: string;
 
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  questionNumber?: number;
+
   @ApiProperty()
   @IsString()
   questionText: string;

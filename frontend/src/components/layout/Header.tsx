@@ -32,7 +32,10 @@ export function Header() {
       <div className="flex items-center gap-2">
         <span className="hidden sm:inline-block text-sm text-muted-foreground font-medium">
           Xin chào,{' '}
-          <span className="font-semibold text-foreground">{user?.fullName || 'Học Viên'}</span> 👋
+          <span className="font-semibold text-foreground">
+            {user?.fullName || 'Học Viên'}
+          </span>{' '}
+          👋
         </span>
       </div>
 
@@ -51,7 +54,7 @@ export function Header() {
         {/* Target Indicator */}
         <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
           <TrendingUp className="h-3.5 w-3.5" />
-          <span>Mục tiêu: {user?.targetScore || 800}đ</span>
+          <span>Mục tiêu 1% mỗi ngày</span>
         </div>
 
         {/* Theme Toggle */}

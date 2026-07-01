@@ -19,17 +19,11 @@ export interface FetchQuestionsParams {
 
 export interface CreateQuestionData {
   testSetId?: string
-  part: string
-  difficulty: string
   questionText: string
-  options: { label: string; text: string }[]
   correctAnswer: string
   explanation?: string
-  audioUrl?: string
-  imageUrl?: string
-  groupId?: string
-  passageText?: string
   isActive?: boolean
+  category?: string
 }
 
 export const questionsApi = {

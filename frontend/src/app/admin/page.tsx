@@ -2,29 +2,19 @@
 
 import {
   ShieldCheck,
-  PlusCircle,
-  HelpCircle,
   Layers,
   Trash2,
   CheckCircle2,
   AlertCircle,
   ExternalLink,
+  PlusCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 import { useTests } from '@/hooks/useTests';
 import { useAuthStore } from '@/store/authStore';
@@ -42,36 +32,20 @@ export default function AdminPage() {
   }, [user, router]);
 
   const { useTestSets, useDeleteTestSetMutation } = useTests();
-  const { useFetchQuestions, useDeleteQuestionMutation } = useQuestions();
 
   const { data: testSets, isLoading: loadingTests } = useTestSets();
-  const { data: questionsData, isLoading: loadingQuestions } = useFetchQuestions({
-    page: 1,
-    limit: 100,
-  });
-  const deleteQuestionMutation = useDeleteQuestionMutation();
+
   const deleteTestSetMutation = useDeleteTestSetMutation();
 
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleDeleteQuestion = (id: string) => {
-    if (confirm('Bạn có chắc chắn muốn xóa câu hỏi này khỏi cơ sở dữ liệu?')) {
-      deleteQuestionMutation.mutate(id, {
-        onSuccess: () => {
-          setSuccessMsg('Xóa câu hỏi thành công!');
-          setTimeout(() => setSuccessMsg(null), 3000);
-        },
-        onError: (err: any) => {
-          setErrorMsg(err.response?.data?.message || 'Xóa câu hỏi thất bại.');
-          setTimeout(() => setErrorMsg(null), 3000);
-        },
-      });
-    }
-  };
-
   const handleDeleteTestSet = (id: string) => {
-    if (confirm('Bạn có chắc chắn muốn xóa toàn bộ đề thi này? Mọi câu hỏi và kết quả thi liên quan cũng sẽ bị xóa vĩnh viễn!')) {
+    if (
+      confirm(
+        'Bạn có chắc chắn muốn xóa toàn bộ đề thi này? Mọi câu hỏi và kết quả thi liên quan cũng sẽ bị xóa vĩnh viễn!',
+      )
+    ) {
       deleteTestSetMutation.mutate(id, {
         onSuccess: () => {
           setSuccessMsg('Xóa đề thi thành công!');
@@ -100,14 +74,14 @@ export default function AdminPage() {
               <span className="text-gradient">Cổng Quản Trị</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Quản lý đề thi thử TOEIC, danh sách câu hỏi trắc nghiệm và thống kê nội dung học tập.
+              Quản lý danh sách các đề thi thử.
             </p>
           </div>
 
-          <Link href="/admin/create-test">
+          <Link href="/admin/create-test-v2">
             <Button className="font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 flex items-center gap-2">
               <PlusCircle className="h-4 w-4" />
-              <span>Tạo đề thi & soạn câu hỏi</span>
+              <span>Tạo đề thi mới</span>
             </Button>
           </Link>
         </div>
@@ -126,186 +100,158 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Stats Row */}
-        <div className="grid gap-6 sm:grid-cols-3">
-          <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-sans">
-                Tổng Số Đề Thi
-              </span>
+        {/* Test Sets Grid Layout */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold flex items-center gap-2 text-foreground">
               <Layers className="h-5 w-5 text-indigo-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black">{testSets?.length || 0}</div>
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Đề thi thử TOEIC kỹ năng Reading
-              </p>
-            </CardContent>
-          </Card>
+              <span>Danh Sách Bộ Đề Thi ({testSets?.length || 0})</span>
+            </h2>
+          </div>
 
-          <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Tổng Số Câu Hỏi
-              </span>
-              <HelpCircle className="h-5 w-5 text-teal-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black">{questionsData?.total || 0}</div>
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Câu hỏi trắc nghiệm trong thư viện
-              </p>
-            </CardContent>
-          </Card>
+          {loadingTests ? (
+            <div className="flex flex-wrap gap-8 items-start">
+              {[1, 2, 3].map(i => (
+                <div
+                  key={i}
+                  className="flex-1 min-w-[320px] flex flex-col gap-4"
+                >
+                  <div className="h-8 bg-secondary/60 animate-pulse rounded w-1/3" />
+                  <div className="h-44 bg-secondary/60 animate-pulse rounded-2xl" />
+                </div>
+              ))}
+            </div>
+          ) : testSets && testSets.length > 0 ? (
+            <div className="flex flex-wrap gap-8 items-start">
+              {(() => {
+                const groupedSets = testSets.reduce(
+                  (acc, set) => {
+                    const type = set.testType || 'other';
+                    if (!acc[type]) acc[type] = [];
+                    acc[type].push(set);
+                    return acc;
+                  },
+                  {} as Record<string, typeof testSets>,
+                );
 
-          <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Phân Nhóm TOEIC
-              </span>
-              <ShieldCheck className="h-5 w-5 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black">Part 5, 6, 7</div>
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Các phần của đề đọc hiểu TOEIC
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+                const testTypes = Object.keys(groupedSets).sort();
 
-        {/* Two Sections Layout: Test Sets Table and Questions Table */}
-        <div className="grid gap-6 lg:grid-cols-12">
-          {/* Test Sets Table (Admin list) */}
-          <Card className="lg:col-span-4 glass-card flex flex-col">
-            <CardHeader>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
-                <Layers className="h-4 w-4 text-primary" />
-                <span>Danh Sách Bộ Đề Thi</span>
-              </CardTitle>
-              <CardDescription>Các đề thi thử được phân bổ.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-x-auto">
-              {loadingTests ? (
-                <div className="h-20 bg-secondary/80 animate-pulse rounded" />
-              ) : testSets && testSets.length > 0 ? (
-                <div className="space-y-3">
-                  {testSets.map((set) => (
-                    <div
-                      key={set._id}
-                      className="p-3 rounded-lg border border-border/40 bg-secondary/20 flex items-center justify-between"
-                    >
-                      <div className="min-w-0">
-                        <h5 className="font-bold text-xs truncate" title={set.name}>
-                          {set.name}
-                        </h5>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                          {set.total_questions} câu hỏi
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Link
-                          href={`/admin/tests/${set._id}`}
-                          className="p-1 text-primary hover:bg-primary/10 rounded transition-all"
-                          title="Xem chi tiết đề thi"
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteTestSet(set._id)}
-                          disabled={deleteTestSetMutation.isPending}
-                          className="p-1 text-destructive hover:bg-destructive/10 rounded transition-all cursor-pointer"
-                          title="Xóa đề thi"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
+                return testTypes.map(type => (
+                  <div
+                    key={type}
+                    className="flex-1 min-w-[400px] max-w-[500px] flex flex-col gap-4"
+                  >
+                    <div className="flex items-center gap-2 border-b border-border/50 pb-2">
+                      <h3 className="font-bold text-base uppercase text-muted-foreground tracking-wider">
+                        {type === 'other' ? 'Khác' : type}
+                      </h3>
+                      <span className="bg-secondary/50 text-secondary-foreground text-xs font-semibold px-2 py-0.5 rounded-full">
+                        {groupedSets[type].length}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6 text-xs text-muted-foreground">
-                  Chưa có đề thi nào.
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          {/* Questions Table (Admin list) */}
-          <Card className="lg:col-span-8 glass-card">
-            <CardHeader>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
-                <HelpCircle className="h-4 w-4 text-primary" />
-                <span>Thư Viện Câu Hỏi Trắc Nghiệm</span>
-              </CardTitle>
-              <CardDescription>
-                Danh sách các câu hỏi trắc nghiệm đã lưu trên hệ thống.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loadingQuestions ? (
-                <div className="h-40 bg-secondary/60 animate-pulse rounded" />
-              ) : questionsData && questionsData.data.length > 0 ? (
-                <div className="overflow-x-auto max-h-[400px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Part</TableHead>
-                        <TableHead>Nội dung câu hỏi</TableHead>
-                        <TableHead>Đáp án</TableHead>
-                        <TableHead>Độ khó</TableHead>
-                        <TableHead className="text-right">Hành động</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {questionsData.data.map((q) => (
-                        <TableRow key={q._id} className="hover:bg-secondary/20">
-                          <TableCell className="font-bold text-xs">Part {q.part}</TableCell>
-                          <TableCell className="text-xs max-w-sm truncate" title={q.question_text}>
-                            {q.question_text}
-                          </TableCell>
-                          <TableCell className="font-bold text-xs text-emerald-600">
-                            {q.correct_answer}
-                          </TableCell>
-                          <TableCell className="text-xs">
-                            <span
-                              className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
-                                q.difficulty === 'easy'
-                                  ? 'bg-emerald-500/10 text-emerald-500'
-                                  : q.difficulty === 'medium'
-                                    ? 'bg-amber-500/10 text-amber-500'
-                                    : 'bg-destructive/10 text-destructive'
-                              }`}
-                            >
-                              {q.difficulty}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">
+                    <div className="flex flex-col gap-4">
+                      {groupedSets[type].map(set => (
+                        <div
+                          key={set._id}
+                          className="group relative flex flex-col glass-card border border-border/40 hover:border-indigo-400/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300"
+                        >
+                          <div className="absolute top-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
-                              onClick={() => handleDeleteQuestion(q._id)}
-                              disabled={deleteQuestionMutation.isPending}
-                              className="p-1 rounded text-destructive hover:bg-destructive/10 transition-all"
-                              title="Xóa câu hỏi"
+                              onClick={() => handleDeleteTestSet(set._id)}
+                              disabled={deleteTestSetMutation.isPending}
+                              className="p-2 text-destructive bg-destructive/10 hover:bg-destructive/20 rounded-full transition-colors cursor-pointer"
+                              title="Xóa đề thi"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
-                          </TableCell>
-                        </TableRow>
+                          </div>
+
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 border border-indigo-500/20">
+                              <Layers className="h-6 w-6" />
+                            </div>
+                            <div className="flex-1 min-w-0 pr-8">
+                              <h3
+                                className="font-bold text-base truncate text-foreground leading-tight mb-1"
+                                title={set.name}
+                              >
+                                {set.name}
+                              </h3>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <span
+                                  className={`px-2 py-0.5 rounded-full font-semibold ${
+                                    set.status === 'public'
+                                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                      : set.status === 'private'
+                                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                        : 'bg-secondary text-secondary-foreground'
+                                  }`}
+                                >
+                                  {set.status === 'public'
+                                    ? 'Công khai'
+                                    : set.status === 'private'
+                                      ? 'Nội bộ'
+                                      : 'Nháp'}
+                                </span>
+                                <span>•</span>
+                                <span>
+                                  {new Date(set.createdAt).toLocaleDateString(
+                                    'vi-VN',
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex-1 mt-2">
+                            <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">
+                              {set.description ||
+                                'Không có mô tả cho đề thi này.'}
+                            </p>
+                          </div>
+
+                          <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">
+                                Số Câu Hỏi
+                              </span>
+                              <span className="font-bold text-sm text-foreground">
+                                {set.total_questions} câu
+                              </span>
+                            </div>
+                            <Link
+                              href={`/admin/tests/${set._id}`}
+                              className="text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-colors"
+                            >
+                              <span>Chi tiết</span>
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </Link>
+                          </div>
+                        </div>
                       ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-center py-10 border border-dashed border-border rounded-lg bg-secondary/15 flex flex-col items-center justify-center">
-                  <HelpCircle className="h-10 w-10 text-muted-foreground/60 mb-2" />
-                  <h5 className="font-semibold text-sm">Chưa có câu hỏi nào</h5>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Nhấp nút bên phải để bắt đầu soạn câu hỏi.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          ) : (
+            <div className="text-center py-20 border-2 border-dashed border-border rounded-2xl bg-secondary/15 flex flex-col items-center justify-center">
+              <Layers className="h-12 w-12 text-muted-foreground/40 mb-3" />
+              <h5 className="font-semibold text-lg text-foreground">
+                Chưa có đề thi nào
+              </h5>
+              <p className="text-sm text-muted-foreground mt-1 max-w-md">
+                Hiện tại hệ thống chưa có bài kiểm tra nào. Bấm vào nút "Tạo đề
+                thi mới" để bắt đầu xây dựng nội dung.
+              </p>
+              <Link href="/admin/create-test-v2" className="mt-6">
+                <Button className="font-medium">
+                  <PlusCircle className="h-4 w-4 mr-2" /> Bắt đầu tạo
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

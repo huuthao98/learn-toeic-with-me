@@ -43,18 +43,6 @@ class CreateTestSetDto {
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ example: 200 })
-  @IsNumber()
-  @IsOptional()
-  @Min(0)
-  total_questions?: number;
-
-  @ApiPropertyOptional({ example: 7 })
-  @IsNumber()
-  @IsOptional()
-  @Min(1)
-  parts_count?: number;
-
   @ApiPropertyOptional({ example: 'audio/test1.mp3' })
   @IsString()
   @IsOptional()
@@ -64,10 +52,6 @@ class CreateTestSetDto {
   @IsString()
   @IsOptional()
   status?: string;
-
-  @ApiPropertyOptional({ example: false })
-  @IsOptional()
-  isV2?: boolean;
 
   @ApiPropertyOptional({ example: 'pdf/test1.pdf' })
   @IsString()
@@ -125,8 +109,8 @@ export class TestsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all test sets' })
-  findAll(@Query('testType') testType?: string) {
-    return this.testsService.findAll(testType);
+  findAll(@Query('testType') testType?: string, @Query('status') status?: string) {
+    return this.testsService.findAll(testType, status);
   }
 
   @Get(':id')

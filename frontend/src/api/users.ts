@@ -26,4 +26,12 @@ export const usersApi = {
     const response = await api.get<UserItem>(`/admin/users/${id}`)
     return response.data
   },
+  updateUser: async (id: string, data: Partial<UserItem>) => {
+    const response = await api.put(`/admin/users/${id}`, data)
+    return response.data
+  },
+  deleteUser: async (id: string) => {
+    const response = await api.delete(`/admin/users/${id}`)
+    return response.data
+  },
 }

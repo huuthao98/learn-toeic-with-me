@@ -7,11 +7,13 @@ import {
   Calendar,
   HelpCircle,
   ArrowLeft,
-  PlusCircle,
   AlertCircle,
   CheckCircle2,
+  PlusCircle,
+  FileSpreadsheet,
+  Copy,
+  Check,
 } from 'lucide-react';
-import Link from 'next/link';
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
@@ -45,9 +47,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { MediaUploadInput } from '@/components/MediaUploadInput';
+import { AddInterviewQuestionDialog } from '@/components/admin/AddInterviewQuestionDialog';
+import { ExcelUploadDialog } from '@/components/admin/ExcelUploadDialog';
 
 import { useTests } from '@/hooks/useTests';
 import { useQuestions } from '@/hooks/useQuestions';
@@ -105,9 +114,14 @@ export default function TestSetDetailsPage() {
     }
   }, [user, router]);
 
-  const { useTestSet, useTestQuestions, useUpdateTestSetMutation, useDeleteTestSetMutation } =
-    useTests();
-  const { useDeleteQuestionMutation, useUpdateQuestionMutation } = useQuestions();
+  const {
+    useTestSet,
+    useTestQuestions,
+    useUpdateTestSetMutation,
+    useDeleteTestSetMutation,
+  } = useTests();
+  const { useDeleteQuestionMutation, useUpdateQuestionMutation } =
+    useQuestions();
 
   const { data: testSet, isLoading: loadingTestSet } = useTestSet(id);
   const { data: questions, isLoading: loadingQuestions } = useTestQuestions(id);
@@ -121,6 +135,24 @@ export default function TestSetDetailsPage() {
   const [editQuestionDialogOpen, setEditQuestionDialogOpen] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isAddManualOpen, setIsAddManualOpen] = useState(false);
+  const [isAddExcelOpen, setIsAddExcelOpen] = useState(false);
+  const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(
+    new Set(),
+  );
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const toggleQuestionExpand = (id: string) => {
+    setExpandedQuestions(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   // Edit form hook (for test set)
   const editForm = useForm<EditTestSetFormValues>({
@@ -146,18 +178,8 @@ export default function TestSetDetailsPage() {
       optionD: '',
       correctAnswer: 'A',
       explanation: '',
-      audioUrl: '',
-      imageUrl: '',
-      passageText: '',
-      groupId: '',
     },
   });
-
-  const selectedPart = editQuestionForm.watch('part');
-
-  const generateGroupId = () => {
-    editQuestionForm.setValue('groupId', `group_${Date.now()}`);
-  };
 
   // Sync testSet data to form
   useEffect(() => {
@@ -166,7 +188,7 @@ export default function TestSetDetailsPage() {
         name: testSet.name,
         description: testSet.description || '',
         audioUrl: testSet.audioUrl || '',
-        status: (testSet.status as "draft" | "public" | "private") || 'draft',
+        status: (testSet.status as 'draft' | 'public' | 'private') || 'draft',
       });
     }
   }, [testSet, editForm]);
@@ -186,7 +208,9 @@ export default function TestSetDetailsPage() {
           setTimeout(() => setSuccessMsg(null), 3000);
         },
         onError: (err: any) => {
-          setErrorMsg(err.response?.data?.message || 'Cập nhật đề thi thất bại.');
+          setErrorMsg(
+            err.response?.data?.message || 'Cập nhật đề thi thất bại.',
+          );
           setTimeout(() => setErrorMsg(null), 3000);
         },
       },
@@ -227,7 +251,9 @@ export default function TestSetDetailsPage() {
             { label: 'A', text: values.optionA },
             { label: 'B', text: values.optionB },
             { label: 'C', text: values.optionC },
-            ...(values.part !== '2' ? [{ label: 'D', text: values.optionD || '' }] : []),
+            ...(values.part !== '2'
+              ? [{ label: 'D', text: values.optionD || '' }]
+              : []),
           ],
           correctAnswer: values.correctAnswer,
           explanation: values.explanation || '',
@@ -245,13 +271,14 @@ export default function TestSetDetailsPage() {
           setTimeout(() => setSuccessMsg(null), 3000);
         },
         onError: (err: any) => {
-          setErrorMsg(err.response?.data?.message || 'Cập nhật câu hỏi thất bại.');
+          setErrorMsg(
+            err.response?.data?.message || 'Cập nhật câu hỏi thất bại.',
+          );
           setTimeout(() => setErrorMsg(null), 3000);
         },
       },
     );
   };
-
   const handleDeleteQuestion = (questionId: string) => {
     if (confirm('Bạn có chắc chắn muốn xóa câu hỏi này khỏi đề thi?')) {
       deleteQuestionMutation.mutate(questionId, {
@@ -312,13 +339,26 @@ export default function TestSetDetailsPage() {
               </p>
             </div>
           </div>
-
-          <Link href={`/admin/create-test?testSetId=${id}`}>
-            <Button className="font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 flex items-center gap-2">
-              <PlusCircle className="h-4 w-4" />
-              <span>Thêm câu hỏi mới</span>
-            </Button>
-          </Link>
+          {testSet?.testType === 'interview' && (
+            <div className="flex items-center gap-2 mt-4 sm:mt-0">
+              <Button
+                variant="outline"
+                className="gap-2 shadow-sm"
+                onClick={() => setIsAddManualOpen(true)}
+              >
+                <PlusCircle className="h-4 w-4" />
+                Thêm 1 câu
+              </Button>
+              <Button
+                variant="default"
+                className="gap-2 shadow-md shadow-primary/20"
+                onClick={() => setIsAddExcelOpen(true)}
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                Nhập Excel
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Global Messages */}
@@ -339,15 +379,15 @@ export default function TestSetDetailsPage() {
         {loadingTestSet ? (
           <div className="h-44 bg-secondary/80 animate-pulse rounded-xl" />
         ) : testSet ? (
-          <Card className="glass-card overflow-hidden relative border-primary/25">
+          <Card className="glass-card gap-0 overflow-hidden relative border-primary/25">
             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-cyan-500" />
-            <CardHeader className="pb-4 flex flex-row items-start justify-between gap-4">
-              <div className="space-y-2">
+            <CardHeader className="pb-4 flex flex-row items-start justify-between">
+              <div>
                 <CardTitle className="text-2xl font-black text-foreground">
                   {testSet.name}
                 </CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
-                  {testSet.description || 'Đề thi thử TOEIC Reading chuẩn hóa.'}
+                  {testSet.description}
                 </CardDescription>
               </div>
 
@@ -377,7 +417,10 @@ export default function TestSetDetailsPage() {
                                   Tên Đề Thi
                                 </FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Ví dụ: TOEIC Exam 2026 - Test 1" {...field} />
+                                  <Input
+                                    placeholder="Ví dụ: TOEIC Exam 2026 - Test 1"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -429,16 +472,25 @@ export default function TestSetDetailsPage() {
                                 <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
                                   Trạng thái
                                 </FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Chọn trạng thái" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="draft">Bản Nháp (Draft)</SelectItem>
-                                    <SelectItem value="public">Công Khai (Public)</SelectItem>
-                                    <SelectItem value="private">Riêng Tư (Private)</SelectItem>
+                                    <SelectItem value="draft">
+                                      Bản Nháp (Draft)
+                                    </SelectItem>
+                                    <SelectItem value="public">
+                                      Công Khai (Public)
+                                    </SelectItem>
+                                    <SelectItem value="private">
+                                      Riêng Tư (Private)
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -454,8 +506,13 @@ export default function TestSetDetailsPage() {
                           >
                             Hủy
                           </Button>
-                          <Button type="submit" disabled={updateTestSetMutation.isPending}>
-                            {updateTestSetMutation.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
+                          <Button
+                            type="submit"
+                            disabled={updateTestSetMutation.isPending}
+                          >
+                            {updateTestSetMutation.isPending
+                              ? 'Đang lưu...'
+                              : 'Lưu thay đổi'}
                           </Button>
                         </DialogFooter>
                       </form>
@@ -471,7 +528,9 @@ export default function TestSetDetailsPage() {
                   className="h-8 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  <span>{deleteTestSetMutation.isPending ? 'Đang xóa...' : 'Xóa đề'}</span>
+                  <span>
+                    {deleteTestSetMutation.isPending ? 'Đang xóa...' : 'Xóa đề'}
+                  </span>
                 </Button>
               </div>
             </CardHeader>
@@ -482,17 +541,10 @@ export default function TestSetDetailsPage() {
                     Tổng số câu
                   </span>
                   <span className="font-black text-lg text-primary">
-                    {testSet.total_questions} câu
+                    {questions?.length || 0}
                   </span>
                 </div>
-                <div className="space-y-1">
-                  <span className="text-xs text-muted-foreground uppercase font-bold block">
-                    Số phần (Parts)
-                  </span>
-                  <span className="font-black text-lg text-teal-600 dark:text-teal-400">
-                    {testSet.parts_count} phần
-                  </span>
-                </div>
+
                 <div className="space-y-1">
                   <span className="text-xs text-muted-foreground uppercase font-bold block">
                     Thời gian tạo
@@ -524,146 +576,104 @@ export default function TestSetDetailsPage() {
         )}
 
         {/* Questions Header */}
-        <div className="border-b border-border pb-4 pt-2">
+        <div className="border-b border-border pb-1 pt-2 mb-1">
           <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
             <HelpCircle className="h-5 w-5 text-primary" />
             <span>Danh Sách Câu Hỏi ({questions?.length || 0})</span>
           </h2>
         </div>
 
-        {/* Questions Catalog */}
         {loadingQuestions ? (
           <div className="space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-56 bg-secondary/60 animate-pulse rounded-xl" />
+            {[1, 2].map(i => (
+              <div
+                key={i}
+                className="h-56 bg-secondary/60 animate-pulse rounded-xl"
+              />
             ))}
           </div>
         ) : questions && questions.length > 0 ? (
-          <div className="space-y-6">
+          <div className="space-y-2">
             {questions.map((q, index) => (
-              <Card key={q._id} className="glass-card relative overflow-hidden group">
-                <CardHeader className="pb-3 flex flex-row items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-black text-primary">Câu {index + 1}</span>
-                      <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">
-                        Part {q.part}
-                      </span>
-                      <span
-                        className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
-                          q.difficulty === 'easy'
-                            ? 'bg-emerald-500/10 text-emerald-500'
-                            : q.difficulty === 'medium'
-                              ? 'bg-amber-500/10 text-amber-500'
-                              : 'bg-destructive/10 text-destructive'
-                        }`}
-                      >
-                        {q.difficulty}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleOpenEditQuestion(q)}
-                      className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/80 hover:shadow-sm transition-all"
-                      title="Chỉnh sửa câu hỏi"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteQuestion(q._id)}
-                      disabled={deleteQuestionMutation.isPending}
-                      className="p-2 rounded-lg text-destructive hover:bg-destructive/10 hover:shadow-sm transition-all"
-                      title="Xóa câu hỏi khỏi đề thi"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  {/* Group / Media indicators for Admin review */}
-                  {q.group_id && (
-                    <div className="text-[10px] text-teal-600 dark:text-teal-400 font-bold uppercase tracking-wider">
-                      Nhóm: {q.group_id}
-                    </div>
-                  )}
-
-                  {q.passage_text && (
-                    <div className="text-xs leading-relaxed text-foreground/90 whitespace-pre-line font-serif p-3 bg-secondary/10 border border-border/30 rounded-lg max-h-48 overflow-y-auto">
-                      <span className="text-[8px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 bg-primary/10 text-primary rounded w-fit block mb-2">
-                        Đoạn văn đọc
-                      </span>
-                      {q.passage_text}
-                    </div>
-                  )}
-
-                  {q.audio_url && (
-                    <div className="p-2 bg-secondary/10 border border-border/20 rounded-lg flex items-center justify-center">
-                      <audio src={q.audio_url} controls className="w-full max-w-md h-8" />
-                    </div>
-                  )}
-
-                  {q.image_url && (
-                    <div className="flex justify-center bg-secondary/5 rounded-lg p-2 border border-border/20">
-                      <img
-                        src={q.image_url}
-                        alt="Question Diagram"
-                        className="max-h-40 object-contain rounded"
-                      />
-                    </div>
-                  )}
-
-                  {/* Question Text */}
-                  {q.question_text && (
-                    <p className="text-sm font-semibold text-foreground leading-relaxed whitespace-pre-wrap">
-                      {q.question_text}
-                    </p>
-                  )}
-
-                  {/* Multiple Choices Grid */}
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {q.options.map((opt) => {
-                      const isCorrect = opt.label === q.correct_answer;
-                      return (
-                        <div
-                          key={opt.label}
-                          className={`p-3 rounded-lg border text-sm flex items-center justify-between gap-2 transition-all ${
-                            isCorrect
-                              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-900 dark:text-emerald-300 font-bold'
-                              : 'bg-secondary/10 border-border/50 text-muted-foreground'
+              <Card
+                key={q._id}
+                className="flex-row justify-between glass-card overflow-hidden group"
+              >
+                <CardContent className="p-2 space-y-4 flex-1">
+                  <div
+                    className="flex flex-row items-center justify-between mb-0 cursor-pointer select-none"
+                    onClick={() => toggleQuestionExpand(q._id)}
+                  >
+                    {q.question_text && (
+                      <div className="flex items-start gap-2 flex-1 pr-4">
+                        <p className="text-sm font-semibold text-foreground leading-relaxed whitespace-pre-wrap">
+                          {q.question_number || index}. {q.question_text}
+                        </p>
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(q.question_text);
+                            setCopiedId(q._id);
+                            setTimeout(() => setCopiedId(null), 2000);
+                          }}
+                          className={`mt-0.5 p-1 shrink-0 rounded-md transition-all cursor-pointer ${
+                            copiedId === q._id
+                              ? 'text-green-500 bg-green-500/10 opacity-100'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-secondary/80 opacity-0 group-hover:opacity-100'
                           }`}
+                          title="Sao chép nội dung câu hỏi"
                         >
-                          <span className="flex items-center gap-2">
-                            <span
-                              className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                isCorrect
-                                  ? 'bg-emerald-500 text-white'
-                                  : 'bg-secondary text-muted-foreground'
-                              }`}
-                            >
-                              {opt.label}
-                            </span>
-                            <span>{opt.text}</span>
-                          </span>
-
-                          {isCorrect && (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                          {copiedId === q._id ? (
+                            <Check className="h-3.5 w-3.5" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" />
                           )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Explanation Section */}
-                  {q.explanation && (
-                    <div className="p-3.5 rounded-lg bg-secondary/35 border border-border/30 text-xs text-muted-foreground leading-relaxed">
-                      <span className="font-extrabold uppercase text-[10px] tracking-wider text-primary block mb-1">
-                        Giải thích chi tiết:
-                      </span>
-                      <p className="whitespace-pre-wrap">{q.explanation}</p>
+                        </button>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleOpenEditQuestion(q);
+                        }}
+                        className="cursor-pointer p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/80 hover:shadow-sm transition-all"
+                        title="Chỉnh sửa câu hỏi"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleDeleteQuestion(q._id);
+                        }}
+                        disabled={deleteQuestionMutation.isPending}
+                        className="cursor-pointer p-2 rounded-lg text-destructive hover:bg-destructive/10 hover:shadow-sm transition-all"
+                        title="Xóa câu hỏi khỏi đề thi"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
+                  </div>
+                  {expandedQuestions.has(q._id) && (
+                    <>
+                      <p className="m-0 text-sm font-medium">Câu trả lời:</p>
+                      {q.correct_answer && (
+                        <div className="p-3.5 rounded-lg bg-green-200/35 border border-border/30 text-xs text-foreground leading-relaxed">
+                          <p className="whitespace-pre-wrap">
+                            {q.correct_answer}
+                          </p>
+                        </div>
+                      )}
+                      {q.explanation && (
+                        <div className="p-3.5 rounded-lg bg-green-200/35 border border-border/30 text-xs text-foreground leading-relaxed">
+                          <span className="font-extrabold uppercase text-[10px] tracking-wider text-primary block mb-1">
+                            Giải thích chi tiết:
+                          </span>
+                          <p className="whitespace-pre-wrap">{q.explanation}</p>
+                        </div>
+                      )}
+                    </>
                   )}
                 </CardContent>
               </Card>
@@ -672,428 +682,40 @@ export default function TestSetDetailsPage() {
         ) : (
           <div className="text-center py-20 border border-dashed border-border rounded-xl bg-secondary/15 flex flex-col items-center justify-center">
             <HelpCircle className="h-12 w-12 text-muted-foreground/60 mb-3 animate-bounce" />
-            <h4 className="font-bold text-lg text-foreground">Không có câu hỏi nào</h4>
+            <h4 className="font-bold text-lg text-foreground">
+              Không có câu hỏi nào
+            </h4>
             <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Đề thi này hiện tại chưa chứa câu hỏi nào. Nhấp nút phía trên để bắt đầu thêm câu hỏi
-              mới.
+              Đề thi này hiện tại chưa chứa câu hỏi nào. Nhấp nút phía trên để
+              bắt đầu thêm câu hỏi mới.
             </p>
           </div>
         )}
       </div>
 
-      <Dialog open={editQuestionDialogOpen} onOpenChange={setEditQuestionDialogOpen}>
-        <DialogContent
-          showCloseButton={false}
-          className="sm:max-w-5xl bg-background/80 backdrop-blur-md border border-border/40 max-h-[110vh] flex flex-col p-0 overflow-hidden"
-        >
-          <Form {...editQuestionForm}>
-            <form
-              onSubmit={editQuestionForm.handleSubmit(onEditQuestionSubmit)}
-              className="flex flex-col max-h-[110vh] overflow-hidden"
-            >
-              <DialogHeader className="px-6 py-4 border-b border-border/40 flex flex-row items-center justify-between gap-4 shrink-0 bg-background/95 backdrop-blur-md">
-                <div className="space-y-1">
-                  <DialogTitle>Chỉnh Sửa Câu Hỏi</DialogTitle>
-                  <DialogDescription>
-                    Cập nhật các thuộc tính và đáp án của câu hỏi này.
-                  </DialogDescription>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setEditQuestionDialogOpen(false)}
-                    className="cursor-pointer"
-                  >
-                    Hủy
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={updateQuestionMutation.isPending}
-                    className="cursor-pointer"
-                  >
-                    {updateQuestionMutation.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
-                  </Button>
-                </div>
-              </DialogHeader>
-              <div className="space-y-4 p-6 overflow-y-auto flex-1">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editQuestionForm.control}
-                    name="part"
-                    render={({ field }) => (
-                      <FormItem className="space-y-1.5">
-                        <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase">
-                          TOEIC Part
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          items={[
-                            { value: '1', label: 'Part 1: Photos (Tranh tả cảnh)' },
-                            { value: '2', label: 'Part 2: Question-Response (Hỏi & Đáp)' },
-                            { value: '3', label: 'Part 3: Conversations (Hội thoại)' },
-                            { value: '4', label: 'Part 4: Talks (Bài nói ngắn)' },
-                            { value: '5', label: 'Part 5: Incomplete Sentences (Điền câu)' },
-                            { value: '6', label: 'Part 6: Text Completion (Điền đoạn văn)' },
-                            { value: '7', label: 'Part 7: Reading Comprehension (Đọc hiểu)' },
-                          ]}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent alignItemWithTrigger={false}>
-                            <SelectItem value="1">Part 1: Photos (Tranh tả cảnh)</SelectItem>
-                            <SelectItem value="2">Part 2: Question-Response (Hỏi & Đáp)</SelectItem>
-                            <SelectItem value="3">Part 3: Conversations (Hội thoại)</SelectItem>
-                            <SelectItem value="4">Part 4: Talks (Bài nói ngắn)</SelectItem>
-                            <SelectItem value="5">Part 5: Incomplete Sentences</SelectItem>
-                            <SelectItem value="6">Part 6: Text Completion</SelectItem>
-                            <SelectItem value="7">Part 7: Reading Comprehension</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+      {testSet?.testType === 'interview' && (
+        <>
+          <AddInterviewQuestionDialog
+            isOpen={isAddManualOpen}
+            onClose={() => setIsAddManualOpen(false)}
+            testSetId={id}
+            onSuccess={msg => {
+              setSuccessMsg(msg);
+              setTimeout(() => setSuccessMsg(null), 3000);
+            }}
+          />
 
-                  <FormField
-                    control={editQuestionForm.control}
-                    name="difficulty"
-                    render={({ field }) => (
-                      <FormItem className="space-y-1.5">
-                        <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase">
-                          Độ khó
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          items={[
-                            { value: 'easy', label: 'Easy (Dễ)' },
-                            { value: 'medium', label: 'Medium (Trung bình)' },
-                            { value: 'hard', label: 'Hard (Khó)' },
-                          ]}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent alignItemWithTrigger={false}>
-                            <SelectItem value="easy">Easy (Dễ)</SelectItem>
-                            <SelectItem value="medium">Medium (Trung bình)</SelectItem>
-                            <SelectItem value="hard">Hard (Khó)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Conditional Fields based on Part */}
-                {['3', '4', '6', '7'].includes(selectedPart) && (
-                  <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-4">
-                    <div className="text-xs font-bold text-primary flex items-center justify-between">
-                      <span>THÔNG TIN NHÓM CÂU HỎI (DÙNG CHUNG)</span>
-                      <button
-                        type="button"
-                        onClick={generateGroupId}
-                        className="text-[10px] bg-primary/10 hover:bg-primary/20 text-primary px-2.5 py-1 rounded-md transition-all font-bold uppercase tracking-wider"
-                      >
-                        Tạo Group ID mới
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={editQuestionForm.control}
-                        name="groupId"
-                        render={({ field }) => (
-                          <FormItem className="space-y-1.5 col-span-2 md:col-span-1">
-                            <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase">
-                              Group ID (Mã nhóm)
-                            </FormLabel>
-                            <FormControl>
-                              <Input placeholder="Mã nhóm dùng chung (ví dụ: group_1)" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      {(selectedPart === '3' || selectedPart === '4') && (
-                        <FormField
-                          control={editQuestionForm.control}
-                          name="audioUrl"
-                          render={({ field }) => (
-                            <FormItem className="space-y-1.5 col-span-2 md:col-span-1">
-                              <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase">
-                                URL âm thanh dùng chung
-                              </FormLabel>
-                              <FormControl>
-                                <MediaUploadInput acceptTypes="audio/*,video/*" placeholder="Ví dụ: audio/conversation1.mp3" {...field} onUploadError={setErrorMsg} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                      {(selectedPart === '3' || selectedPart === '4' || selectedPart === '7') && (
-                        <FormField
-                          control={editQuestionForm.control}
-                          name="imageUrl"
-                          render={({ field }) => (
-                            <FormItem className="space-y-1.5 col-span-2 md:col-span-1">
-                              <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase">
-                                URL hình ảnh dùng chung (Nếu có)
-                              </FormLabel>
-                              <FormControl>
-                                <MediaUploadInput acceptTypes="image/*" placeholder="Ví dụ: images/diagram1.png" {...field} onUploadError={setErrorMsg} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                    </div>
-                    {(selectedPart === '6' || selectedPart === '7') && (
-                      <FormField
-                        control={editQuestionForm.control}
-                        name="passageText"
-                        render={({ field }) => (
-                          <FormItem className="space-y-1.5">
-                            <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase">
-                              Đoạn văn đọc dùng chung (Passage Text)
-                            </FormLabel>
-                            <FormControl>
-                              <textarea
-                                placeholder="Nhập nội dung đoạn văn đọc dùng chung..."
-                                className="w-full text-sm p-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary h-28 transition-all"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                  </div>
-                )}
-
-                {selectedPart === '1' && (
-                  <div className="p-4 rounded-xl border border-border bg-secondary/10 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={editQuestionForm.control}
-                      name="audioUrl"
-                      render={({ field }) => (
-                        <FormItem className="space-y-1.5">
-                          <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase">
-                            URL âm thanh tả cảnh
-                          </FormLabel>
-                          <FormControl>
-                            <MediaUploadInput acceptTypes="audio/*,video/*" placeholder="Ví dụ: audio/part1_q1.mp3" {...field} onUploadError={setErrorMsg} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={editQuestionForm.control}
-                      name="imageUrl"
-                      render={({ field }) => (
-                        <FormItem className="space-y-1.5">
-                          <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase">
-                            URL hình ảnh tranh vẽ
-                          </FormLabel>
-                          <FormControl>
-                            <MediaUploadInput acceptTypes="image/*" placeholder="Ví dụ: images/part1_q1.jpg" {...field} onUploadError={setErrorMsg} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-
-                {selectedPart === '2' && (
-                  <div className="p-4 rounded-xl border border-border bg-secondary/10">
-                    <FormField
-                      control={editQuestionForm.control}
-                      name="audioUrl"
-                      render={({ field }) => (
-                        <FormItem className="space-y-1.5">
-                          <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase">
-                            URL âm thanh câu hỏi phản hồi
-                          </FormLabel>
-                          <FormControl>
-                            <MediaUploadInput acceptTypes="audio/*,video/*" placeholder="Ví dụ: audio/part2_q1.mp3" {...field} onUploadError={setErrorMsg} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-
-                {/* Question Text */}
-                <FormField
-                  control={editQuestionForm.control}
-                  name="questionText"
-                  render={({ field }) => (
-                    <FormItem className="space-y-1.5">
-                      <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase">
-                        Nội dung câu hỏi (Chứa khoảng trống)
-                      </FormLabel>
-                      <FormControl>
-                        <textarea
-                          placeholder="Ví dụ: The CEO requested that the marketing department _______ the quarterly report before Friday."
-                          className="w-full text-sm p-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary h-24 transition-all"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Multiple Choices Inputs */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase block">
-                    Các đáp án lựa chọn
-                  </label>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <FormField
-                      control={editQuestionForm.control}
-                      name="optionA"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center gap-2 space-y-0">
-                          <span className="font-bold text-sm text-muted-foreground w-4 shrink-0">
-                            A
-                          </span>
-                          <div className="flex-1">
-                            <FormControl>
-                              <Input placeholder="Nhập đáp án A" {...field} />
-                            </FormControl>
-                            <FormMessage className="text-[10px] mt-0.5" />
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={editQuestionForm.control}
-                      name="optionB"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center gap-2 space-y-0">
-                          <span className="font-bold text-sm text-muted-foreground w-4 shrink-0">
-                            B
-                          </span>
-                          <div className="flex-1">
-                            <FormControl>
-                              <Input placeholder="Nhập đáp án B" {...field} />
-                            </FormControl>
-                            <FormMessage className="text-[10px] mt-0.5" />
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={editQuestionForm.control}
-                      name="optionC"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center gap-2 space-y-0">
-                          <span className="font-bold text-sm text-muted-foreground w-4 shrink-0">
-                            C
-                          </span>
-                          <div className="flex-1">
-                            <FormControl>
-                              <Input placeholder="Nhập đáp án C" {...field} />
-                            </FormControl>
-                            <FormMessage className="text-[10px] mt-0.5" />
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                    {selectedPart !== '2' && (
-                      <FormField
-                        control={editQuestionForm.control}
-                        name="optionD"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center gap-2 space-y-0">
-                            <span className="font-bold text-sm text-muted-foreground w-4 shrink-0">
-                              D
-                            </span>
-                            <div className="flex-1">
-                              <FormControl>
-                                <Input placeholder="Nhập đáp án D" {...field} />
-                              </FormControl>
-                              <FormMessage className="text-[10px] mt-0.5" />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                  </div>
-                </div>
-
-                {/* Correct Answer Selection */}
-                <FormField
-                  control={editQuestionForm.control}
-                  name="correctAnswer"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2 pt-2">
-                      <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase block">
-                        Đáp án đúng
-                      </FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          className="flex gap-6"
-                        >
-                          {['A', 'B', 'C', ...(selectedPart !== '2' ? ['D'] : [])].map((val) => (
-                            <div key={val} className="flex items-center gap-2">
-                              <RadioGroupItem value={val} id={`edit-correct-${val}`} />
-                              <label
-                                htmlFor={`edit-correct-${val}`}
-                                className="text-sm font-bold cursor-pointer"
-                              >
-                                {val}
-                              </label>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Explanation */}
-                <FormField
-                  control={editQuestionForm.control}
-                  name="explanation"
-                  render={({ field }) => (
-                    <FormItem className="space-y-1.5">
-                      <FormLabel className="text-[10px] font-bold text-muted-foreground uppercase">
-                        Giải thích chi tiết (Không bắt buộc)
-                      </FormLabel>
-                      <FormControl>
-                        <textarea
-                          placeholder="Giải thích ngữ pháp hoặc từ vựng của câu để hỗ trợ học viên tự học..."
-                          className="w-full text-sm p-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary h-20 transition-all"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+          <ExcelUploadDialog
+            isOpen={isAddExcelOpen}
+            onClose={() => setIsAddExcelOpen(false)}
+            testSetId={id}
+            onSuccess={msg => {
+              setSuccessMsg(msg);
+              setTimeout(() => setSuccessMsg(null), 3000);
+            }}
+          />
+        </>
+      )}
     </DashboardLayout>
   );
 }
