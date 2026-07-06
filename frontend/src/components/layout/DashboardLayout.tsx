@@ -8,6 +8,7 @@ import { useLayoutStore } from '@/store/layoutStore';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { cn } from '@/lib/utils';
+import { ROUTES } from '@/constants/routes';
 
 let isAppMounted = false;
 
@@ -25,7 +26,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (mounted && (!isAuthenticated || !token)) {
-      router.push('/auth/login');
+      router.push(ROUTES.LOGIN);
     }
   }, [mounted, isAuthenticated, token, router]);
 

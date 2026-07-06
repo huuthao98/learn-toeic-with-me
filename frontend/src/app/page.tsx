@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/authStore"
+import { ROUTES } from '@/constants/routes';
 
 export default function Home() {
   const router = useRouter()
@@ -16,9 +17,9 @@ export default function Home() {
   React.useEffect(() => {
     if (mounted) {
       if (isAuthenticated && token) {
-        router.push("/dashboard")
+        router.push(ROUTES.DASHBOARD)
       } else {
-        router.push("/auth/login")
+        router.push(ROUTES.LOGIN)
       }
     }
   }, [mounted, isAuthenticated, token, router])

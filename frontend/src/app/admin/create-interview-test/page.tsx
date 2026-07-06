@@ -3,10 +3,9 @@
 import {
   Layers,
   ArrowRight,
-  CheckCircle2,
   FileSpreadsheet,
   Upload,
-  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import * as z from 'zod';
 import * as XLSX from 'xlsx';
@@ -15,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { PlusCircle } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, Suspense } from 'react';
+import { toast } from 'sonner';
 
 import {
   Card,
@@ -46,6 +46,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { AddInterviewQuestionDialog } from '@/components/admin/AddInterviewQuestionDialog';
+import { ROUTES } from '@/constants/routes';
 
 // Schema cho TestSet
 const testSetSchema = z.object({
@@ -106,14 +107,12 @@ function CreateInterviewTestContent() {
 
   const [step, setStep] = useState(1);
   const [testSetId, setTestSetId] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isAddManualOpen, setIsAddManualOpen] = useState(false);
 
   // Protect route
   useEffect(() => {
     if (user && user.role !== 'admin') {
-      router.push('/dashboard');
+      router.push(ROUTES.DASHBOARD);
     }
   }, [user, router]);
 
@@ -141,10 +140,9 @@ function CreateInterviewTestContent() {
         onSuccess: newSet => {
           setTestSetId(newSet._id);
           setStep(2);
-          setSuccessMsg('Đã tạo đề thi. Mời bạn tải lên file Phỏng vấn.');
-          setErrorMsg(null);
+          toast.success('Đã tạo đề thi. Mời bạn tải lên file Phỏng vấn.');
         },
-        onError: () => setErrorMsg('Lỗi tạo đề thi.'),
+        onError: () => toast.error('Lỗi tạo đề thi.'),
       },
     );
   };
@@ -155,7 +153,6 @@ function CreateInterviewTestContent() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setErrorMsg(null);
     const reader = new FileReader();
     reader.onload = async evt => {
       const bstr = evt.target?.result;
@@ -199,7 +196,7 @@ function CreateInterviewTestContent() {
         .filter(q => !isNaN(q.questionNumber) && q.questionText);
 
       if (questionsToUpsert.length === 0) {
-        setErrorMsg('Không tìm thấy dữ liệu hợp lệ trong file Excel.');
+        toast.error('Không tìm thấy dữ liệu hợp lệ trong file Excel.');
         return;
       }
 
@@ -207,12 +204,12 @@ function CreateInterviewTestContent() {
         { testSetId: testSetId || '', questions: questionsToUpsert },
         {
           onSuccess: () => {
-            setSuccessMsg(
+            toast.success(
               `Đã tải lên ${questionsToUpsert.length} câu hỏi phỏng vấn!`,
             );
             setStep(3);
           },
-          onError: () => setErrorMsg('Lỗi khi lưu câu hỏi.'),
+          onError: () => toast.error('Lỗi khi lưu câu hỏi.'),
         },
       );
     };
@@ -236,20 +233,6 @@ function CreateInterviewTestContent() {
             </p>
           </div>
         </div>
-
-        {errorMsg && (
-          <div className="p-4 bg-destructive/10 border-l-4 border-destructive text-destructive rounded-md text-sm font-medium flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            {errorMsg}
-          </div>
-        )}
-
-        {successMsg && (
-          <div className="p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 rounded-md text-sm font-medium flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            {successMsg}
-          </div>
-        )}
 
         {/* STEPPER UI */}
         <div className="flex items-center justify-between mb-8 px-4 relative z-0">
@@ -300,7 +283,7 @@ function CreateInterviewTestContent() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tên bộ phỏng vấn</FormLabel>
+                        <FormLabel>Tên chủ đề phỏng vấn</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Ví dụ: Frontend Interview 2026"
@@ -451,7 +434,10 @@ function CreateInterviewTestContent() {
                 trong danh sách bộ câu hỏi.
               </p>
               <div className="flex gap-4 pt-4">
-                <Button variant="outline" onClick={() => router.push('/admin')}>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push(ROUTES.ADMIN)}
+                >
                   Về Danh Sách Đề
                 </Button>
                 <Button onClick={() => window.location.reload()}>
@@ -467,8 +453,7 @@ function CreateInterviewTestContent() {
         onClose={() => setIsAddManualOpen(false)}
         testSetId={testSetId || ''}
         onSuccess={msg => {
-          setSuccessMsg(msg);
-          setTimeout(() => setSuccessMsg(null), 3000);
+          toast.success(msg);
         }}
       />
     </DashboardLayout>

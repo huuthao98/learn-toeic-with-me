@@ -1,4 +1,4 @@
-import { AdminTestDetail } from '@/components/feature/AdminTestDetail';
+import { AdminTestInterviewDetail } from '@/components/feature/AdminTestDetail';
 
 export default async function AdminTestDetailPage({
   params,
@@ -6,5 +6,5 @@ export default async function AdminTestDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <AdminTestDetail id={id} />;
+  return <AdminTestInterviewDetail id={id} />;
 }

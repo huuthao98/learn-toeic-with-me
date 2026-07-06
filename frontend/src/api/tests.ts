@@ -6,21 +6,22 @@ export interface TestSet {
   description?: string
   audioUrl?: string
   status: string
-  pdfUrl?: string
+  readingPdfUrl?: string
   createdAt: string
   testType?:string
-  total_questions:number
+  totalQuestions:number
+  listeningPdfUrl?: string
 }
 
 export interface Question {
   _id: string
-  test_set_id?: string
+  testSetId?: string
   part: string
-  question_number: number
+  questionNumber: number
   difficulty: "easy" | "medium" | "hard"
-  question_text: string
+  questionText: string
   options: { label: string; text: string }[]
-  correct_answer: string
+  correctAnswer: string
   explanation?: string
   audio_url?: string
   image_url?: string
@@ -59,7 +60,7 @@ export const testsApi = {
     const response = await api.post(`/tests/${id}/submit`, data)
     return response.data
   },
-  createTestSet: async (data: { name: string; description?: string; audioUrl?: string; status?: string; pdfUrl?: string; testType?: string;}) => {
+  createTestSet: async (data: { name: string; description?: string; audioUrl?: string; status?: string; readingPdfUrl?: string; testType?: string;listeningPdfUrl?:string }) => {
     const response = await api.post<TestSet>("/tests/admin/create", data)
     return response.data
   },

@@ -10,7 +10,6 @@ export interface FetchQuestionsResponse {
 
 export interface FetchQuestionsParams {
   part?: string
-  difficulty?: string
   status?: string
   testSetId?: string
   page?: number
@@ -23,7 +22,7 @@ export interface CreateQuestionData {
   correctAnswer: string
   explanation?: string
   isActive?: boolean
-  category?: string
+  part?: string
 }
 
 export const questionsApi = {

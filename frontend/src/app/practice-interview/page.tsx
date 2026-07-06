@@ -95,7 +95,7 @@ export default function PracticeInterviewPage() {
                             : 'text-foreground'
                         }`}
                       >
-                        {test.total_questions}
+                        {test.totalQuestions}
                       </b>
                     )}
                   </div>
@@ -108,7 +108,6 @@ export default function PracticeInterviewPage() {
             </CardContent>
           </Card>
 
-          {/* Right Column: Questions */}
           <Card className="flex-1 flex flex-col h-full border-2 border-indigo-500/20 bg-background/50">
             {selectedTest ? (
               <>
@@ -120,7 +119,7 @@ export default function PracticeInterviewPage() {
                     </div>
                   ) : questions && questions.length > 0 ? (
                     <div className="space-y-4">
-                      <div className="grid gap-4">
+                      <div className="grid gap-2">
                         {questions.map((q, index) => (
                           <div
                             key={q._id}
@@ -135,13 +134,13 @@ export default function PracticeInterviewPage() {
                               </div>
                               <div className="flex-1 flex items-center justify-between gap-2">
                                 <p className="font-medium text-foreground flex-1">
-                                  {q.question_text}
+                                  {q.questionText}
                                 </p>
                                 <button
                                   onClick={e => {
                                     e.stopPropagation();
                                     navigator.clipboard.writeText(
-                                      q.question_text,
+                                      q.questionText,
                                     );
                                     setCopiedId(q._id);
                                     setTimeout(() => setCopiedId(null), 2000);
@@ -164,13 +163,13 @@ export default function PracticeInterviewPage() {
 
                             {expandedQuestions.has(q._id) && (
                               <div className="pr-4 pl-16 pb-4 flex flex-col gap-3">
-                                {q.correct_answer && (
+                                {q.correctAnswer && (
                                   <div className="flex flex-col p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-lg text-sm">
                                     <span className="font-semibold text-emerald-700 dark:text-emerald-400 mb-1">
                                       Câu trả lời:
                                     </span>
                                     <span className="text-emerald-900 dark:text-emerald-300 whitespace-pre-wrap leading-relaxed">
-                                      {q.correct_answer}
+                                      {q.correctAnswer}
                                     </span>
                                   </div>
                                 )}

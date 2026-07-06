@@ -1,62 +1,145 @@
 'use client';
 
 import {
-  ShieldCheck,
-  Layers,
+  Mic,
+  Edit,
   Trash2,
-  CheckCircle2,
-  AlertCircle,
-  ExternalLink,
+  Layers,
+  FileText,
   PlusCircle,
+  ShieldCheck,
+  ExternalLink,
+  FileSpreadsheet,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import * as z from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 
 import { useTests } from '@/hooks/useTests';
 import { useAuthStore } from '@/store/authStore';
-import { useQuestions } from '@/hooks/useQuestions';
+import {
+  ROUTES,
+  getAdminTestToeicDetailRoute,
+  getAdminTestDetailRoute,
+  getAdminTestInterviewDetailRoute,
+} from '@/constants/routes';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { toast } from 'sonner';
+
+// Edit Zod Validation Schema
+const editTestSetSchema = z.object({
+  name: z.string().trim().min(1, 'Tên đề thi không được để trống'),
+  description: z.string(),
+  status: z.enum(['draft', 'public', 'private']).optional(),
+});
+
+type EditTestSetFormValues = z.infer<typeof editTestSetSchema>;
 
 export default function AdminPage() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   // Protect page
   useEffect(() => {
     if (user && user.role !== 'admin') {
-      router.push('/dashboard');
+      router.push(ROUTES.DASHBOARD);
     }
   }, [user, router]);
 
-  const { useTestSets, useDeleteTestSetMutation } = useTests();
+  const { useTestSets, useDeleteTestSetMutation, useUpdateTestSetMutation } =
+    useTests();
 
   const { data: testSets, isLoading: loadingTests } = useTestSets();
 
   const deleteTestSetMutation = useDeleteTestSetMutation();
 
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const updateTestSetMutation = useUpdateTestSetMutation(selectedId || '');
 
-  const handleDeleteTestSet = (id: string) => {
-    if (
-      confirm(
-        'Bạn có chắc chắn muốn xóa toàn bộ đề thi này? Mọi câu hỏi và kết quả thi liên quan cũng sẽ bị xóa vĩnh viễn!',
-      )
-    ) {
-      deleteTestSetMutation.mutate(id, {
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const editForm = useForm<EditTestSetFormValues>({
+    resolver: zodResolver(editTestSetSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      status: 'draft',
+    },
+  });
+
+  const handleOpenEditModal = (set: any) => {
+    setSelectedId(set._id);
+    editForm.reset({
+      name: set.name,
+      description: set.description || '',
+      status: (set.status as 'draft' | 'public' | 'private') || 'draft',
+    });
+    setEditModalOpen(true);
+  };
+
+  const onEditSubmit = (values: EditTestSetFormValues) => {
+    updateTestSetMutation.mutate(
+      {
+        name: values.name,
+        description: values.description,
+        status: values.status,
+      },
+      {
         onSuccess: () => {
-          setSuccessMsg('Xóa đề thi thành công!');
-          setTimeout(() => setSuccessMsg(null), 3000);
+          toast.success('Cập nhật đề thi thành công!');
+          setEditModalOpen(false);
         },
         onError: (err: any) => {
-          setErrorMsg(err.response?.data?.message || 'Xóa đề thi thất bại.');
-          setTimeout(() => setErrorMsg(null), 3000);
+          toast.error(
+            err.response?.data?.message || 'Cập nhật đề thi thất bại.',
+          );
         },
-      });
-    }
+      },
+    );
+  };
+
+  const handleDeleteTestSet = (id: string) => {
+    deleteTestSetMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success('Xóa đề thi thành công!');
+        setDeleteModalOpen(false);
+      },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.message || 'Xóa đề thi thất bại.');
+        setDeleteModalOpen(false);
+      },
+    });
   };
 
   if (user && user.role !== 'admin') {
@@ -78,27 +161,14 @@ export default function AdminPage() {
             </p>
           </div>
 
-          <Link href="/admin/create-test-v2">
-            <Button className="font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 flex items-center gap-2">
-              <PlusCircle className="h-4 w-4" />
-              <span>Tạo đề thi mới</span>
-            </Button>
-          </Link>
+          <Button
+            onClick={() => setCreateModalOpen(true)}
+            className="font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 flex items-center gap-2"
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span>Tạo đề thi mới</span>
+          </Button>
         </div>
-
-        {/* Global Messages */}
-        {successMsg && (
-          <div className="p-3.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm font-medium flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            <span>{successMsg}</span>
-          </div>
-        )}
-        {errorMsg && (
-          <div className="p-3.5 rounded-lg bg-destructive/10 text-destructive text-sm font-medium flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
 
         {/* Test Sets Grid Layout */}
         <div className="space-y-4">
@@ -156,9 +226,19 @@ export default function AdminPage() {
                           key={set._id}
                           className="group relative flex flex-col glass-card border border-border/40 hover:border-indigo-400/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300"
                         >
-                          <div className="absolute top-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
-                              onClick={() => handleDeleteTestSet(set._id)}
+                              onClick={() => handleOpenEditModal(set)}
+                              className="p-2 text-indigo-600 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-full transition-colors cursor-pointer"
+                              title="Chỉnh sửa đề thi"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedId(set._id);
+                                setDeleteModalOpen(true);
+                              }}
                               disabled={deleteTestSetMutation.isPending}
                               className="p-2 text-destructive bg-destructive/10 hover:bg-destructive/20 rounded-full transition-colors cursor-pointer"
                               title="Xóa đề thi"
@@ -217,11 +297,15 @@ export default function AdminPage() {
                                 Số Câu Hỏi
                               </span>
                               <span className="font-bold text-sm text-foreground">
-                                {set.total_questions} câu
+                                {set.totalQuestions} câu
                               </span>
                             </div>
                             <Link
-                              href={`/admin/tests/${set._id}`}
+                              href={
+                                set.testType === 'toeic'
+                                  ? getAdminTestToeicDetailRoute(set._id)
+                                  : getAdminTestInterviewDetailRoute(set._id)
+                              }
                               className="text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-colors"
                             >
                               <span>Chi tiết</span>
@@ -245,7 +329,14 @@ export default function AdminPage() {
                 Hiện tại hệ thống chưa có bài kiểm tra nào. Bấm vào nút "Tạo đề
                 thi mới" để bắt đầu xây dựng nội dung.
               </p>
-              <Link href="/admin/create-test-v2" className="mt-6">
+              <Link
+                href="#"
+                onClick={e => {
+                  e.preventDefault();
+                  setCreateModalOpen(true);
+                }}
+                className="mt-6"
+              >
                 <Button className="font-medium">
                   <PlusCircle className="h-4 w-4 mr-2" /> Bắt đầu tạo
                 </Button>
@@ -254,6 +345,206 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={() => handleDeleteTestSet(selectedId!)}
+        title="Xác nhận xóa bộ đề"
+        description="Bạn có chắc chắn muốn xóa bộ đề này và tất cả câu hỏi liên quan? Hành động này không thể hoàn tác."
+        confirmText="Xóa đề thi"
+        cancelText="Hủy"
+        variant="destructive"
+        isLoading={deleteTestSetMutation.isPending}
+      />
+
+      {/* Edit Modal */}
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent
+          showCloseButton={false}
+          className="bg-background/80 backdrop-blur-md border-b border-border/40 sm:max-w-2xl"
+        >
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)}>
+              <DialogHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <DialogTitle>Chỉnh Sửa Thông Tin Đề Thi</DialogTitle>
+                  <DialogDescription>
+                    Cập nhật tiêu đề, trạng thái và mô tả của bộ đề thi.
+                  </DialogDescription>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setEditModalOpen(false)}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={
+                      updateTestSetMutation.isPending ||
+                      !editForm.formState.isDirty
+                    }
+                  >
+                    {updateTestSetMutation.isPending
+                      ? 'Đang lưu...'
+                      : 'Lưu thay đổi'}
+                  </Button>
+                </div>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4 px-1">
+                <div className="flex gap-6">
+                  <FormField
+                    control={editForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5 w-full">
+                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                          Tên Đề Thi
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ví dụ: TOEIC Exam 2026 - Test 1"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5 w-[25%]">
+                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                          Trạng thái
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn trạng thái" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="draft">Bản Nháp</SelectItem>
+                            <SelectItem value="public">Công Khai</SelectItem>
+                            <SelectItem value="private">Riêng Tư</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={editForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5 mt-4">
+                      <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                        Mô tả đề thi
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ví dụ: Đề thi thử kỹ năng đọc Part 5 cấu trúc mới"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Modal */}
+      <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+        <DialogContent className="sm:max-w-2xl bg-background/95 backdrop-blur-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-extrabold text-foreground">
+              Chọn Loại Đề Thi Cần Tạo
+            </DialogTitle>
+            <DialogDescription className="text-base mt-2">
+              Vui lòng chọn một trong các định dạng đề thi dưới đây để bắt đầu
+              biên soạn.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Link
+              href={ROUTES.ADMIN_CREATE_TEST_V2}
+              onClick={() => setCreateModalOpen(false)}
+            >
+              <div className="flex items-start gap-4 p-5 rounded-xl border-2 border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group">
+                <div className="p-3.5 rounded-2xl bg-primary/10 text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 shadow-sm">
+                  <FileSpreadsheet className="h-7 w-7" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                    Đề thi TOEIC nâng cao (Tạo bằng Excel)
+                  </h4>
+                  <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                    Được khuyến nghị. Hỗ trợ tải lên đáp án hàng loạt bằng
+                    Excel, phân nhóm câu hỏi theo Part, tích hợp Audio chung và
+                    chia đôi màn hình xem file PDF song song cực kỳ tiện lợi.
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              // href={ROUTES.ADMIN_CREATE_TEST} onClick={() => setCreateModalOpen(false)}
+              href={''}
+            >
+              <div className="disabled flex items-start gap-4 p-5 rounded-xl border-2 border-border/50 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all cursor-pointer group">
+                <div className="p-3.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                  <FileText className="h-7 w-7" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    Đề thi Trắc nghiệm Cơ bản
+                  </h4>
+                  <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                    Giao diện truyền thống để tạo đề thi trắc nghiệm. Nhập tay
+                    từng câu hỏi và đáp án trực tiếp trên trình duyệt. Thích hợp
+                    cho các bài kiểm tra ngắn hoặc ôn tập nhanh.
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href={ROUTES.ADMIN_CREATE_INTERVIEW_TEST}
+              onClick={() => setCreateModalOpen(false)}
+            >
+              <div className="flex items-start gap-4 p-5 rounded-xl border-2 border-border/50 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all cursor-pointer group">
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300 shadow-sm">
+                  <Mic className="h-7 w-7" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                    Đề thi Phỏng vấn / Speaking
+                  </h4>
+                  <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                    Đề thi chuyên biệt luyện kỹ năng Nói. Hỗ trợ câu hỏi bằng
+                    văn bản kết hợp Audio. Người dùng sẽ trả lời bằng cách thu
+                    âm giọng nói trực tiếp qua Microphone.
+                  </p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

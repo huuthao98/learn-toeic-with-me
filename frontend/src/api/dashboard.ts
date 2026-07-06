@@ -11,8 +11,8 @@ export interface DashboardStats {
 
 export interface StudyPlanItem {
   _id: string
-  user_id: string
-  plan_date: string
+  userId: string
+  planDate: string
   part: string
   target_questions: number
   completed_questions: number
@@ -27,9 +27,9 @@ export interface ScoreProgression {
 export interface RecentTestResult {
   _id: string
   score: number
-  listening_score: number
-  reading_score: number
-  duration_minutes: number
+  listeningScore: number
+  readingScore: number
+  durationMinutes: number
   createdAt: string
   status: string
   test_sets?: {

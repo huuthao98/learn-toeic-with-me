@@ -74,7 +74,8 @@ export const useTests = () => {
         description?: string;
         audioUrl?: string;
         status?: string;
-        pdfUrl?: string;
+        readingPdfUrl?: string;
+        listeningPdfUrl?: string;
         testType?: string;
       }) => testsApi.updateTestSet(id, data),
       onSuccess: () => {

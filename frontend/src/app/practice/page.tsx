@@ -15,7 +15,6 @@ import {
 import { Button } from '@/components/ui/button';
 import {
   BookOpen,
-  Sparkles,
   CheckCircle2,
   Calendar,
   Layers,
@@ -28,7 +27,10 @@ export default function PracticeCatalogPage() {
   const { useTestSets } = useTests();
   const { useRecentTests } = useDashboard();
 
-  const { data: testSets, isLoading: loadingTests } = useTestSets('toeic');
+  const { data: testSets, isLoading: loadingTests } = useTestSets(
+    'toeic',
+    'public',
+  );
   const { data: recentTests, isLoading: loadingHistory } = useRecentTests();
 
   // Track completed test IDs
@@ -36,12 +38,12 @@ export default function PracticeCatalogPage() {
     if (!recentTests) return new Set<string>();
     // In our backend recent tests population, test.test_sets contains populated TestSet,
     // or sometimes we might have a different format, but the result has a reference.
-    // Let's inspect test_set_id from history
+    // Let's inspect testSetId from history
     const completedSet = new Set<string>();
-    recentTests.forEach((r) => {
+    recentTests.forEach(r => {
       // Find the ID of the test set
       // It might be stored under populated test_sets._id or the old key.
-      const id = (r as any).test_set_id || (r.test_sets as any)?._id;
+      const id = (r as any).testSetId || (r.test_sets as any)?._id;
       if (id) completedSet.add(id.toString());
     });
     return completedSet;
@@ -52,10 +54,12 @@ export default function PracticeCatalogPage() {
     if (!testSets) return {};
     const groups: { [key: string]: TestSet[] } = {};
 
-    testSets.forEach((set) => {
+    testSets.forEach(set => {
       // Extract year like 2024 or 2025 or default to "Bộ đề tổng hợp"
       const yearMatch = set.name.match(/\b(202\d)\b/);
-      const groupName = yearMatch ? `Đề thi năm ${yearMatch[0]}` : 'Bộ đề luyện tập tổng hợp';
+      const groupName = yearMatch
+        ? `Đề thi năm ${yearMatch[0]}`
+        : 'Bộ đề luyện tập tổng hợp';
 
       if (!groups[groupName]) {
         groups[groupName] = [];
@@ -76,15 +80,19 @@ export default function PracticeCatalogPage() {
             <span className="text-gradient">Thư Viện Đề Thi TOEIC</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Chọn một đề thi trắc nghiệm để bắt đầu làm bài kiểm tra thử kỹ năng Đọc (Reading).
+            Chọn một đề thi trắc nghiệm để bắt đầu làm bài kiểm tra thử kỹ năng
+            Đọc (Reading).
           </p>
         </div>
 
         {/* Catalog Content */}
         {loadingTests || loadingHistory ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-44 bg-secondary/80 animate-pulse rounded-xl" />
+            {[1, 2, 3].map(i => (
+              <div
+                key={i}
+                className="h-44 bg-secondary/80 animate-pulse rounded-xl"
+              />
             ))}
           </div>
         ) : testSets && testSets.length > 0 ? (
@@ -99,8 +107,10 @@ export default function PracticeCatalogPage() {
 
                 {/* Exams Grid */}
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {exams.map((set) => {
-                    const isCompleted = completedTestIds.has(set._id.toString());
+                  {exams.map(set => {
+                    const isCompleted = completedTestIds.has(
+                      set._id.toString(),
+                    );
 
                     return (
                       <Card
@@ -114,7 +124,6 @@ export default function PracticeCatalogPage() {
                           <div className="flex justify-between items-start gap-2 mb-2">
                             <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground flex items-center gap-1">
                               <Layers className="h-3 w-3" />
-                              <span>{set.parts_count} phần</span>
                             </span>
 
                             {isCompleted ? (
@@ -136,30 +145,42 @@ export default function PracticeCatalogPage() {
                             {set.name}
                           </CardTitle>
                           <CardDescription className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                            {set.description ||
-                              'Bộ đề thi thử TOEIC Reading chuẩn hóa giúp học viên nâng cao tốc độ đọc hiểu và phản xạ từ vựng.'}
+                            {set.description}
                           </CardDescription>
                         </CardHeader>
 
                         <CardContent className="pb-4">
                           <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border/40 pt-3">
                             <span className="font-semibold text-foreground">
-                              {set.total_questions} câu hỏi
+                              {set.totalQuestions} câu hỏi
                             </span>
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5" />
-                              <span>{new Date(set.createdAt).getFullYear()}</span>
+                              <span>
+                                {new Date(set.createdAt).getFullYear()}
+                              </span>
                             </span>
                           </div>
                         </CardContent>
 
                         <CardFooter className="bg-secondary/20 px-6 py-3 border-t border-border/10 flex justify-end">
-                          <Link href={set.pdfUrl ? `/practice-v2/${set._id}` : `/practice/${set._id}?autoplay=true`} className="w-full">
+                          <Link
+                            href={
+                              set.readingPdfUrl
+                                ? `/practice-v2/${set._id}`
+                                : `/practice/${set._id}?autoplay=true`
+                            }
+                            className="w-full"
+                          >
                             <Button
                               className="w-full text-xs font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-all flex items-center justify-center gap-1.5"
                               variant={isCompleted ? 'secondary' : 'default'}
                             >
-                              <span>{isCompleted ? 'Luyện tập lại' : 'Bắt đầu làm bài'}</span>
+                              <span>
+                                {isCompleted
+                                  ? 'Luyện tập lại'
+                                  : 'Bắt đầu làm bài'}
+                              </span>
                               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                             </Button>
                           </Link>
@@ -174,10 +195,12 @@ export default function PracticeCatalogPage() {
         ) : (
           <div className="text-center py-20 border border-dashed border-border rounded-xl bg-secondary/15 flex flex-col items-center justify-center">
             <ClipboardList className="h-12 w-12 text-muted-foreground/60 mb-3" />
-            <h4 className="font-bold text-lg text-foreground">Thư viện đề thi trống</h4>
+            <h4 className="font-bold text-lg text-foreground">
+              Thư viện đề thi trống
+            </h4>
             <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Hiện tại chưa có đề thi nào được tạo. Nếu bạn là Admin, hãy truy cập &quot;Tạo Đề
-              Mới&quot; để bổ sung nội dung.
+              Hiện tại chưa có đề thi nào được tạo. Nếu bạn là Admin, hãy truy
+              cập &quot;Tạo Đề Mới&quot; để bổ sung nội dung.
             </p>
           </div>
         )}

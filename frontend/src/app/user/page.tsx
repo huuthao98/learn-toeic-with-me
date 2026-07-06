@@ -22,7 +22,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -42,6 +41,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { toast } from 'sonner';
 
 const editUserSchema = z.object({
   fullName: z.string().min(1, 'Full Name is required'),
@@ -85,10 +85,15 @@ export default function UserManagementPage() {
 
   // Mutations
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<UserItem>) => usersApi.updateUser(editUser!._id, data),
+    mutationFn: (data: Partial<UserItem>) =>
+      usersApi.updateUser(editUser!._id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setEditUser(null);
+      toast.success('User updated successfully');
+    },
+    onError: () => {
+      toast.error('Failed to update user');
     },
   });
 
@@ -97,6 +102,10 @@ export default function UserManagementPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setDeleteUser(null);
+      toast.success('User deleted successfully');
+    },
+    onError: () => {
+      toast.error('Failed to delete user');
     },
   });
 
@@ -108,7 +117,9 @@ export default function UserManagementPage() {
     <DashboardLayout>
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Users Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Users Management
+          </h1>
         </div>
 
         <div className="rounded-md border bg-card text-card-foreground shadow-sm">
@@ -137,9 +148,11 @@ export default function UserManagementPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                data?.data?.map((user) => (
+                data?.data?.map(user => (
                   <TableRow key={user._id}>
-                    <TableCell className="font-medium">{user.fullName}</TableCell>
+                    <TableCell className="font-medium">
+                      {user.fullName}
+                    </TableCell>
                     <TableCell>{user.email || '-'}</TableCell>
                     <TableCell>
                       <span className="capitalize">{user.role}</span>
@@ -147,13 +160,23 @@ export default function UserManagementPage() {
                     <TableCell>
                       <span className="capitalize">{user.plan}</span>
                     </TableCell>
-                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="icon" onClick={() => setViewUser(user)}>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setViewUser(user)}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="outline" size="icon" onClick={() => handleOpenEdit(user)}>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleOpenEdit(user)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
@@ -175,14 +198,14 @@ export default function UserManagementPage() {
           {data && (
             <div className="flex items-center justify-between p-4 border-t">
               <div className="text-sm text-muted-foreground">
-                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, data.total)} of{' '}
-                {data.total} entries
+                Showing {(page - 1) * limit + 1} to{' '}
+                {Math.min(page * limit, data.total)} of {data.total} entries
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
@@ -191,7 +214,7 @@ export default function UserManagementPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage((p) => p + 1)}
+                  onClick={() => setPage(p => p + 1)}
                   disabled={page * limit >= data.total}
                 >
                   Next
@@ -203,11 +226,13 @@ export default function UserManagementPage() {
         </div>
 
         {/* View User Dialog */}
-        <Dialog open={!!viewUser} onOpenChange={(o) => !o && setViewUser(null)}>
+        <Dialog open={!!viewUser} onOpenChange={o => !o && setViewUser(null)}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>User Details</DialogTitle>
-              <DialogDescription>Viewing full details for {viewUser?.fullName}.</DialogDescription>
+              <DialogDescription>
+                Viewing full details for {viewUser?.fullName}.
+              </DialogDescription>
             </DialogHeader>
             {viewUser && (
               <div className="grid gap-4 py-4">
@@ -240,7 +265,7 @@ export default function UserManagementPage() {
         </Dialog>
 
         {/* Edit User Dialog */}
-        <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
+        <Dialog open={!!editUser} onOpenChange={o => !o && setEditUser(null)}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Edit User</DialogTitle>
@@ -249,7 +274,10 @@ export default function UserManagementPage() {
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmitEdit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmitEdit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="fullName"
@@ -270,7 +298,10 @@ export default function UserManagementPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Role</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a role" />
@@ -292,7 +323,10 @@ export default function UserManagementPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Plan</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a plan" />
@@ -310,7 +344,11 @@ export default function UserManagementPage() {
                 />
 
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setEditUser(null)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditUser(null)}
+                  >
                     Cancel
                   </Button>
                   <Button type="submit" disabled={updateMutation.isPending}>
@@ -323,13 +361,16 @@ export default function UserManagementPage() {
         </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={!!deleteUser} onOpenChange={(o) => !o && setDeleteUser(null)}>
+        <Dialog
+          open={!!deleteUser}
+          onOpenChange={o => !o && setDeleteUser(null)}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Are you absolutely sure?</DialogTitle>
               <DialogDescription>
-                This action cannot be undone. This will permanently delete the user account and
-                remove their data from our servers.
+                This action cannot be undone. This will permanently delete the
+                user account and remove their data from our servers.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 import { useLayoutStore } from '@/store/layoutStore';
+import { ROUTES } from '@/constants/routes';
 
 interface SidebarProps extends HTMLAttributes<HTMLDivElement> {
   onCollapseToggle?: (collapsed: boolean) => void;
@@ -36,12 +37,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
       icon: LayoutDashboard,
       roles: ['user', 'admin'],
     },
-    {
-      name: 'Trang Cá Nhân',
-      href: '/profile',
-      icon: User,
-      roles: ['user', 'admin'],
-    },
+
     {
       name: 'Luyện Tập',
       href: '/practice',
@@ -53,24 +49,17 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
           href: '/practice',
           roles: ['user', 'admin'],
         },
-        {
-          name: 'Luyện với AI',
-          href: '/practice-interview-AI',
-          roles: ['user', 'admin'],
-        },
+        // {
+        //   name: 'Luyện với AI',
+        //   href: '/practice-interview-AI',
+        //   roles: ['user', 'admin'],
+        // },
         {
           name: 'Luyện phỏng vấn',
           href: '/practice-interview',
           roles: ['user', 'admin'],
         },
       ],
-    },
-
-    {
-      name: 'Quản lý người dùng',
-      href: '/user',
-      icon: User,
-      roles: ['admin'],
     },
     {
       name: 'Quản Lý Đề Thi',
@@ -84,7 +73,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
           roles: ['admin'],
         },
         {
-          name: 'Tạo Đề Mới (V2 - PDF)',
+          name: 'Tạo Đề Thi Toeic',
           href: '/admin/create-test-v2',
           roles: ['admin'],
         },
@@ -95,6 +84,18 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
           roles: ['admin'],
         },
       ],
+    },
+    {
+      name: 'Quản lý người dùng',
+      href: '/user',
+      icon: User,
+      roles: ['admin'],
+    },
+    {
+      name: 'Trang Cá Nhân',
+      href: '/profile',
+      icon: User,
+      roles: ['user', 'admin'],
     },
   ];
 
@@ -118,14 +119,14 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
       >
         {!isCollapsed ? (
           <Link
-            href="/dashboard"
+            href={ROUTES.DASHBOARD}
             className="flex items-center gap-2 font-bold text-xl tracking-tight animate-fade-in"
           >
             <span className="text-gradient">learnEverything</span>
           </Link>
         ) : (
           <Link
-            href="/dashboard"
+            href={ROUTES.DASHBOARD}
             className="flex items-center justify-center animate-fade-in"
           >
             {/* Logo */}

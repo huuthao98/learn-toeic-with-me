@@ -37,6 +37,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { useDashboard } from '@/hooks/useDashboard';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { ROUTES } from '@/constants/routes';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -67,7 +68,11 @@ export default function ProfilePage() {
 
     const cells = [];
     // Pad previous month days
-    for (let i = 0; i < (startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1); i++) {
+    for (
+      let i = 0;
+      i < (startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1);
+      i++
+    ) {
       cells.push({ day: null, active: false });
     }
 
@@ -80,7 +85,9 @@ export default function ProfilePage() {
         day,
         active: isActive,
         isToday:
-          day === today.getDate() && month === today.getMonth() && year === today.getFullYear(),
+          day === today.getDate() &&
+          month === today.getMonth() &&
+          year === today.getFullYear(),
       });
     }
 
@@ -103,7 +110,8 @@ export default function ProfilePage() {
             <span className="text-gradient">Hồ Sơ Học Viên</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Quản lý tài khoản cá nhân, xem biểu đồ tích lũy chuyên cần và lịch sử luyện thi.
+            Quản lý tài khoản cá nhân, xem biểu đồ tích lũy chuyên cần và lịch
+            sử luyện thi.
           </p>
         </div>
 
@@ -117,7 +125,9 @@ export default function ProfilePage() {
                   {user?.fullName?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold">{user?.fullName || 'Học Viên'}</h3>
+                  <h3 className="text-xl font-bold">
+                    {user?.fullName || 'Học Viên'}
+                  </h3>
                   <div className="flex items-center justify-center gap-2 mt-1.5">
                     <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary">
                       {user?.role === 'admin' ? 'Quản Trị Viên' : 'Học Viên'}
@@ -151,7 +161,9 @@ export default function ProfilePage() {
                     <Award className="h-4 w-4 text-primary" />
                     <span>
                       Mục tiêu điểm số:{' '}
-                      <strong className="text-foreground">{user?.targetScore || 800}đ</strong>
+                      <strong className="text-foreground">
+                        {user?.targetScore || 800}đ
+                      </strong>
                     </span>
                   </div>
                 </div>
@@ -173,7 +185,7 @@ export default function ProfilePage() {
                 {/* Heatmap Grid */}
                 <div>
                   <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-muted-foreground mb-2">
-                    {weekdays.map((w) => (
+                    {weekdays.map(w => (
                       <div key={w}>{w}</div>
                     ))}
                   </div>
@@ -209,7 +221,10 @@ export default function ProfilePage() {
                   </div>
                   <div className="flex items-center gap-1.5 text-orange-500">
                     <Flame className="h-3.5 w-3.5 fill-orange-500" />
-                    <span>Học liên tục: {streakHistory?.streak ?? stats?.streak ?? 0} ngày</span>
+                    <span>
+                      Học liên tục:{' '}
+                      {streakHistory?.streak ?? stats?.streak ?? 0} ngày
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -244,20 +259,26 @@ export default function ProfilePage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {recentTests.map((t) => (
-                          <TableRow key={t._id} className="hover:bg-secondary/20">
+                        {recentTests.map(t => (
+                          <TableRow
+                            key={t._id}
+                            className="hover:bg-secondary/20"
+                          >
                             <TableCell className="font-bold text-xs">
                               {t.test_sets?.name || 'Đề thi TOEIC Reading'}
                             </TableCell>
                             <TableCell className="text-muted-foreground text-[10px]">
-                              {new Date(t.createdAt).toLocaleDateString('vi-VN', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                              })}
+                              {new Date(t.createdAt).toLocaleDateString(
+                                'vi-VN',
+                                {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                },
+                              )}
                             </TableCell>
                             <TableCell className="text-muted-foreground text-xs">
-                              {t.duration_minutes || 0} phút
+                              {t.durationMinutes || 0} phút
                             </TableCell>
                             <TableCell className="text-right font-black text-indigo-600 dark:text-indigo-400">
                               {t.score}đ
@@ -274,7 +295,8 @@ export default function ProfilePage() {
                       Chưa có kết quả làm bài
                     </h5>
                     <p className="text-[10px] text-muted-foreground mt-1">
-                      Truy cập Thư viện đề thi để khởi chạy bài kiểm tra thử đầu tiên.
+                      Truy cập Thư viện đề thi để khởi chạy bài kiểm tra thử đầu
+                      tiên.
                     </p>
                   </div>
                 )}
@@ -290,7 +312,8 @@ export default function ProfilePage() {
                     <span>Bộ Đề Đã Thiết Kế (Admin)</span>
                   </CardTitle>
                   <CardDescription>
-                    Danh sách các đề thi thử TOEIC do các quản trị viên tạo dựng.
+                    Danh sách các đề thi thử TOEIC do các quản trị viên tạo
+                    dựng.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -308,18 +331,26 @@ export default function ProfilePage() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {testSets.map((set) => (
-                            <TableRow key={set._id} className="hover:bg-secondary/20">
-                              <TableCell className="font-bold text-xs">{set.name}</TableCell>
+                          {testSets.map(set => (
+                            <TableRow
+                              key={set._id}
+                              className="hover:bg-secondary/20"
+                            >
+                              <TableCell className="font-bold text-xs">
+                                {set.name}
+                              </TableCell>
                               <TableCell className="text-xs">
-                                {set.total_questions} câu hỏi
+                                {set.totalQuestions} câu hỏi
                               </TableCell>
                               <TableCell className="text-muted-foreground text-[10px]">
-                                {new Date(set.createdAt).toLocaleDateString('vi-VN', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}
+                                {new Date(set.createdAt).toLocaleDateString(
+                                  'vi-VN',
+                                  {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                  },
+                                )}
                               </TableCell>
                               <TableCell className="text-right">
                                 <Link
@@ -345,7 +376,7 @@ export default function ProfilePage() {
                 </CardContent>
                 <CardFooter className="pt-2">
                   <Button
-                    onClick={() => router.push('/admin/create-test-v2')}
+                    onClick={() => router.push(ROUTES.ADMIN_CREATE_TEST_V2)}
                     className="w-full text-xs font-bold flex items-center gap-1.5"
                     variant="outline"
                   >

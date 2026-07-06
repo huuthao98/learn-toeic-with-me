@@ -81,7 +81,7 @@ export function AddInterviewQuestionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl md:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-xl">
         <DialogHeader>
           <DialogTitle>Thêm câu hỏi phỏng vấn thủ công</DialogTitle>
         </DialogHeader>

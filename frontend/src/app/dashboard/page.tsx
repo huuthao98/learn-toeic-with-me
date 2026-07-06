@@ -34,6 +34,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { useEffect, useState } from 'react';
+import { ROUTES } from '@/constants/routes';
 
 export default function DashboardPage() {
   const { useStats, useTodayPlan, useScoreProgression, useRecentTests } = useDashboard();
@@ -67,7 +68,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <Link href="/practice">
+          <Link href={ROUTES.PRACTICE}>
             <Button className="font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 group">
               <span>Vào thi thử ngay</span>
               <ArrowUpRight className="h-4 w-4 ml-1.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -307,7 +308,7 @@ export default function DashboardPage() {
               <CardDescription>Lịch sử 5 bài thi thử TOEIC bạn làm gần đây nhất.</CardDescription>
             </div>
             <Link
-              href="/profile"
+              href={ROUTES.PROFILE}
               className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
             >
               <span>Xem tất cả</span>
@@ -347,13 +348,13 @@ export default function DashboardPage() {
                           })}
                         </TableCell>
                         <TableCell className="text-muted-foreground text-xs">
-                          {test.duration_minutes || 0} phút
+                          {test.durationMinutes || 0} phút
                         </TableCell>
                         <TableCell className="font-semibold text-indigo-600 dark:text-indigo-400">
-                          {test.listening_score || 0}đ
+                          {test.listeningScore || 0}đ
                         </TableCell>
                         <TableCell className="font-semibold text-teal-600 dark:text-teal-400">
-                          {test.reading_score || 0}đ
+                          {test.readingScore || 0}đ
                         </TableCell>
                         <TableCell className="text-right font-black text-gradient">
                           {test.score || 0}đ

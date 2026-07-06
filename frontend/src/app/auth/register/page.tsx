@@ -29,15 +29,18 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ROUTES } from '@/constants/routes';
 
 // Zod Validation Schemas
 const emailRegisterSchema = z.object({
   email: z.string().email({ message: 'Email không hợp lệ' }),
-  fullName: z.string().min(2, { message: 'Họ và tên phải có tối thiểu 2 ký tự' }),
+  fullName: z
+    .string()
+    .min(2, { message: 'Họ và tên phải có tối thiểu 2 ký tự' }),
   age: z
     .string()
     .min(1, 'Vui lòng nhập tuổi')
-    .refine((val) => !isNaN(Number(val)) && Number(val) >= 6, {
+    .refine(val => !isNaN(Number(val)) && Number(val) >= 6, {
       message: 'Tuổi phải là số từ 6 trở lên',
     }),
   password: z.string().min(6, { message: 'Mật khẩu phải tối thiểu 6 ký tự' }),
@@ -45,11 +48,13 @@ const emailRegisterSchema = z.object({
 
 const phoneRegisterSchema = z.object({
   phone: z.string().min(10, { message: 'Số điện thoại không hợp lệ' }),
-  fullName: z.string().min(2, { message: 'Họ và tên phải có tối thiểu 2 ký tự' }),
+  fullName: z
+    .string()
+    .min(2, { message: 'Họ và tên phải có tối thiểu 2 ký tự' }),
   age: z
     .string()
     .min(1, 'Vui lòng nhập tuổi')
-    .refine((val) => !isNaN(Number(val)) && Number(val) >= 6, {
+    .refine(val => !isNaN(Number(val)) && Number(val) >= 6, {
       message: 'Tuổi phải là số từ 6 trở lên',
     }),
   otp: z.string().optional(),
@@ -72,7 +77,7 @@ export default function RegisterPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (isAuthenticated && token) {
-      router.push('/dashboard');
+      router.push(ROUTES.DASHBOARD);
     }
   }, [isAuthenticated, token, router]);
 
@@ -123,11 +128,12 @@ export default function RegisterPage() {
       },
       {
         onSuccess: () => {
-          router.push('/dashboard');
+          router.push(ROUTES.DASHBOARD);
         },
         onError: (err: any) => {
           setErrorMsg(
-            err.response?.data?.message || 'Đăng ký tài khoản thất bại. Email có thể đã tồn tại.',
+            err.response?.data?.message ||
+              'Đăng ký tài khoản thất bại. Email có thể đã tồn tại.',
           );
         },
       },
@@ -154,10 +160,12 @@ export default function RegisterPage() {
       },
       {
         onSuccess: () => {
-          router.push('/dashboard');
+          router.push(ROUTES.DASHBOARD);
         },
         onError: (err: any) => {
-          setErrorMsg(err.response?.data?.message || 'Xác thực số điện thoại thất bại.');
+          setErrorMsg(
+            err.response?.data?.message || 'Xác thực số điện thoại thất bại.',
+          );
         },
       },
     );
@@ -180,20 +188,23 @@ export default function RegisterPage() {
 
         {/* Brand Header */}
         <div className="flex items-center gap-2 relative z-10">
-          <span className="font-bold text-2xl tracking-tight">Learn-Everything</span>
+          <span className="font-bold text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300">
+            Learn-Everything
+          </span>
         </div>
 
         {/* Feature Presentation */}
         <div className="max-w-md relative z-10 my-auto">
           <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight mb-6 leading-tight">
-            Khởi động hành trình chinh phục{' '}
+            Khởi đầu cho nỗ lực mỗi ngày{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300">
-              TOEIC 990
+              1%
             </span>
           </h1>
           <p className="text-slate-400 text-lg mb-8">
-            Tạo tài khoản miễn phí để nhận báo cáo lộ trình học tập, thống kê điểm số và luyện tập
-            các câu hỏi Incomplete Sentences mỗi ngày.
+            Hành trình vạn dặm bắt đầu từ một bước chân. Đăng ký ngay hôm nay để
+            xây dựng lộ trình học tập, duy trì thói quen ôn luyện và đo lường sự
+            tiến bộ của bạn mỗi ngày.
           </p>
 
           <div className="space-y-4">
@@ -202,9 +213,12 @@ export default function RegisterPage() {
                 <Calendar className="h-5 w-5" />
               </span>
               <div>
-                <h4 className="font-semibold text-sm">Điểm danh học tập mỗi ngày</h4>
+                <h4 className="font-semibold text-sm">
+                  Xây dựng thói quen kiên trì
+                </h4>
                 <p className="text-xs text-slate-400 mt-1">
-                  Duy trì Streak liên tục giúp củng cố kiến thức và thói quen làm bài thi.
+                  Điểm danh và duy trì chuỗi ngày học tập (Streak) liên tục để
+                  rèn luyện tính kỷ luật và củng cố kiến thức vững chắc.
                 </p>
               </div>
             </div>
@@ -214,9 +228,13 @@ export default function RegisterPage() {
                 <BookOpen className="h-5 w-5" />
               </span>
               <div>
-                <h4 className="font-semibold text-sm">Luyện đề thi thử trực quan</h4>
+                <h4 className="font-semibold text-sm">
+                  Cọ xát thực tế mỗi ngày
+                </h4>
                 <p className="text-xs text-slate-400 mt-1">
-                  Giao diện làm bài thi y hệt thực tế cùng cơ chế tính điểm chuẩn.
+                  Trải nghiệm làm bài thi thử với giao diện sát thực tế, giúp
+                  bạn làm quen áp lực phòng thi và đánh giá chính xác nỗ lực của
+                  bản thân.
                 </p>
               </div>
             </div>
@@ -234,8 +252,12 @@ export default function RegisterPage() {
       <div className="w-full lg:col-span-6 xl:col-span-5 flex items-center justify-center py-12">
         <Card className="w-full max-w-md mx-auto border-none shadow-none bg-transparent sm:bg-card sm:border sm:border-border sm:shadow-lg sm:p-2 glass-card">
           <CardHeader className="text-center sm:text-left">
-            <CardTitle className="text-2xl font-bold tracking-tight">Tạo tài khoản mới</CardTitle>
-            <CardDescription>Bắt đầu hành trình ôn tập TOEIC của bạn ngay hôm nay.</CardDescription>
+            <CardTitle className="text-2xl font-bold tracking-tight">
+              Tạo tài khoản mới
+            </CardTitle>
+            <CardDescription>
+              Bắt đầu hành trình ôn tập TOEIC của bạn ngay hôm nay.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Global Error Banner */}
@@ -260,7 +282,10 @@ export default function RegisterPage() {
 
               {/* Email Register Form */}
               <TabsContent value="email">
-                <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-3">
+                <form
+                  onSubmit={emailForm.handleSubmit(onEmailSubmit)}
+                  className="space-y-3"
+                >
                   <div className="grid grid-cols-12 gap-3">
                     {/* Full Name */}
                     <div className="col-span-8 space-y-1">
@@ -358,7 +383,9 @@ export default function RegisterPage() {
                         <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                           <div
                             className={`h-full transition-all duration-300 ${getStrengthLabel(passwordStrength).color}`}
-                            style={{ width: `${(passwordStrength / 4) * 100}%` }}
+                            style={{
+                              width: `${(passwordStrength / 4) * 100}%`,
+                            }}
                           />
                         </div>
                       </div>
@@ -370,7 +397,9 @@ export default function RegisterPage() {
                     className="w-full mt-4"
                     disabled={registerMutation.isPending}
                   >
-                    {registerMutation.isPending ? 'Đang xử lý...' : 'Tạo Tài Khoản Bằng Email'}
+                    {registerMutation.isPending
+                      ? 'Đang xử lý...'
+                      : 'Tạo Tài Khoản Bằng Email'}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </form>
@@ -378,7 +407,10 @@ export default function RegisterPage() {
 
               {/* Phone Register Form */}
               <TabsContent value="phone">
-                <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-3">
+                <form
+                  onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}
+                  className="space-y-3"
+                >
                   <div className="grid grid-cols-12 gap-3">
                     {/* Full Name */}
                     <div className="col-span-8 space-y-1">
@@ -465,7 +497,11 @@ export default function RegisterPage() {
                     </div>
                   )}
 
-                  <Button type="submit" className="w-full mt-4" disabled={phoneMutation.isPending}>
+                  <Button
+                    type="submit"
+                    className="w-full mt-4"
+                    disabled={phoneMutation.isPending}
+                  >
                     {phoneMutation.isPending
                       ? 'Đang xử lý...'
                       : otpSent
@@ -491,7 +527,10 @@ export default function RegisterPage() {
           <CardFooter className="text-center justify-center">
             <div className="text-sm text-muted-foreground">
               Đã có tài khoản?{' '}
-              <Link href="/auth/login" className="font-semibold text-primary hover:underline">
+              <Link
+                href={ROUTES.LOGIN}
+                className="font-semibold text-primary hover:underline"
+              >
                 Đăng nhập
               </Link>
             </div>

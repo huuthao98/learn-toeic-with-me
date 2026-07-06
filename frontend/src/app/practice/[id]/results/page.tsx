@@ -17,6 +17,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useTests } from '@/hooks/useTests';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
+import { ROUTES } from '@/constants/routes';
 export default function ExamResultsPage() {
   const params = useParams();
   const router = useRouter();
@@ -46,7 +47,7 @@ export default function ExamResultsPage() {
 
   const correctCount = questions?.reduce((acc, q) => {
     const userAnswer = userAnswers[q._id];
-    const isCorrect = userAnswer && userAnswer.trim().toUpperCase() === q.correct_answer.trim().toUpperCase();
+    const isCorrect = userAnswer && userAnswer.trim().toUpperCase() === q.correctAnswer.trim().toUpperCase();
     return isCorrect ? acc + 1 : acc;
   }, 0) || 0;
 
@@ -68,12 +69,12 @@ export default function ExamResultsPage() {
       <div className="flex h-screen w-screen flex-col items-center justify-center gap-4 bg-background">
         <AlertTriangle className="h-12 w-12 text-destructive" />
         <h4 className="text-lg font-bold">Không tìm thấy kết quả bài thi</h4>
-        <Button onClick={() => router.push('/practice')}>Quay lại thư viện</Button>
+        <Button onClick={() => router.push(ROUTES.PRACTICE)}>Quay lại thư viện</Button>
       </div>
     );
   }
 
-  const testName = result.test_set_id?.name || 'Đề luyện thi TOEIC';
+  const testName = result.testSetId?.name || 'Đề luyện thi TOEIC';
   const totalQuestions = questions?.length || 0;
 
   return (
@@ -82,7 +83,7 @@ export default function ExamResultsPage() {
       <div className="glass-panel border-b border-border/40 h-16 sticky top-0 z-30 px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push('/practice')}
+            onClick={() => router.push(ROUTES.PRACTICE)}
             className="p-2 rounded-lg bg-secondary/80 text-muted-foreground hover:text-foreground transition-all"
             title="Quay lại danh sách đề thi"
           >
@@ -97,7 +98,7 @@ export default function ExamResultsPage() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push(ROUTES.DASHBOARD)}
             className="text-xs h-9 font-semibold flex items-center gap-1.5"
           >
             <LayoutDashboard className="h-4 w-4" />
@@ -155,7 +156,7 @@ export default function ExamResultsPage() {
                     Điểm Đọc (Reading)
                   </div>
                   <div className="text-xl font-extrabold text-teal-600 dark:text-teal-400 mt-1">
-                    {result.reading_score}đ
+                    {result.readingScore}đ
                   </div>
                   <div className="text-[9px] text-muted-foreground mt-0.5">Thang tối đa 495đ</div>
                 </div>
@@ -167,7 +168,7 @@ export default function ExamResultsPage() {
                     <span>Thời gian làm bài</span>
                   </div>
                   <div className="text-xl font-extrabold text-foreground mt-1">
-                    {result.duration_minutes || 0} phút
+                    {result.durationMinutes || 0} phút
                   </div>
                   <div className="text-[9px] text-muted-foreground mt-0.5">Thời gian thực tế</div>
                 </div>
@@ -187,7 +188,7 @@ export default function ExamResultsPage() {
             <div className="space-y-6">
               {questions.map((q, index) => {
                 const userAnswer = userAnswers[q._id];
-                const isCorrectAnswer = userAnswer && userAnswer.trim().toUpperCase() === q.correct_answer.trim().toUpperCase();
+                const isCorrectAnswer = userAnswer && userAnswer.trim().toUpperCase() === q.correctAnswer.trim().toUpperCase();
 
                 return (
                   <Card key={q._id} className={`glass-card border-l-4 ${userAnswer ? (isCorrectAnswer ? 'border-l-emerald-500' : 'border-l-destructive') : 'border-l-yellow-500'}`}>
@@ -207,7 +208,7 @@ export default function ExamResultsPage() {
                           return (
                             <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
                               <span>CHƯA LÀM</span>
-                              <span className="opacity-70">(Đúng: {q.correct_answer})</span>
+                              <span className="opacity-70">(Đúng: {q.correctAnswer})</span>
                             </span>
                           );
                         }
@@ -215,7 +216,7 @@ export default function ExamResultsPage() {
                           return (
                             <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                               <Check className="h-3.5 w-3.5" />
-                              <span>ĐÚNG: {q.correct_answer}</span>
+                              <span>ĐÚNG: {q.correctAnswer}</span>
                             </span>
                           );
                         } else {
@@ -223,7 +224,7 @@ export default function ExamResultsPage() {
                             <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-destructive/10 text-destructive">
                               <X className="h-3.5 w-3.5" />
                               <span>BẠN CHỌN: {userAnswer}</span>
-                              <span className="opacity-70">(Đúng: {q.correct_answer})</span>
+                              <span className="opacity-70">(Đúng: {q.correctAnswer})</span>
                             </span>
                           );
                         }
@@ -258,9 +259,9 @@ export default function ExamResultsPage() {
                       )}
 
                       {/* Question Content */}
-                      {q.question_text && (
+                      {q.questionText && (
                         <p className="text-sm font-semibold leading-relaxed p-3.5 bg-secondary/25 border border-border/40 rounded-lg text-indigo-900 dark:text-indigo-200">
-                          {q.question_text}
+                          {q.questionText}
                         </p>
                       )}
 
@@ -269,7 +270,7 @@ export default function ExamResultsPage() {
                         {q.options.map((opt) => {
                           const isCorrect =
                             opt.label.trim().toUpperCase() ===
-                            q.correct_answer.trim().toUpperCase();
+                            q.correctAnswer.trim().toUpperCase();
 
                           const isUserSelected =
                             userAnswer?.trim().toUpperCase() ===
