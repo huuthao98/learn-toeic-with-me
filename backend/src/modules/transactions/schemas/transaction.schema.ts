@@ -6,7 +6,7 @@ export type TransactionDocument = Transaction & Document;
 @Schema({ timestamps: true })
 export class Transaction {
   @Prop({ type: Types.ObjectId, ref: 'CheckIn', required: true })
-  CheckInId: Types.ObjectId;
+  checkInId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;

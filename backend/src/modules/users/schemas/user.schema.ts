@@ -23,7 +23,7 @@ export class User {
   @Prop({ default: 'free' })
   plan: string;
 
-  @Prop({ default: 800 })
+  @Prop({ default: 0 })
   targetScore: number;
 
   @Prop()
@@ -31,6 +31,12 @@ export class User {
 
   @Prop()
   avatarUrl?: string;
+
+  @Prop({ type: [String], default: [] })
+  fcmTokens?: string[];
+
+  @Prop({ type: [String], default: [] })
+  notificationTopics?: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

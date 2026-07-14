@@ -6,3 +6,5 @@ node_modules/
 proxy-server/
 img/
 trash/
+.agents/
+SKILL.md

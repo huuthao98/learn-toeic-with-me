@@ -22,4 +22,8 @@ export const authApi = {
     const response = await api.get("/auth/profile")
     return response.data
   },
+  updateProfile: async (data: any) => {
+    const response = await api.patch("/auth/profile", data)
+    return response.data
+  },
 }

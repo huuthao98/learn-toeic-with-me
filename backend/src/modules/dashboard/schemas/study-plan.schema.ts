@@ -6,10 +6,10 @@ export type StudyPlanDocument = StudyPlan & Document;
 @Schema({ timestamps: true })
 export class StudyPlan {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  user_id: Types.ObjectId;
+  userId: Types.ObjectId;
 
   @Prop({ required: true })
-  plan_date: string; // YYYY-MM-DD
+  planDate: string; // YYYY-MM-DD
 
   @Prop({ required: true })
   title: string;
@@ -18,7 +18,7 @@ export class StudyPlan {
   description?: string;
 
   @Prop({ default: false })
-  is_completed: boolean;
+  isCompleted: boolean;
 }
 
 export const StudyPlanSchema = SchemaFactory.createForClass(StudyPlan);

@@ -2,6 +2,7 @@
 
 import {
   User,
+  Users,
   LogOut,
   BookOpen,
   ChevronLeft,
@@ -45,7 +46,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
       roles: ['user', 'admin'],
       children: [
         {
-          name: 'Bài Thi Tiếng Anh',
+          name: 'Thi Thử TOEIC',
           href: '/practice',
           roles: ['user', 'admin'],
         },
@@ -55,7 +56,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
         //   roles: ['user', 'admin'],
         // },
         {
-          name: 'Luyện phỏng vấn',
+          name: 'Luyện Phỏng Vấn',
           href: '/practice-interview',
           roles: ['user', 'admin'],
         },
@@ -83,12 +84,22 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
           // icon: Image,
           roles: ['admin'],
         },
+        {
+          name: 'Quản Lý Chủ Đề',
+          href: '/admin/topics',
+          roles: ['admin'],
+        },
+        {
+          name: 'Quản Lý Thông Báo',
+          href: '/admin/notifications',
+          roles: ['admin'],
+        },
       ],
     },
     {
       name: 'Quản lý người dùng',
       href: '/user',
-      icon: User,
+      icon: Users,
       roles: ['admin'],
     },
     {

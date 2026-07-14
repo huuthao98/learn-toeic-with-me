@@ -5,7 +5,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
   PRACTICE: '/practice',
-  PRACTICE_V2: '/practice-v2',
+  PRACTICE_ENGLISH: '/practice-english',
   ADMIN: '/admin',
   ADMIN_CREATE_TEST: '/admin/create-test',
   ADMIN_CREATE_TEST_V2: '/admin/create-test-v2',
@@ -13,7 +13,7 @@ export const ROUTES = {
   ADMIN_MEDIA: '/admin/media',
 };
 
-export const getPracticeV2ResultsRoute = (id: string) => `/practice-v2/${id}/results`;
+export const getPracticeEnglishResultsRoute = (id: string) => `/practice-english/${id}/results`;
 export const getPracticeResultsRoute = (id: string) => `/practice/${id}/results`;
 export const getAdminTestDetailRoute = (id: string) => `/admin/tests/${id}`;
 export const getAdminTestInterviewDetailRoute = (id: string) => `/admin/tests-interview/${id}`;

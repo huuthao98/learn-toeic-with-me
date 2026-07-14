@@ -18,13 +18,19 @@ export class TestSet {
   status: string;
 
   @Prop({ default: 0 })
-  total_questions: number;
+  totalQuestions: number;
 
   @Prop({ default: 'toeic', enum: ['toeic', 'interview'] })
   testType: string;
 
   @Prop()
-  pdfUrl?: string;
+  readingPdfUrl?: string;
+
+  @Prop()
+  listeningPdfUrl?: string;
+
+  @Prop({ type: [String], default: [] })
+  topics?: string[];
 }
 
 export const TestSetSchema = SchemaFactory.createForClass(TestSet);

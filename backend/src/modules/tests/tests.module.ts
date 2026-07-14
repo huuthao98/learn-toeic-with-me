@@ -7,6 +7,8 @@ import { TestResult, TestResultSchema } from '../dashboard/schemas/test-result.s
 import { Question, QuestionSchema } from '../questions/schemas/question.schema';
 import { UserStreak, UserStreakSchema } from '../dashboard/schemas/user-streak.schema';
 
+import { NotificationsModule } from '../notifications/notifications.module';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -15,6 +17,7 @@ import { UserStreak, UserStreakSchema } from '../dashboard/schemas/user-streak.s
       { name: Question.name, schema: QuestionSchema },
       { name: UserStreak.name, schema: UserStreakSchema },
     ]),
+    NotificationsModule,
   ],
   controllers: [TestsController],
   providers: [TestsService],

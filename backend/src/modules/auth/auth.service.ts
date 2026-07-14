@@ -1,32 +1,20 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import * as admin from 'firebase-admin';
-import { RegisterDto, LoginDto, FirebasePhoneDto } from './dto/auth.dto';
-import { User, UserDocument } from '../users/schemas/user.schema';
-import { Role } from '@/modules/users/domain/models/Role';
+import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/mongoose';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 
+import { FirebaseService } from '../firebase/firebase.service';
+import { User, UserDocument } from '../users/schemas/user.schema';
+import { RegisterDto, LoginDto, FirebasePhoneDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly jwtService: JwtService,
-  ) {
-    // Initialize Firebase Admin if not already initialized
-    if (!admin.apps.length) {
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          privateKey: privateKey,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        }),
-      });
-    }
-  }
+    private readonly firebaseService: FirebaseService,
+  ) {}
 
   async register(dto: RegisterDto) {
     const existing = await this.userModel.findOne({ email: dto.email }).exec();
@@ -46,8 +34,8 @@ export class AuthService {
 
     await newUser.save();
 
-    // const token = this.signToken(newUser);
-    return { user: this.formatUser(newUser) };
+    const token = this.signToken(newUser);
+    return { user: this.formatUser(newUser), accessToken: token };
   }
 
   async login(dto: LoginDto) {
@@ -82,7 +70,7 @@ export class AuthService {
         }
         phoneNumber = phone.startsWith('+') ? phone : `+84${phone.replace(/^0/, '')}`;
       } else {
-        const decodedToken = await admin.auth().verifyIdToken(dto.token);
+        const decodedToken = await this.firebaseService.auth.verifyIdToken(dto.token);
         phoneNumber = decodedToken.phone_number;
       }
 
@@ -118,6 +106,8 @@ export class AuthService {
     return this.formatUser(user);
   }
 
+  // updatePreferences has been moved to users.service.ts
+
   private signToken(user: any): string {
     return this.jwtService.sign({
       sub: user._id || user.id,
@@ -138,6 +128,7 @@ export class AuthService {
       targetScore: user.targetScore,
       age: user.age,
       avatar: user.avatarUrl,
+      notificationTopics: user.notificationTopics || [],
     };
   }
 }

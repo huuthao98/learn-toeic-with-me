@@ -13,6 +13,9 @@ import { CheckInsModule } from './modules/checkins/checkins.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { QuestionsModule } from './modules/questions/questions.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
+import { FirebaseModule } from './modules/firebase/firebase.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { TopicsModule } from './modules/topics/topics.module';
 
 @Module({
   imports: [
@@ -43,6 +46,9 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
     CheckInsModule,
     TransactionsModule,
     UploadModule,
+    FirebaseModule,
+    NotificationsModule,
+    TopicsModule,
   ],
 })
 export class AppModule {}

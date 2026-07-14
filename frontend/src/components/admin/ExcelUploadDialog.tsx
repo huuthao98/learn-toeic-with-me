@@ -33,7 +33,7 @@ export function ExcelUploadDialog({
       ['HƯỚNG DẪN NHẬP CÂU HỎI PHỎNG VẤN'],
       ['1. File này dùng để đẩy câu hỏi phỏng vấn (tự luận).'],
       [
-        '2. Các cột bắt buộc: "Số thứ tự câu", "Câu hỏi", "Câu trả lời mẫu", "Giải thích".',
+        '2. Các cột bắt buộc:  "Số thứ tự câu (question number)", "Câu hỏi (question)", Câu trả lời (answer), "Giải thích (explanation)".',
       ],
     ];
 
@@ -76,11 +76,12 @@ export function ExcelUploadDialog({
         .map(row => {
           const usedKeys = new Set<string>();
           const getVal = (searchKeys: string[]) => {
-            const k = Object.keys(row).find(key =>
-              !usedKeys.has(key) &&
-              searchKeys.some(sk =>
-                key.toLowerCase().includes(sk.toLowerCase()),
-              ),
+            const k = Object.keys(row).find(
+              key =>
+                !usedKeys.has(key) &&
+                searchKeys.some(sk =>
+                  key.toLowerCase().includes(sk.toLowerCase()),
+                ),
             );
             if (k) usedKeys.add(k);
             return k ? row[k] : undefined;
@@ -101,7 +102,12 @@ export function ExcelUploadDialog({
             isActive: true,
           };
         })
-        .filter(q => !isNaN(q.questionNumber) && q.questionText !== undefined && String(q.questionText).trim() !== '');
+        .filter(
+          q =>
+            !isNaN(q.questionNumber) &&
+            q.questionText !== undefined &&
+            String(q.questionText).trim() !== '',
+        );
 
       if (questionsToUpsert.length === 0) {
         setIsUploadingExcel(false);

@@ -10,6 +10,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import * as z from 'zod';
+import { toast } from 'sonner';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
@@ -71,15 +72,15 @@ export default function RegisterPage() {
   const phoneMutation = useFirebasePhoneMutation();
 
   const [otpSent, setOtpSent] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [hasJustRegistered, setHasJustRegistered] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
-    if (isAuthenticated && token) {
+    if (isAuthenticated && token && !hasJustRegistered) {
       router.push(ROUTES.DASHBOARD);
     }
-  }, [isAuthenticated, token, router]);
+  }, [isAuthenticated, token, hasJustRegistered, router]);
 
   const emailForm = useForm<EmailRegisterFormValues>({
     resolver: zodResolver(emailRegisterSchema),
@@ -118,7 +119,6 @@ export default function RegisterPage() {
 
   // Email Register Submit
   const onEmailSubmit = (values: EmailRegisterFormValues) => {
-    setErrorMsg(null);
     registerMutation.mutate(
       {
         email: values.email,
@@ -128,10 +128,12 @@ export default function RegisterPage() {
       },
       {
         onSuccess: () => {
-          router.push(ROUTES.DASHBOARD);
+          toast.success('Đăng ký thành công!');
+          setHasJustRegistered(true);
+          router.push('/onboarding/topics');
         },
         onError: (err: any) => {
-          setErrorMsg(
+          toast.error(
             err.response?.data?.message ||
               'Đăng ký tài khoản thất bại. Email có thể đã tồn tại.',
           );
@@ -142,7 +144,6 @@ export default function RegisterPage() {
 
   // Phone Register Submit (Simulated Firebase Verification)
   const onPhoneSubmit = (values: PhoneRegisterFormValues) => {
-    setErrorMsg(null);
     if (!otpSent) {
       setOtpSent(true);
       return;
@@ -160,10 +161,12 @@ export default function RegisterPage() {
       },
       {
         onSuccess: () => {
-          router.push(ROUTES.DASHBOARD);
+          toast.success('Đăng ký thành công!');
+          setHasJustRegistered(true);
+          router.push('/onboarding/topics');
         },
         onError: (err: any) => {
-          setErrorMsg(
+          toast.error(
             err.response?.data?.message || 'Xác thực số điện thoại thất bại.',
           );
         },
@@ -181,20 +184,20 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center lg:grid lg:grid-cols-12 overflow-hidden px-4 sm:px-0">
       {/* Brand Column (Left) */}
-      <div className="hidden lg:flex lg:col-span-6 xl:col-span-7 bg-slate-900 text-white min-h-screen flex-col justify-between p-12 relative overflow-hidden">
+      <div className="items-center hidden lg:flex lg:col-span-6 xl:col-span-7 bg-slate-900 text-white min-h-screen flex-col justify-between p-12 relative overflow-hidden">
         {/* Background Gradients */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.25),transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(13,148,136,0.15),transparent_50%)]" />
 
         {/* Brand Header */}
-        <div className="flex items-center gap-2 relative z-10">
+        <div className="w-full flex items-center gap-2 ">
           <span className="font-bold text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300">
             Learn-Everything
           </span>
         </div>
 
         {/* Feature Presentation */}
-        <div className="max-w-md relative z-10 my-auto">
+        <div className="max-w-md my-auto">
           <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight mb-6 leading-tight">
             Khởi đầu cho nỗ lực mỗi ngày{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300">
@@ -243,7 +246,7 @@ export default function RegisterPage() {
 
         {/* Footer info */}
         <div className="text-slate-500 text-xs relative z-10 flex justify-between">
-          <span>© 2026 learnEverything Inc.</span>
+          <span>© 2026 LearnEverything Inc.</span>
           <span>Hỗ trợ kỹ thuật: support@learnEverything.vn</span>
         </div>
       </div>
@@ -260,16 +263,8 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Global Error Banner */}
-            {errorMsg && (
-              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-xs font-medium flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
-
             <Tabs defaultValue="email" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              {/* <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="email" className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
                   <span>Email</span>
@@ -278,7 +273,7 @@ export default function RegisterPage() {
                   <Phone className="h-4 w-4" />
                   <span>Số điện thoại</span>
                 </TabsTrigger>
-              </TabsList>
+              </TabsList> */}
 
               {/* Email Register Form */}
               <TabsContent value="email">

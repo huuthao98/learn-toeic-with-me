@@ -21,7 +21,7 @@ export class QuestionsService {
     const query: any = {};
     if (filters?.status) query.status = filters.status;
     if (filters?.testSetId) {
-      query.test_set_id = new Types.ObjectId(filters.testSetId);
+      query.testSetId = new Types.ObjectId(filters.testSetId);
     }
 
     const [data, total] = await Promise.all([
@@ -40,23 +40,23 @@ export class QuestionsService {
 
   async create(dto: CreateQuestionDto) {
     const newQuestion = new this.questionModel({
-      test_set_id: dto.testSetId ? new Types.ObjectId(dto.testSetId) : undefined,
-      question_text: dto.questionText,
-      correct_answer: dto.correctAnswer,
+      testSetId: dto.testSetId ? new Types.ObjectId(dto.testSetId) : undefined,
+      questionText: dto.questionText,
+      correctAnswer: dto.correctAnswer,
       explanation: dto.explanation,
       status: dto.isActive !== false ? 'active' : 'draft',
-      category: dto.category,
     });
     return newQuestion.save();
   }
 
   async update(id: string, dto: UpdateQuestionDto) {
     const updateData: any = {};
-    if (dto.testSetId) updateData.test_set_id = new Types.ObjectId(dto.testSetId);
+    if (dto.testSetId) updateData.testSetId = new Types.ObjectId(dto.testSetId);
     if (dto.status) updateData.status = dto.status;
-    if (dto.correctAnswer) updateData.correct_answer = dto.correctAnswer;
+    if (dto.questionText) updateData.questionText = dto.questionText;
+    if (dto.correctAnswer) updateData.correctAnswer = dto.correctAnswer;
     if (dto.explanation !== undefined) updateData.explanation = dto.explanation;
-    if (dto.category !== undefined) updateData.category = dto.category;
+    if (dto.part !== undefined) updateData.part = dto.part;
     if (dto.isActive !== undefined) updateData.status = dto.isActive ? 'active' : 'draft';
 
     const data = await this.questionModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
@@ -74,17 +74,18 @@ export class QuestionsService {
     const bulkOps = questions.map((q) => {
       const updateData: any = {};
 
-      if (q.questionNumber !== undefined) updateData.question_number = q.questionNumber;
-      if (q.questionText !== undefined) updateData.question_text = q.questionText;
-      if (q.correctAnswer) updateData.correct_answer = q.correctAnswer;
+      if (q.questionNumber !== undefined) updateData.questionNumber = q.questionNumber;
+      if (q.questionText !== undefined) updateData.questionText = q.questionText;
+      if (q.correctAnswer) updateData.correctAnswer = q.correctAnswer;
       if (q.explanation !== undefined) updateData.explanation = q.explanation;
+      if (q.part !== undefined) updateData.part = q.part;
       if (q.isActive !== undefined) updateData.status = q.isActive ? 'active' : 'draft';
 
       return {
         updateOne: {
           filter: {
-            test_set_id: new Types.ObjectId(testSetId),
-            question_number: q.questionNumber,
+            testSetId: new Types.ObjectId(testSetId),
+            questionNumber: q.questionNumber,
           },
           update: { $set: updateData },
           upsert: true,

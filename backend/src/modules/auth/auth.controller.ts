@@ -8,13 +8,16 @@ import {
   UseGuards,
   HttpStatus,
   Controller,
+  Patch,
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
+import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RegisterDto, LoginDto, FirebasePhoneDto } from './dto/auth.dto';
+import { UpdateUserDto } from '../users/dto/update-user.dto';
 
 interface AuthenticatedRequest extends ExpressRequest {
   user: {
@@ -27,7 +30,10 @@ interface AuthenticatedRequest extends ExpressRequest {
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Version('1')
   @Post('register')
@@ -60,5 +66,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user profile' })
   getProfile(@Request() req: AuthenticatedRequest) {
     return this.authService.getProfile(req.user.sub);
+  }
+
+  @Version('1')
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user profile' })
+  updateProfile(@Request() req: AuthenticatedRequest, @Body() dto: UpdateUserDto) {
+    return this.usersService.update(req.user.sub, dto);
   }
 }

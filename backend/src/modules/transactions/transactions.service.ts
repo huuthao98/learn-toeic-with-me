@@ -14,7 +14,7 @@ export class TransactionsService {
     const createdTransaction = new this.transactionModel({
       ...createTransactionDto,
       userId: new Types.ObjectId(userId),
-      CheckInId: new Types.ObjectId(createTransactionDto.CheckInId),
+      checkInId: new Types.ObjectId(createTransactionDto.checkInId),
     });
     return createdTransaction.save();
   }

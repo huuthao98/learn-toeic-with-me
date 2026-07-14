@@ -6,22 +6,22 @@ export type TestResultDocument = TestResult & Document;
 @Schema({ timestamps: true })
 export class TestResult {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  user_id: Types.ObjectId;
+  userId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'TestSet' })
-  test_set_id?: Types.ObjectId;
+  testSetId?: Types.ObjectId;
 
   @Prop({ required: true })
   score: number;
 
   @Prop({ required: true })
-  listening_score: number;
+  listeningScore: number;
 
   @Prop({ required: true })
-  reading_score: number;
+  readingScore: number;
 
   @Prop()
-  duration_minutes?: number;
+  durationMinutes?: number;
 
   @Prop({ default: 'completed' })
   status: string;

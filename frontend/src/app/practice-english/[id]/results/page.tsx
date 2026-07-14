@@ -71,7 +71,7 @@ export default function PracticeV2ResultsPage() {
 
   if (isTestLoading || isQuestionsLoading || isResultLoading) {
     return (
-      <div className="p-8 text-center flex flex-col items-center justify-center h-screen">
+      <div className="p-8 text-center flex flex-col items-center justify-center h-screen bg-slate-200/50 dark:bg-slate-800/50">
         Đang tải kết quả...
       </div>
     );
@@ -79,7 +79,7 @@ export default function PracticeV2ResultsPage() {
 
   if (!testSet || !resultData || !questions) {
     return (
-      <div className="p-8 text-center text-red-500 h-screen flex flex-col items-center justify-center">
+      <div className="p-8 text-center text-red-500 h-screen flex flex-col items-center justify-center bg-slate-200/50 dark:bg-slate-800/50">
         <p>Không tìm thấy dữ liệu bài thi.</p>
         <Button className="mt-4" onClick={() => router.push(ROUTES.PRACTICE)}>
           Quay Lại
@@ -105,11 +105,12 @@ export default function PracticeV2ResultsPage() {
             variant="ghost"
             size="icon"
             onClick={() => router.push(ROUTES.PRACTICE)}
+            className={'bg-slate-200/50 dark:bg-slate-800/50'}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="h-14 shrink-0 flex items-center justify-between px-4 bg-white dark:bg-slate-900 border-b">
-            <div className="flex items-center gap-2  mr-3">
+          <div className="h-14 flex-1 shrink-0 flex items-center justify-between px-4 bg-white dark:bg-slate-900 border-b">
+            <div className="flex items-center gap-2">
               {testSet.listeningPdfUrl && (
                 <Button
                   variant={activePdf === 'listening' ? 'default' : 'outline'}

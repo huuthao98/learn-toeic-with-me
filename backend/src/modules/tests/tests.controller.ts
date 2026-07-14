@@ -56,12 +56,25 @@ class CreateTestSetDto {
   @ApiPropertyOptional({ example: 'pdf/test1.pdf' })
   @IsString()
   @IsOptional()
-  pdfUrl?: string;
+  readingPdfUrl?: string;
 
   @ApiPropertyOptional({ example: 'toeic', enum: ['toeic', 'interview'] })
   @IsString()
   @IsOptional()
   testType?: string;
+
+  @ApiPropertyOptional({ example: 'pdf/listening_test1.pdf' })
+  @IsString()
+  @IsOptional()
+  listeningPdfUrl?: string;
+
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  notifyUsers?: boolean;
+
+  @ApiPropertyOptional({ type: [String], example: ['english', 'toeic'] })
+  @IsOptional()
+  topics?: string[];
 }
 
 class UpdateTestSetDto {
@@ -92,12 +105,25 @@ class UpdateTestSetDto {
   @ApiPropertyOptional({ example: 'pdf/test1_updated.pdf' })
   @IsString()
   @IsOptional()
-  pdfUrl?: string;
+  readingPdfUrl?: string;
 
   @ApiPropertyOptional({ example: 'toeic', enum: ['toeic', 'interview'] })
   @IsString()
   @IsOptional()
   testType?: string;
+
+  @ApiPropertyOptional({ example: 'pdf/listening_test1_updated.pdf' })
+  @IsString()
+  @IsOptional()
+  listeningPdfUrl?: string;
+
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  notifyUsers?: boolean;
+
+  @ApiPropertyOptional({ type: [String], example: ['english', 'toeic'] })
+  @IsOptional()
+  topics?: string[];
 }
 
 @ApiTags('Tests')

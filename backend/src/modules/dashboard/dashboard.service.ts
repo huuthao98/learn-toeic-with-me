@@ -18,34 +18,34 @@ export class DashboardService {
 
   async getStats(userId: string) {
     const latest = await this.testResultModel
-      .findOne({ user_id: new Types.ObjectId(userId) })
-      .select('score listening_score reading_score createdAt')
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .select('score listeningScore readingScore createdAt')
       .sort({ createdAt: -1 })
       .exec();
 
     const streak = await this.userStreakModel
-      .findOne({ user_id: new Types.ObjectId(userId) })
-      .select('current_streak longest_streak last_study_date')
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .select('currentStreak longestStreak lastStudyDate')
       .exec();
 
     return {
       estimatedScore: latest?.score || 0,
-      listeningScore: latest?.listening_score || 0,
-      readingScore: latest?.reading_score || 0,
+      listeningScore: latest?.listeningScore || 0,
+      readingScore: latest?.readingScore || 0,
       targetScore: 850,
-      streak: streak?.current_streak || 0,
-      longestStreak: streak?.longest_streak || 0,
+      streak: streak?.currentStreak || 0,
+      longestStreak: streak?.longestStreak || 0,
     };
   }
 
   async getStreakHistory(userId: string) {
     const streak = await this.userStreakModel
-      .findOne({ user_id: new Types.ObjectId(userId) })
-      .select('current_streak longest_streak')
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .select('currentStreak longestStreak')
       .exec();
 
     const testResults = await this.testResultModel
-      .find({ user_id: new Types.ObjectId(userId) })
+      .find({ userId: new Types.ObjectId(userId) })
       .select('createdAt')
       .sort({ createdAt: 1 })
       .exec();
@@ -55,8 +55,8 @@ export class DashboardService {
     );
 
     return {
-      streak: streak?.current_streak || 0,
-      longestStreak: streak?.longest_streak || 0,
+      streak: streak?.currentStreak || 0,
+      longestStreak: streak?.longestStreak || 0,
       activeDates,
     };
   }
@@ -64,14 +64,14 @@ export class DashboardService {
   async getTodayPlan(userId: string) {
     const today = new Date().toISOString().split('T')[0];
     const data = await this.studyPlanModel
-      .find({ user_id: new Types.ObjectId(userId), plan_date: today })
+      .find({ userId: new Types.ObjectId(userId), planDate: today })
       .exec();
     return data || [];
   }
 
   async getScoreProgression(userId: string) {
     const data = await this.testResultModel
-      .find({ user_id: new Types.ObjectId(userId) })
+      .find({ userId: new Types.ObjectId(userId) })
       .select('score createdAt')
       .sort({ createdAt: -1 })
       .limit(10)
@@ -88,18 +88,18 @@ export class DashboardService {
 
   async getRecentTests(userId: string) {
     const data = await this.testResultModel
-      .find({ user_id: new Types.ObjectId(userId) })
-      .select('score listening_score reading_score duration_minutes createdAt status test_set_id')
-      .populate('test_set_id', 'name total_questions parts_count')
+      .find({ userId: new Types.ObjectId(userId) })
+      .select('score listeningScore readingScore durationMinutes createdAt status testSetId')
+      .populate('testSetId', 'name total_questions parts_count')
       .sort({ createdAt: -1 })
       .limit(5)
       .exec();
 
     return data.map((item: any) => {
       const doc = item.toObject();
-      if (doc.test_set_id) {
-        doc.test_sets = doc.test_set_id;
-        delete doc.test_set_id;
+      if (doc.testSetId) {
+        doc.test_sets = doc.testSetId;
+        delete doc.testSetId;
       }
       return doc;
     });

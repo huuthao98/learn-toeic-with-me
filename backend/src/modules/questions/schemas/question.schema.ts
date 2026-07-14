@@ -16,16 +16,19 @@ export class AnswerOption {
 
 export class Question {
   @Prop({ type: Types.ObjectId, ref: 'TestSet' })
-  test_set_id?: Types.ObjectId;
+  testSetId?: Types.ObjectId;
 
   @Prop()
-  question_number?: number;
+  questionNumber?: number;
+
+  @Prop()
+  part?: string;
 
   @Prop({ required: true })
-  question_text: string;
+  questionText: string;
 
   @Prop({ required: true })
-  correct_answer: string;
+  correctAnswer: string;
 
   @Prop()
   explanation?: string;

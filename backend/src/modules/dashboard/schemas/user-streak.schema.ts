@@ -6,16 +6,16 @@ export type UserStreakDocument = UserStreak & Document;
 @Schema({ timestamps: true })
 export class UserStreak {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, unique: true })
-  user_id: Types.ObjectId;
+  userId: Types.ObjectId;
 
   @Prop({ default: 0 })
-  current_streak: number;
+  currentStreak: number;
 
   @Prop({ default: 0 })
-  longest_streak: number;
+  longestStreak: number;
 
   @Prop()
-  last_study_date?: Date;
+  lastStudyDate?: Date;
 }
 
 export const UserStreakSchema = SchemaFactory.createForClass(UserStreak);

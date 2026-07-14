@@ -11,6 +11,7 @@ export interface User {
   targetScore: number
   age?: number
   avatarUrl?: string
+  notificationTopics?: string[]
 }
 
 interface AuthState {

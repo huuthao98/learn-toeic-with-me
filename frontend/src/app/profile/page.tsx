@@ -12,9 +12,12 @@ import {
   ArrowRight,
   CalendarDays,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Edit2 } from 'lucide-react';
+
+import { EditProfileModal } from '@/components/feature/profile/EditProfileModal';
 
 import {
   Card,
@@ -38,10 +41,12 @@ import { Button } from '@/components/ui/button';
 import { useDashboard } from '@/hooks/useDashboard';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ROUTES } from '@/constants/routes';
+import { NotificationPreferencesCard } from '@/components/feature/profile/NotificationPreferencesCard';
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const { useRecentTests, useStats, useStreakHistory } = useDashboard();
   const { useTestSets } = useTests();
@@ -116,123 +121,8 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-12 items-start">
-          {/* User Details & Heatmap (Left Column) */}
-          <div className="lg:col-span-5 space-y-6">
-            {/* Account Card */}
-            <Card className="glass-card overflow-hidden">
-              <CardContent className="pt-8 pb-6 text-center space-y-4">
-                <div className="h-20 w-20 rounded-full bg-gradient-to-tr from-primary to-cyan-500 mx-auto flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-primary/20">
-                  {user?.fullName?.charAt(0).toUpperCase() || 'U'}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold">
-                    {user?.fullName || 'Học Viên'}
-                  </h3>
-                  <div className="flex items-center justify-center gap-2 mt-1.5">
-                    <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary">
-                      {user?.role === 'admin' ? 'Quản Trị Viên' : 'Học Viên'}
-                    </span>
-                    <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-teal-500/10 text-teal-600 dark:text-teal-400">
-                      Gói: {user?.plan || 'Miễn phí'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-border/40 space-y-3.5 text-left text-xs text-muted-foreground">
-                  {user?.email && (
-                    <div className="flex items-center gap-2.5">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span>{user.email}</span>
-                    </div>
-                  )}
-                  {user?.phone && (
-                    <div className="flex items-center gap-2.5">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{user.phone}</span>
-                    </div>
-                  )}
-                  {user?.age && (
-                    <div className="flex items-center gap-2.5">
-                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                      <span>Tuổi: {user.age} tuổi</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2.5">
-                    <Award className="h-4 w-4 text-primary" />
-                    <span>
-                      Mục tiêu điểm số:{' '}
-                      <strong className="text-foreground">
-                        {user?.targetScore || 800}đ
-                      </strong>
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Check-in Calendar Heatmap */}
-            <Card className="glass-card">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-primary" />
-                  <span>Chuỗi Luyện Tập Chuyên Cần ({currentMonthName})</span>
-                </CardTitle>
-                <CardDescription>
-                  Tự động ghi nhận khi làm bài thi thử hoặc ôn tập câu hỏi.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Heatmap Grid */}
-                <div>
-                  <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-muted-foreground mb-2">
-                    {weekdays.map(w => (
-                      <div key={w}>{w}</div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-7 gap-1.5">
-                    {heatmapDays.map((cell, idx) => (
-                      <div
-                        key={idx}
-                        className={`heatmap-cell flex items-center justify-center text-xs font-bold ${
-                          cell.day === null
-                            ? 'bg-transparent opacity-0 pointer-events-none'
-                            : cell.active
-                              ? 'bg-emerald-500 text-white shadow shadow-emerald-500/20'
-                              : cell.isToday
-                                ? 'bg-primary/10 text-primary border border-primary animate-pulse-ring'
-                                : 'bg-secondary text-muted-foreground/60 border border-border/20'
-                        }`}
-                        title={cell.active ? `Đã điểm danh học tập!` : ''}
-                      >
-                        {cell.day}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center text-[10px] font-semibold text-muted-foreground pt-2 border-t border-border/20">
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-3 w-3 rounded bg-secondary border border-border/20" />
-                    <span>Chưa học</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-3 w-3 rounded bg-emerald-500" />
-                    <span>Đã luyện tập</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-orange-500">
-                    <Flame className="h-3.5 w-3.5 fill-orange-500" />
-                    <span>
-                      Học liên tục:{' '}
-                      {streakHistory?.streak ?? stats?.streak ?? 0} ngày
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Test History Table & Authored Tests (Right Column) */}
-          <div className="lg:col-span-7 space-y-6">
+          {/* Test History Table & Authored Tests (Left Column) */}
+          <div className="lg:col-span-7 space-y-6 order-2 lg:order-1">
             {/* Test History Table */}
             <Card className="glass-card">
               <CardHeader>
@@ -262,9 +152,9 @@ export default function ProfilePage() {
                         {recentTests.map(t => (
                           <TableRow
                             key={t._id}
-                            className="hover:bg-secondary/20"
+                            className="hover:bg-primary/5 transition-colors cursor-pointer group"
                           >
-                            <TableCell className="font-bold text-xs">
+                            <TableCell className="font-bold text-xs group-hover:text-primary transition-colors">
                               {t.test_sets?.name || 'Đề thi TOEIC Reading'}
                             </TableCell>
                             <TableCell className="text-muted-foreground text-[10px]">
@@ -278,9 +168,11 @@ export default function ProfilePage() {
                               )}
                             </TableCell>
                             <TableCell className="text-muted-foreground text-xs">
-                              {t.durationMinutes || 0} phút
+                              <span className="inline-flex items-center justify-center px-2 py-1 rounded bg-secondary text-[10px] font-bold">
+                                {t.durationMinutes || 0} phút
+                              </span>
                             </TableCell>
-                            <TableCell className="text-right font-black text-indigo-600 dark:text-indigo-400">
+                            <TableCell className="text-right font-black text-indigo-600 dark:text-indigo-400 text-sm">
                               {t.score}đ
                             </TableCell>
                           </TableRow>
@@ -387,8 +279,177 @@ export default function ProfilePage() {
               </Card>
             )}
           </div>
+          {/* User Details & Heatmap ( Right Column) */}
+          <div className="lg:col-span-5 space-y-6 order-1 lg:order-2">
+            {/* Account Card */}
+            <Card className="glass-card overflow-hidden border-0 shadow-lg relative">
+              {/* Cover Photo Area */}
+              <div className="h-28 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative">
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="absolute top-4 right-4 h-8 w-8 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md border-0"
+                  onClick={() => setIsEditProfileOpen(true)}
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <CardContent className="pt-0 pb-6 text-center space-y-4 px-6">
+                {/* Overlapping Avatar */}
+                <div className="h-24 w-24 rounded-full bg-gradient-to-tr from-primary to-cyan-500 mx-auto flex items-center justify-center text-white text-4xl font-black shadow-xl shadow-primary/30 border-4 border-card -mt-12 relative z-10">
+                  {user?.fullName?.charAt(0).toUpperCase() || 'U'}
+                </div>
+
+                <div className="mt-2">
+                  <h3 className="text-2xl font-extrabold tracking-tight">
+                    {user?.fullName || 'Học Viên'}
+                  </h3>
+                  <div className="flex items-center justify-center gap-2 mt-2">
+                    <span className="inline-flex items-center text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-primary/10 text-primary">
+                      {user?.role === 'admin' ? 'Quản Trị Viên' : 'Học Viên'}
+                    </span>
+                    <span className="inline-flex items-center text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400">
+                      Gói: {user?.plan || 'Miễn phí'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-5 border-t border-border/40 grid grid-cols-1 md:grid-cols-2 gap-4 text-left text-sm text-muted-foreground mt-6">
+                  {user?.email ? (
+                    <div className="flex items-center gap-3 bg-secondary/30 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
+                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                        <Mail className="h-4 w-4" />
+                      </div>
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                          Email
+                        </span>
+                        <span className="truncate text-foreground font-medium">
+                          {user.email}
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+                  {user?.phone ? (
+                    <div className="flex items-center gap-3 bg-secondary/30 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
+                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                        <Phone className="h-4 w-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                          Điện thoại
+                        </span>
+                        <span className="text-foreground font-medium">
+                          {user.phone}
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+                  {user?.age ? (
+                    <div className="flex items-center gap-3 bg-secondary/30 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
+                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                        <CalendarDays className="h-4 w-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                          Tuổi
+                        </span>
+                        <span className="text-foreground font-medium">
+                          {user.age} tuổi
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+                  {user?.targetScore ? (
+                    <div className="flex items-center gap-3 bg-secondary/30 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
+                      <div className="p-2 bg-orange-500/10 rounded-lg text-orange-500">
+                        <Award className="h-4 w-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                          Mục tiêu TOEIC
+                        </span>
+
+                        <span className="text-foreground font-extrabold text-orange-500">
+                          {user?.targetScore}đ
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+                {/* Notification Preferences */}
+                <NotificationPreferencesCard />
+              </CardContent>
+            </Card>
+
+            {/* Check-in Calendar Heatmap */}
+            <Card className="glass-card">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-primary" />
+                  <span>Chuỗi Luyện Tập Chuyên Cần ({currentMonthName})</span>
+                </CardTitle>
+                <CardDescription>
+                  Tự động ghi nhận khi làm bài thi thử hoặc ôn tập câu hỏi.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Heatmap Grid */}
+                <div>
+                  <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-muted-foreground mb-2">
+                    {weekdays.map(w => (
+                      <div key={w}>{w}</div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {heatmapDays.map((cell, idx) => (
+                      <div
+                        key={idx}
+                        className={`heatmap-cell flex items-center justify-center text-xs font-bold ${
+                          cell.day === null
+                            ? 'bg-transparent opacity-0 pointer-events-none'
+                            : cell.active
+                              ? 'bg-emerald-500 text-white shadow shadow-emerald-500/20'
+                              : cell.isToday
+                                ? 'bg-primary/10 text-primary border border-primary animate-pulse-ring'
+                                : 'bg-secondary text-muted-foreground/60 border border-border/20'
+                        }`}
+                        title={cell.active ? `Đã điểm danh học tập!` : ''}
+                      >
+                        {cell.day}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center text-[10px] font-semibold text-muted-foreground pt-2 border-t border-border/20">
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded bg-secondary border border-border/20" />
+                    <span>Chưa học</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded bg-emerald-500" />
+                    <span>Đã luyện tập</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-orange-500">
+                    <Flame className="h-3.5 w-3.5 fill-orange-500" />
+                    <span>
+                      Học liên tục:{' '}
+                      {streakHistory?.streak ?? stats?.streak ?? 0} ngày
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
+      {/* modal */}
+      <EditProfileModal
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+      />
     </DashboardLayout>
   );
 }

@@ -6,6 +6,8 @@ import {
   FileSpreadsheet,
   Upload,
   CheckCircle2,
+  Check,
+  Loader2,
 } from 'lucide-react';
 import * as z from 'zod';
 import * as XLSX from 'xlsx';
@@ -24,6 +26,8 @@ import {
   CardContent,
   CardDescription,
 } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useTopics } from '@/hooks/useTopics';
 import {
   Select,
   SelectItem,
@@ -54,6 +58,8 @@ const testSetSchema = z.object({
   description: z.string(),
   status: z.enum(['draft', 'public', 'private']),
   testType: z.enum(['interview']),
+  notifyUsers: z.string().optional(),
+  topicsString: z.string().optional(),
 });
 
 type TestSetFormValues = z.infer<typeof testSetSchema>;
@@ -63,7 +69,7 @@ const downloadInterviewTemplate = () => {
     ['HƯỚNG DẪN NHẬP CÂU HỎI PHỎNG VẤN'],
     ['1. File này dùng để đẩy câu hỏi phỏng vấn (tự luận).'],
     [
-      '2. Các cột bắt buộc: "Số thứ tự câu", "Lĩnh vực", "Câu hỏi", "Câu trả lời mẫu", "Giải thích".',
+      '2. Các cột bắt buộc: "Số thứ tự câu (question number)", "Câu hỏi (question)", Câu trả lời (answer), "Giải thích (explanation)".',
     ],
   ];
 
@@ -104,9 +110,12 @@ function CreateInterviewTestContent() {
 
   const createTestSetMutation = useCreateTestSetMutation();
   const upsertQuestionsMutation = useUpsertQuestionsMutation();
+  const { useTopicsList } = useTopics();
+  const { data: topics, isLoading: loadingTopics } = useTopicsList(true);
 
   const [step, setStep] = useState(1);
   const [testSetId, setTestSetId] = useState<string | null>(null);
+  const [parsedQuestions, setParsedQuestions] = useState<any[]>([]);
   const [isAddManualOpen, setIsAddManualOpen] = useState(false);
 
   // Protect route
@@ -123,38 +132,20 @@ function CreateInterviewTestContent() {
       description: '',
       status: 'draft',
       testType: 'interview',
-      category: '',
+      notifyUsers: 'false',
+      topicsString: '',
     } as TestSetFormValues,
   });
 
-  // STEP 1: Create Test Set
-  const onTestSetSubmit = (values: TestSetFormValues) => {
-    createTestSetMutation.mutate(
-      {
-        name: values.name,
-        description: values.description,
-        status: values.status,
-        testType: 'interview',
-      },
-      {
-        onSuccess: newSet => {
-          setTestSetId(newSet._id);
-          setStep(2);
-          toast.success('Đã tạo đề thi. Mời bạn tải lên file Phỏng vấn.');
-        },
-        onError: () => toast.error('Lỗi tạo đề thi.'),
-      },
-    );
-  };
-
-  const handleInterviewUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleInterviewUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      setParsedQuestions([]);
+      return;
+    }
 
     const reader = new FileReader();
-    reader.onload = async evt => {
+    reader.onload = evt => {
       const bstr = evt.target?.result;
       const wb = XLSX.read(bstr, { type: 'binary' });
       const wsName =
@@ -164,17 +155,20 @@ function CreateInterviewTestContent() {
 
       const questionsToUpsert = data
         .map(row => {
+          const usedKeys = new Set<string>();
           const getVal = (searchKeys: string[]) => {
-            const k = Object.keys(row).find(key =>
-              searchKeys.some(sk =>
-                key.toLowerCase().includes(sk.toLowerCase()),
-              ),
+            const k = Object.keys(row).find(
+              key =>
+                !usedKeys.has(key) &&
+                searchKeys.some(sk =>
+                  key.toLowerCase().includes(sk.toLowerCase()),
+                ),
             );
+            if (k) usedKeys.add(k);
             return k ? row[k] : undefined;
           };
 
           const qNumRaw = getVal(['số thứ tự', 'question number', 'câu số']);
-          const categoryRaw = getVal(['lĩnh vực', 'category']);
           const questionRaw = getVal(['câu hỏi', 'question']);
           const answerRaw = getVal(['câu trả lời', 'answer']);
           const expRaw = getVal(['giải thích', 'explanation']);
@@ -183,38 +177,72 @@ function CreateInterviewTestContent() {
 
           return {
             questionNumber: qNum,
-            part: '1',
-            difficulty: 'medium',
             questionText: questionRaw || '',
-            category: categoryRaw || '',
             correctAnswer: answerRaw || 'TEXT',
             explanation: expRaw || '',
-            options: [],
             isActive: true,
           };
         })
-        .filter(q => !isNaN(q.questionNumber) && q.questionText);
+        .filter(
+          q =>
+            !isNaN(q.questionNumber) &&
+            q.questionText !== undefined &&
+            String(q.questionText).trim() !== '',
+        );
 
       if (questionsToUpsert.length === 0) {
         toast.error('Không tìm thấy dữ liệu hợp lệ trong file Excel.');
+        setParsedQuestions([]);
         return;
       }
 
-      upsertQuestionsMutation.mutate(
-        { testSetId: testSetId || '', questions: questionsToUpsert },
-        {
-          onSuccess: () => {
-            toast.success(
-              `Đã tải lên ${questionsToUpsert.length} câu hỏi phỏng vấn!`,
-            );
-            setStep(3);
-          },
-          onError: () => toast.error('Lỗi khi lưu câu hỏi.'),
-        },
-      );
+      setParsedQuestions(questionsToUpsert);
+      toast.success(`Đã phân tích ${questionsToUpsert.length} câu hỏi hợp lệ!`);
     };
     reader.readAsBinaryString(file);
   };
+
+  const onTestSetSubmit = (values: TestSetFormValues) => {
+    if (parsedQuestions.length === 0) {
+      toast.error('Vui lòng tải lên file Excel câu hỏi trước khi tạo đề thi.');
+      return;
+    }
+
+    createTestSetMutation.mutate(
+      {
+        name: values.name,
+        description: values.description,
+        status: values.status,
+        testType: 'interview',
+        notifyUsers: values.notifyUsers === 'true',
+        topics: values.topicsString
+          ? values.topicsString
+              .split(',')
+              .map(s => s.trim())
+              .filter(Boolean)
+          : [],
+      },
+      {
+        onSuccess: newSet => {
+          setTestSetId(newSet._id);
+          upsertQuestionsMutation.mutate(
+            { testSetId: newSet._id, questions: parsedQuestions },
+            {
+              onSuccess: () => {
+                toast.success('Đã tạo đề thi và tải lên câu hỏi thành công!');
+                setStep(2);
+              },
+              onError: () => toast.error('Lỗi khi lưu câu hỏi.'),
+            },
+          );
+        },
+        onError: () => toast.error('Lỗi tạo đề thi.'),
+      },
+    );
+  };
+
+  const isSubmitting =
+    createTestSetMutation.isPending || upsertQuestionsMutation.isPending;
 
   return (
     <DashboardLayout>
@@ -228,8 +256,7 @@ function CreateInterviewTestContent() {
               Tạo Bộ Phỏng Vấn Mới
             </h1>
             <p className="text-sm text-muted-foreground">
-              Quy trình 2 bước để khởi tạo và tải lên dữ liệu cho một bộ phỏng
-              vấn hoàn chỉnh.
+              Khởi tạo thông tin và tải lên dữ liệu cho bộ phỏng vấn của bạn.
             </p>
           </div>
         </div>
@@ -260,7 +287,7 @@ function CreateInterviewTestContent() {
                 className={`text-[10px] uppercase font-bold tracking-wider ${step >= num ? 'text-primary' : 'text-muted-foreground'}`}
               >
                 {num === 1 && 'Khởi tạo'}
-                {num === 2 && 'Câu hỏi'}
+                {num === 2 && 'Hoàn tất'}
               </span>
             </div>
           ))}
@@ -270,82 +297,286 @@ function CreateInterviewTestContent() {
         {step === 1 && (
           <Card className="shadow-lg border-primary/20">
             <CardHeader className="bg-primary/5 py-4">
-              <CardTitle>Bước 1: Khởi Tạo Bộ Phỏng Vấn</CardTitle>
+              <CardTitle>Bước 1: Khởi Tạo & Tải Lên Dữ Liệu</CardTitle>
               <CardDescription>
-                Nhập thông tin cơ bản cho bộ câu hỏi.
+                Nhập thông tin cơ bản và tải lên file câu hỏi phỏng vấn.
               </CardDescription>
             </CardHeader>
             <Form {...testSetForm}>
               <form onSubmit={testSetForm.handleSubmit(onTestSetSubmit)}>
-                <CardContent className="space-y-4 py-4">
-                  <FormField
-                    control={testSetForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tên chủ đề phỏng vấn</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Ví dụ: Frontend Interview 2026"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={testSetForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Mô tả chung</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Dùng để ôn tập..." {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={testSetForm.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Trạng thái hiển thị</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          defaultValue={field.value}
-                        >
+                <CardContent className="space-y-6 py-6">
+                  {/* Form fields */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between gap-4">
+                      <FormField
+                        control={testSetForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormLabel>Tên chủ đề phỏng vấn</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Ví dụ: Frontend Interview 2026"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={testSetForm.control}
+                        name="status"
+                        render={({ field }) => (
+                          <FormItem className="w-[35%]">
+                            <FormLabel>Trạng thái hiển thị</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Chọn trạng thái">
+                                    {(val: any) => {
+                                      if (val === 'draft')
+                                        return 'Bản Nháp (Draft)';
+                                      if (val === 'public')
+                                        return 'Công Khai (Public)';
+                                      if (val === 'private')
+                                        return 'Riêng Tư (Private)';
+                                      return val || 'Chọn trạng thái';
+                                    }}
+                                  </SelectValue>
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem
+                                  value="draft"
+                                  label="Bản Nháp (Draft)"
+                                >
+                                  Bản Nháp (Draft)
+                                </SelectItem>
+                                <SelectItem
+                                  value="public"
+                                  label="Công Khai (Public)"
+                                >
+                                  Công Khai (Public)
+                                </SelectItem>
+                                <SelectItem
+                                  value="private"
+                                  label="Riêng Tư (Private)"
+                                >
+                                  Riêng Tư (Private)
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={testSetForm.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Mô tả chung</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Chọn trạng thái" />
-                            </SelectTrigger>
+                            <Input placeholder="Dùng để ôn tập..." {...field} />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="draft">
-                              Bản Nháp (Draft)
-                            </SelectItem>
-                            <SelectItem value="public">
-                              Công Khai (Public)
-                            </SelectItem>
-                            <SelectItem value="private">
-                              Riêng Tư (Private)
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Topics string field */}
+                    <div className="flex justify-between gap-4">
+                      <FormField
+                        control={testSetForm.control}
+                        name="topicsString"
+                        render={({ field }) => {
+                          const selectedTopics = field.value
+                            ? field.value
+                                .split(',')
+                                .map(s => s.trim())
+                                .filter(Boolean)
+                            : [];
+
+                          const toggleTopic = (code: string) => {
+                            const newSelected = selectedTopics.includes(code)
+                              ? selectedTopics.filter(t => t !== code)
+                              : [...selectedTopics, code];
+                            field.onChange(newSelected.join(','));
+                          };
+
+                          return (
+                            <FormItem className="flex-1">
+                              <FormLabel>Chủ đề (Topics)</FormLabel>
+                              <FormControl>
+                                <div className="space-y-3">
+                                  {loadingTopics ? (
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      Đang tải danh sách chủ đề...
+                                    </div>
+                                  ) : topics && topics.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2">
+                                      {topics.map((topic: any) => {
+                                        const isSelected =
+                                          selectedTopics.includes(topic.code);
+                                        return (
+                                          <Badge
+                                            key={topic.code}
+                                            variant={
+                                              isSelected ? 'default' : 'outline'
+                                            }
+                                            className={`cursor-pointer transition-all px-3 py-1.5 text-xs select-none ${
+                                              isSelected
+                                                ? 'shadow-md ring-2 ring-primary/20'
+                                                : 'hover:bg-secondary/80'
+                                            }`}
+                                            onClick={() =>
+                                              toggleTopic(topic.code)
+                                            }
+                                          >
+                                            {isSelected && (
+                                              <Check className="h-3 w-3 mr-1.5" />
+                                            )}
+                                            {topic.name}
+                                          </Badge>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-muted-foreground italic">
+                                      Hiện chưa có chủ đề nào được thiết lập
+                                      trên hệ thống.
+                                    </p>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <CardDescription className="text-xs">
+                                Click vào các thẻ để chọn/bỏ chọn chủ đề.
+                              </CardDescription>
+                            </FormItem>
+                          );
+                        }}
+                      />
+
+                      {/* Notify users field */}
+                      <FormField
+                        control={testSetForm.control}
+                        name="notifyUsers"
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormLabel>Thông báo cho người dùng?</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Không">
+                                    {(val: any) => {
+                                      if (val === 'false') return 'Không';
+                                      if (val === 'true')
+                                        return 'Có (Gửi ngay khi tạo)';
+                                      return val || 'Không';
+                                    }}
+                                  </SelectValue>
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="false" label="Không">
+                                  Không
+                                </SelectItem>
+                                <SelectItem
+                                  value="true"
+                                  label="Có (Gửi ngay khi tạo)"
+                                >
+                                  Có (Gửi ngay khi tạo)
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <CardDescription className="text-xs">
+                              Nếu "Có" và trạng thái là "Công khai", những người
+                              dùng quan tâm đến các chủ đề trên sẽ nhận được
+                              thông báo.
+                            </CardDescription>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Upload Section */}
+                  <div className="pt-4 border-t space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold">Dữ Liệu Câu Hỏi</h3>
+                      <Button
+                        variant="outline"
+                        type="button"
+                        className="gap-2"
+                        onClick={() => setIsAddManualOpen(true)}
+                        disabled={isSubmitting}
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                        Thêm câu hỏi thủ công
+                      </Button>
+                    </div>
+
+                    <div className="border-2 border-dashed border-border rounded-xl p-8 w-full flex flex-col items-center justify-center hover:bg-secondary/10 transition-colors relative">
+                      <Upload className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                      <h4 className="font-bold mb-1">
+                        Tải lên file Excel đã điền
+                      </h4>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        Hỗ trợ định dạng .xlsx
+                      </p>
+                      <Input
+                        type="file"
+                        accept=".xlsx, .xls"
+                        className="max-w-xs cursor-pointer"
+                        onChange={handleInterviewUpload}
+                        disabled={isSubmitting}
+                      />
+                      {parsedQuestions.length > 0 && (
+                        <p className="text-sm text-emerald-600 font-medium mt-4 flex items-center">
+                          <CheckCircle2 className="w-4 h-4 mr-1" />
+                          Đã phân tích thành công {parsedQuestions.length} câu
+                          hỏi.
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-3 w-full max-w-md mt-6 p-3 border rounded-lg bg-secondary/20">
+                        <div className="p-2 bg-emerald-500/10 rounded-md">
+                          <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <h4 className="text-sm font-semibold leading-none mb-1">Template File Phỏng Vấn</h4>
+                          <p className="text-[11px] text-muted-foreground leading-tight">
+                            Tải file mẫu Excel và điền dữ liệu trước khi upload.
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs px-3"
+                          onClick={downloadInterviewTemplate}
+                        >
+                          Tải Mẫu
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
                 <CardFooter className="flex justify-end pt-4 border-t">
                   <Button
                     type="submit"
-                    disabled={createTestSetMutation.isPending}
+                    disabled={isSubmitting || parsedQuestions.length === 0}
                   >
-                    {createTestSetMutation.isPending
-                      ? 'Đang tạo...'
-                      : 'Lưu và Tiếp Tục'}{' '}
+                    {isSubmitting ? 'Đang xử lý...' : 'Hoàn Tất & Tạo Đề'}{' '}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </CardFooter>
@@ -354,75 +585,8 @@ function CreateInterviewTestContent() {
           </Card>
         )}
 
-        {/* STEP 2 */}
+        {/* STEP 2 (Hoàn tất) */}
         {step === 2 && (
-          <Card className="shadow-lg border-primary/20">
-            <CardHeader className="bg-primary/5 py-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Bước 2: Tải Lên Câu Hỏi Phỏng Vấn</CardTitle>
-                  <CardDescription>
-                    Upload danh sách câu hỏi phỏng vấn hoặc thêm thủ công.
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => setIsAddManualOpen(true)}
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  Thêm câu hỏi thủ công
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6 py-6 flex flex-col items-center justify-center">
-              <div className="flex items-center gap-4 w-full p-4 border rounded-xl bg-secondary/20">
-                <FileSpreadsheet className="h-10 w-10 text-emerald-600" />
-                <div className="flex-1">
-                  <h4 className="font-bold">Template File Phỏng Vấn</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Tải file mẫu Excel và điền dữ liệu trước khi upload.
-                  </p>
-                </div>
-                <Button variant="outline" onClick={downloadInterviewTemplate}>
-                  Tải Template
-                </Button>
-              </div>
-
-              <div className="border-2 border-dashed border-border rounded-xl p-8 w-full flex flex-col items-center justify-center hover:bg-secondary/10 transition-colors relative">
-                {upsertQuestionsMutation.isPending && (
-                  <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-xl">
-                    <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2" />
-                    <p className="text-sm font-bold text-primary">
-                      Đang xử lý dữ liệu...
-                    </p>
-                  </div>
-                )}
-                <Upload className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <h4 className="font-bold mb-1">Tải lên file Excel đã điền</h4>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Hỗ trợ định dạng .xlsx
-                </p>
-                <Input
-                  type="file"
-                  accept=".xlsx, .xls"
-                  className="max-w-xs cursor-pointer"
-                  onChange={handleInterviewUpload}
-                  disabled={upsertQuestionsMutation.isPending}
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end pt-4 border-t">
-              <Button type="button" onClick={() => setStep(3)}>
-                Hoàn Tất & Tiếp Tục
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-        )}
-
-        {/* STEP 3 (Hoàn tất) */}
-        {step === 3 && (
           <Card className="shadow-lg border-emerald-500/20 bg-emerald-500/5">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center space-y-4">
               <div className="h-20 w-20 bg-emerald-500/20 rounded-full flex items-center justify-center">
@@ -430,8 +594,8 @@ function CreateInterviewTestContent() {
               </div>
               <h2 className="text-2xl font-bold">Hoàn Tất Tạo Bộ Phỏng Vấn!</h2>
               <p className="text-muted-foreground max-w-md">
-                Bộ câu hỏi đã được tải lên hoàn chỉnh. Bạn có thể kiểm tra lại
-                trong danh sách bộ câu hỏi.
+                Bộ câu hỏi đã được tạo và tải lên thành công. Bạn có thể kiểm
+                tra lại trong danh sách bộ câu hỏi.
               </p>
               <div className="flex gap-4 pt-4">
                 <Button

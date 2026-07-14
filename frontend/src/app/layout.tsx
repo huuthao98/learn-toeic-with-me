@@ -10,10 +10,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'learnEverything - Học mọi thứ!',
+  title: 'Learn Everything',
   description:
     'Nền tảng học tập và ôn thi thử mọi thứ trực tuyến, quản lý kế hoạch học tập cá nhân hóa và theo dõi tiến trình thông minh.',
-  keywords: ['TOEIC', 'luyện thi toeic', 'toeic online', 'toeic reading', 'tiếng anh'],
+  keywords: ['TOEIC', 'luyện phỏng vấn', 'thi thử TOEIC'],
 };
 
 export default function RootLayout({
@@ -22,10 +22,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
+    <html
+      lang="vi"
+      className={`${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-primary/20">
         <Providers>{children}</Providers>
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="top-right" offset="70px" />
       </body>
     </html>
   );

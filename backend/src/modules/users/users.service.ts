@@ -34,6 +34,7 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto) {
     const updatedUser = await this.userModel
       .findByIdAndUpdate(id, updateUserDto, { new: true })
+      .select('-passwordHash')
       .exec();
 
     if (!updatedUser) throw new NotFoundException('User not found');

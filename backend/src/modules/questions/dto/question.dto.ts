@@ -61,7 +61,7 @@ export class CreateQuestionDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
-  category?: string;
+  part?: string;
 
   @ApiPropertyOptional({ default: true })
   @IsBoolean()
@@ -85,20 +85,17 @@ export class UpdateQuestionDto {
   @IsOptional()
   questionNumber?: number;
 
-  // @ApiPropertyOptional({ enum: DifficultyLevel })
-  // @IsEnum(DifficultyLevel)
-  // @IsOptional()
-  // difficulty?: DifficultyLevel;
+
 
   @ApiPropertyOptional({ enum: QuestionStatus })
   @IsEnum(QuestionStatus)
   @IsOptional()
   status?: QuestionStatus;
 
-  // @ApiPropertyOptional()
-  // @IsString()
-  // @IsOptional()
-  // questionText?: string;
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  questionText?: string;
 
   @ApiPropertyOptional({ type: [AnswerOptionDto] })
   @IsArray()

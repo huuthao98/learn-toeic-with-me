@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useTests, TestSet } from '@/hooks/useTests';
 import { useDashboard } from '@/hooks/useDashboard';
@@ -12,7 +13,6 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
   BookOpen,
   CheckCircle2,
@@ -21,7 +21,7 @@ import {
   ArrowRight,
   ClipboardList,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { Button } from '@/components/ui/button';
 
 export default function PracticeCatalogPage() {
   const { useTestSets } = useTests();
@@ -167,13 +167,13 @@ export default function PracticeCatalogPage() {
                           <Link
                             href={
                               set.readingPdfUrl
-                                ? `/practice-v2/${set._id}`
+                                ? `/practice-english/${set._id}`
                                 : `/practice/${set._id}?autoplay=true`
                             }
                             className="w-full"
                           >
                             <Button
-                              className="w-full text-xs font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-all flex items-center justify-center gap-1.5"
+                              className="cursor-pointer w-full text-xs font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-all flex items-center justify-center gap-1.5"
                               variant={isCompleted ? 'secondary' : 'default'}
                             >
                               <span>

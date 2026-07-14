@@ -52,8 +52,11 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("learntoeic-auth")
-        window.location.href = "/auth/login"
+        const isAuthUrl = error.config?.url?.includes("/auth/login") || error.config?.url?.includes("/auth/register");
+        if (!isAuthUrl) {
+          localStorage.removeItem("learntoeic-auth")
+          window.location.href = "/auth/login"
+        }
       }
     }
     return Promise.reject(error)

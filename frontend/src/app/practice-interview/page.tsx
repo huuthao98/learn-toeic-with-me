@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Bot, List, Loader2, Copy, Check } from 'lucide-react';
-import { useTests, TestSet, Question } from '@/hooks/useTests';
+import { useTests } from '@/hooks/useTests';
 
 export default function PracticeInterviewPage() {
   const { useTestSets, useTestQuestions } = useTests();

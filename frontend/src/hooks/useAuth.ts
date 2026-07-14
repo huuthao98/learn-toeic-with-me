@@ -53,6 +53,18 @@ export const useAuth = () => {
       },
     })
 
+  const useUpdateProfileMutation = () =>
+    useMutation({
+      mutationFn: authApi.updateProfile,
+      onSuccess: (updatedUser) => {
+        // Update user state in store
+        if (token) {
+          setAuth(updatedUser, token)
+        }
+        queryClient.invalidateQueries({ queryKey: ["profile"] })
+      },
+    })
+
   // Logout handler
   const logout = () => {
     clearAuth()
@@ -64,6 +76,7 @@ export const useAuth = () => {
     useRegisterMutation,
     useLoginMutation,
     useFirebasePhoneMutation,
+    useUpdateProfileMutation,
     logout,
   }
 }

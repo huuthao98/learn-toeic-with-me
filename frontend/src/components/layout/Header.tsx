@@ -4,9 +4,23 @@ import { useAuthStore } from '@/store/authStore';
 import { Bell, Search, Sun, Moon, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useNotifications } from '@/hooks/useNotifications';
+import { Button } from '@/components/ui/button';
+import { Check } from 'lucide-react';
+
 export function Header() {
   const { user } = useAuthStore();
   const [isDark, setIsDark] = useState(false);
+
+  const { useNotificationsList, useMarkAsReadMutation, useMarkAllAsReadMutation } = useNotifications();
+  const { data: notificationsData } = useNotificationsList(1, 20);
+  const markAsReadMutation = useMarkAsReadMutation();
+  const markAllAsReadMutation = useMarkAllAsReadMutation();
+
+  const notifications = notificationsData?.data || [];
+  const unreadCount = notifications.filter((n: any) => !n.isRead).length;
 
   // Sync theme with document classList
   useEffect(() => {
@@ -24,6 +38,14 @@ export function Header() {
       localStorage.setItem('theme', 'dark');
       setIsDark(true);
     }
+  };
+
+  const handleMarkAsRead = (id: string) => {
+    markAsReadMutation.mutate(id);
+  };
+
+  const handleMarkAllAsRead = () => {
+    markAllAsReadMutation.mutate();
   };
 
   return (
@@ -71,13 +93,65 @@ export function Header() {
         </button>
 
         {/* Notifications Indicator */}
-        <button
-          className="p-2 rounded-lg hover:bg-secondary/70 text-muted-foreground hover:text-foreground transition-all relative"
-          title="Thông báo"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive animate-pulse" />
-        </button>
+        <Popover>
+          <PopoverTrigger
+            className="p-2 rounded-lg hover:bg-secondary/70 text-muted-foreground hover:text-foreground transition-all relative"
+            title="Thông báo"
+          >
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive animate-pulse" />
+            )}
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-0" align="end">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <span className="text-sm font-bold">Thông báo</span>
+              {unreadCount > 0 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleMarkAllAsRead}
+                  className="h-auto p-0 text-xs text-primary hover:text-primary hover:bg-transparent"
+                >
+                  <Check className="h-3.5 w-3.5 mr-1" />
+                  Đánh dấu đã đọc
+                </Button>
+              )}
+            </div>
+            <ScrollArea className="h-80">
+              {notifications.length === 0 ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  Không có thông báo nào.
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  {notifications.map((notification: any) => (
+                    <div 
+                      key={notification._id}
+                      className={`p-4 border-b border-border/50 cursor-pointer hover:bg-muted/50 transition-colors ${!notification.isRead ? 'bg-primary/5' : ''}`}
+                      onClick={() => !notification.isRead && handleMarkAsRead(notification._id)}
+                    >
+                      <div className="flex justify-between items-start mb-1">
+                        <span className={`text-sm ${!notification.isRead ? 'font-bold' : 'font-medium text-foreground'}`}>
+                          {notification.title}
+                        </span>
+                        {!notification.isRead && (
+                          <span className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {notification.body}
+                      </p>
+                      <span className="text-[10px] text-muted-foreground mt-2 block">
+                        {new Date(notification.createdAt).toLocaleString('vi-VN')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
 
         {/* User Mini Avatar */}
         <div className="flex items-center gap-2 pl-2 border-l border-border/40">

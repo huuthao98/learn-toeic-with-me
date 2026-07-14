@@ -1,6 +1,6 @@
 'use client';
 
-import { Save, Layers, Loader2, FileSpreadsheet } from 'lucide-react';
+import { Save, Layers, Loader2, FileSpreadsheet, Check } from 'lucide-react';
 import * as z from 'zod';
 import * as XLSX from 'xlsx';
 import { useForm } from 'react-hook-form';
@@ -16,6 +16,8 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useTopics } from '@/hooks/useTopics';
 import {
   Select,
   SelectItem,
@@ -50,6 +52,8 @@ const testSetSchema = z.object({
   audioUrl: z.string().optional(),
   readingPdfUrl: z.string().optional(),
   listeningPdfUrl: z.string().optional(),
+  notifyUsers: z.string().optional(),
+  topicsString: z.string().optional(),
 });
 
 type TestSetFormValues = z.infer<typeof testSetSchema>;
@@ -72,12 +76,14 @@ const downloadTemplate = () => {
   XLSX.writeFile(wb, 'AnswerKey_Template.xlsx');
 };
 
-export default function CreateTestV2Page() {
+export default function CreateTestToeicPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { useUpsertQuestionsMutation } = useQuestions();
 
   const upsertQuestionsMutation = useUpsertQuestionsMutation();
+  const { useTopicsList } = useTopics();
+  const { data: topics, isLoading: loadingTopics } = useTopicsList(true);
 
   const [isFinalSaving, setIsFinalSaving] = useState(false);
 
@@ -101,6 +107,8 @@ export default function CreateTestV2Page() {
       audioUrl: '',
       readingPdfUrl: '',
       listeningPdfUrl: '',
+      notifyUsers: 'false',
+      topicsString: '',
     },
   });
 
@@ -172,10 +180,13 @@ export default function CreateTestV2Page() {
     let testSetId = '';
     // 4. Create Test Set
     try {
+      const { topicsString, ...restValues } = values;
       const testSetRes = await testsApi.createTestSet({
-        ...values,
+        ...restValues,
         testType: 'toeic',
-        status: values.status,
+        status: restValues.status,
+        notifyUsers: restValues.notifyUsers === 'true',
+        topics: topicsString ? topicsString.split(',').map(s => s.trim()).filter(Boolean) : [],
       });
       testSetId = testSetRes._id;
     } catch (err: any) {
@@ -279,6 +290,86 @@ export default function CreateTestV2Page() {
                             <SelectItem value="private">
                               Riêng tư (Private)
                             </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={testSetForm.control}
+                    name="topicsString"
+                    render={({ field }) => {
+                      const selectedTopics = field.value
+                        ? field.value.split(',').map(s => s.trim()).filter(Boolean)
+                        : [];
+
+                      const toggleTopic = (code: string) => {
+                        const newSelected = selectedTopics.includes(code)
+                          ? selectedTopics.filter(t => t !== code)
+                          : [...selectedTopics, code];
+                        field.onChange(newSelected.join(','));
+                      };
+
+                      return (
+                        <FormItem>
+                          <FormLabel>Chủ đề (Topics)</FormLabel>
+                          <FormControl>
+                            <div className="space-y-3">
+                              {loadingTopics ? (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Đang tải danh sách chủ đề...
+                                </div>
+                              ) : topics && topics.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {topics.map((topic: any) => {
+                                    const isSelected = selectedTopics.includes(topic.code);
+                                    return (
+                                      <Badge
+                                        key={topic.code}
+                                        variant={isSelected ? 'default' : 'outline'}
+                                        className={`cursor-pointer transition-all px-3 py-1.5 text-xs select-none ${
+                                          isSelected ? 'shadow-md ring-2 ring-primary/20' : 'hover:bg-secondary/80'
+                                        }`}
+                                        onClick={() => toggleTopic(topic.code)}
+                                      >
+                                        {isSelected && <Check className="h-3 w-3 mr-1.5" />}
+                                        {topic.name}
+                                      </Badge>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-muted-foreground italic">
+                                  Hiện chưa có chủ đề nào được thiết lập trên hệ thống.
+                                </p>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
+                  />
+                  <FormField
+                    control={testSetForm.control}
+                    name="notifyUsers"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Thông báo (Push Notification)</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Không" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="false">Không</SelectItem>
+                            <SelectItem value="true">Có (Gửi ngay khi tạo)</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

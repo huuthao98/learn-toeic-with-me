@@ -40,7 +40,7 @@ export class UploadController {
       };
     } catch (error) {
       console.error('Cloudinary upload error:', error);
-      throw new BadRequestException('Failed to upload file to Cloudinary');
+      throw new BadRequestException(`Failed to upload file to Cloudinary: ${error.message || JSON.stringify(error)}`);
     }
   }
 

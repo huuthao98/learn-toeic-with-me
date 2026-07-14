@@ -60,7 +60,7 @@ export const testsApi = {
     const response = await api.post(`/tests/${id}/submit`, data)
     return response.data
   },
-  createTestSet: async (data: { name: string; description?: string; audioUrl?: string; status?: string; readingPdfUrl?: string; testType?: string;listeningPdfUrl?:string }) => {
+  createTestSet: async (data: { name: string; description?: string; audioUrl?: string; status?: string; readingPdfUrl?: string; testType?: string;listeningPdfUrl?:string; notifyUsers?: boolean; topics?: string[] }) => {
     const response = await api.post<TestSet>("/tests/admin/create", data)
     return response.data
   },

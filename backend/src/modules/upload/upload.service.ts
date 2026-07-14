@@ -10,6 +10,7 @@ export class UploadService {
         {
           folder: 'toeic_media',
           resource_type: 'auto', // 'auto' allows Cloudinary to detect if it's image, video, or raw
+          timeout: 600000, // 10 minutes timeout for large files like 1-hour TOEIC audio
         },
         (error, result) => {
           if (error) return reject(error);
