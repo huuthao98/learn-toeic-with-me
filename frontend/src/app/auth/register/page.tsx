@@ -245,7 +245,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Footer info */}
-        <div className="text-slate-500 text-xs relative z-10 flex justify-between">
+        <div className="w-full text-slate-500 text-xs relative z-10 flex justify-between">
           <span>© 2026 LearnEverything Inc.</span>
           <span>Hỗ trợ kỹ thuật: support@learnEverything.vn</span>
         </div>

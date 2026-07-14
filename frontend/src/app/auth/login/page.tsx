@@ -192,7 +192,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="text-slate-500 text-xs flex justify-between">
+        <div className="w-full text-slate-500 text-xs flex justify-between">
           <span>© 2026 Learn Everything Inc.</span>
           <span>Hỗ trợ kỹ thuật: support@learneverything.vn</span>
         </div>
