@@ -60,19 +60,19 @@ import { MediaUploadInput } from '@/components/MediaUploadInput';
 import { AddInterviewQuestionDialog } from '@/components/admin/AddInterviewQuestionDialog';
 import { ExcelUploadDialog } from '@/components/admin/ExcelUploadDialog';
 
-import { useTests } from '@/hooks/useTests';
-import { useQuestions } from '@/hooks/useQuestions';
+import { useInterview } from '@/hooks/useInterview';
+
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/constants/routes';
 
 // Edit Zod Validation Schema
-const editTestSetSchema = z.object({
+const editInterviewTopicSchema = z.object({
   name: z.string().trim().min(1, 'Tên đề thi không được để trống'),
   description: z.string(),
   status: z.enum(['draft', 'public', 'private']).optional(),
 });
 
-type EditTestSetFormValues = z.infer<typeof editTestSetSchema>;
+type EditInterviewTopicFormValues = z.infer<typeof editInterviewTopicSchema>;
 
 // Question Zod Validation Schema
 const editQuestionSchema = z.object({
@@ -100,16 +100,18 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
     useTestQuestions,
     useUpdateTestSetMutation,
     useDeleteTestSetMutation,
-  } = useTests();
-  const { useDeleteQuestionMutation, useUpdateQuestionMutation } =
-    useQuestions();
+    useUpsertBulkQuestionsMutation,
+    useDeleteQuestionMutation,
+    useUpdateQuestionMutation,
+  } = useInterview();
 
-  const { data: testSet, isLoading: loadingTestSet } = useTestSet(id);
+  const { data: testSet, isLoading: loadingInterviewTopic } = useTestSet(id);
   const { data: questions, isLoading: loadingQuestions } = useTestQuestions(id);
   const deleteQuestionMutation = useDeleteQuestionMutation();
-  const updateTestSetMutation = useUpdateTestSetMutation(id);
+  const updateInterviewTopicMutation = useUpdateTestSetMutation(id);
   const updateQuestionMutation = useUpdateQuestionMutation();
-  const deleteTestSetMutation = useDeleteTestSetMutation();
+  const upsertQuestionsMutation = useUpsertBulkQuestionsMutation();
+  const deleteInterviewTopicMutation = useDeleteTestSetMutation();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any | null>(null);
@@ -121,7 +123,7 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
   );
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deleteQuestionId, setDeleteQuestionId] = useState<string | null>(null);
-  const [isDeleteTestSetOpen, setIsDeleteTestSetOpen] = useState(false);
+  const [isDeleteInterviewTopicOpen, setIsDeleteInterviewTopicOpen] = useState(false);
 
   const toggleQuestionExpand = (id: string) => {
     setExpandedQuestions(prev => {
@@ -136,8 +138,8 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
   };
 
   // Edit form hook (for test set)
-  const editForm = useForm<EditTestSetFormValues>({
-    resolver: zodResolver(editTestSetSchema),
+  const editForm = useForm<EditInterviewTopicFormValues>({
+    resolver: zodResolver(editInterviewTopicSchema),
     defaultValues: {
       name: '',
       description: '',
@@ -167,8 +169,8 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
     }
   }, [testSet, editForm]);
 
-  const onEditSubmit = (values: EditTestSetFormValues) => {
-    updateTestSetMutation.mutate(
+  const onEditSubmit = (values: EditInterviewTopicFormValues) => {
+    updateInterviewTopicMutation.mutate(
       {
         name: values.name,
         description: values.description,
@@ -207,8 +209,8 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
         id: editingQuestion._id,
         data: {
           questionText: values.questionText || '',
-          correctAnswer: values.correctAnswer || '',
-          status: values.status || 'active',
+
+          isActive: values.status === 'active',
           explanation: values.explanation || '',
         },
       },
@@ -240,15 +242,15 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
     });
   };
 
-  const handleConfirmDeleteTestSet = () => {
-    deleteTestSetMutation.mutate(id, {
+  const handleConfirmDeleteInterviewTopic = () => {
+    deleteInterviewTopicMutation.mutate(id, {
       onSuccess: () => {
         toast.success('Xóa đề thi thành công!');
         router.push(ROUTES.ADMIN);
       },
       onError: (err: any) => {
         toast.error(err.response?.data?.message || 'Xóa đề thi thất bại.');
-        setIsDeleteTestSetOpen(false);
+        setIsDeleteInterviewTopicOpen(false);
       },
     });
   };
@@ -301,7 +303,7 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
         </div>
 
         {/* Metadata Details Card */}
-        {loadingTestSet ? (
+        {loadingInterviewTopic ? (
           <div className="h-44 bg-secondary/80 animate-pulse rounded-xl" />
         ) : testSet ? (
           <Card className="glass-card gap-0 overflow-hidden relative border-primary/25">
@@ -414,9 +416,9 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
                           </Button>
                           <Button
                             type="submit"
-                            disabled={updateTestSetMutation.isPending}
+                            disabled={updateInterviewTopicMutation.isPending}
                           >
-                            {updateTestSetMutation.isPending
+                            {updateInterviewTopicMutation.isPending
                               ? 'Đang lưu...'
                               : 'Lưu thay đổi'}
                           </Button>
@@ -429,13 +431,13 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => setIsDeleteTestSetOpen(true)}
-                  disabled={deleteTestSetMutation.isPending}
+                  onClick={() => setIsDeleteInterviewTopicOpen(true)}
+                  disabled={deleteInterviewTopicMutation.isPending}
                   className="h-8 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   <span>
-                    {deleteTestSetMutation.isPending ? 'Đang xóa...' : 'Xóa đề'}
+                    {deleteInterviewTopicMutation.isPending ? 'Đang xóa...' : 'Xóa đề'}
                   </span>
                 </Button>
               </div>
@@ -563,14 +565,7 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
                   </div>
                   {expandedQuestions.has(q._id) && (
                     <>
-                      <p className="m-0 text-sm font-medium">Câu trả lời:</p>
-                      {q.correctAnswer && (
-                        <div className="p-3.5 rounded-lg bg-green-200/35 border border-border/30 text-xs text-foreground leading-relaxed">
-                          <p className="whitespace-pre-wrap">
-                            {q.correctAnswer}
-                          </p>
-                        </div>
-                      )}
+
                       {q.explanation && (
                         <div className="p-3.5 rounded-lg bg-green-200/35 border border-border/30 text-xs text-foreground leading-relaxed">
                           <span className="font-extrabold uppercase text-[10px] tracking-wider text-primary block mb-1">
@@ -715,13 +710,13 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
       />
 
       <ConfirmModal
-        isOpen={isDeleteTestSetOpen}
-        onClose={() => setIsDeleteTestSetOpen(false)}
-        onConfirm={handleConfirmDeleteTestSet}
+        isOpen={isDeleteInterviewTopicOpen}
+        onClose={() => setIsDeleteInterviewTopicOpen(false)}
+        onConfirm={handleConfirmDeleteInterviewTopic}
         title="Xóa Đề Thi"
         description="Bạn có chắc chắn muốn xóa toàn bộ đề thi này? Mọi câu hỏi và kết quả thi liên quan cũng sẽ bị xóa vĩnh viễn!"
         variant="destructive"
-        isLoading={deleteTestSetMutation.isPending}
+        isLoading={deleteInterviewTopicMutation.isPending}
       />
     </DashboardLayout>
   );

@@ -1,6 +1,7 @@
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useInterview } from '@/hooks/useInterview';
 import {
   Dialog,
   DialogTitle,
@@ -17,7 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { useQuestions } from '@/hooks/useQuestions';
+
 
 const addInterviewQuestionSchema = z.object({
   questionText: z.string().trim().min(1, 'Vui lòng nhập câu hỏi'),
@@ -40,7 +41,7 @@ export function AddInterviewQuestionDialog({
   testSetId: string;
   onSuccess?: (msg: string) => void;
 }) {
-  const { useCreateQuestionMutation } = useQuestions();
+  const { useCreateQuestionMutation } = useInterview();
   const createQuestionMutation = useCreateQuestionMutation();
 
   const form = useForm<AddInterviewQuestionFormValues>({
@@ -57,7 +58,6 @@ export function AddInterviewQuestionDialog({
       {
         testSetId,
         questionText: values.questionText,
-        correctAnswer: values.correctAnswer,
         explanation: values.explanation,
         isActive: true,
       },

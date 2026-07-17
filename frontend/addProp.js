@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const path = 'src/app/admin/create-test-v2/page.tsx';
+const path = 'src/app/admin/create-test-toeic/page.tsx';
 let content = fs.readFileSync(path, 'utf8');
 
 content = content.replace(
@@ -9,4 +9,4 @@ content = content.replace(
 );
 
 fs.writeFileSync(path, content, 'utf8');
-console.log('Done replacing in create-test-v2 page');
+console.log('Done replacing in create-test-toeic page');

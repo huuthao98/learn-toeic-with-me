@@ -226,7 +226,7 @@ export default function LoginPage() {
                 />
                 <TabsTrigger
                   value="email"
-                  className="flex items-center gap-2 z-10 data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent dark:data-active:border-transparent"
+                  className="flex items-center gap-2 z-10 text-foreground/70 data-active:!text-foreground !bg-transparent !shadow-none !border-none"
                   style={{
                     transition: 'color 380ms cubic-bezier(0.16, 1, 0.3, 1)',
                   }}
@@ -236,7 +236,7 @@ export default function LoginPage() {
                 </TabsTrigger>
                 <TabsTrigger
                   value="phone"
-                  className="flex items-center gap-2 z-10 data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent dark:data-active:border-transparent"
+                  className="flex items-center gap-2 z-10 text-foreground/70 data-active:!text-foreground !bg-transparent !shadow-none !border-none"
                   style={{
                     transition: 'color 380ms cubic-bezier(0.16, 1, 0.3, 1)',
                   }}

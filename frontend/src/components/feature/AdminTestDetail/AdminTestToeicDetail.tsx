@@ -22,8 +22,8 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
 import { Button } from '@/components/ui/button';
-import { useTests } from '@/hooks/useTests';
-import { useQuestions } from '@/hooks/useQuestions';
+import { useToeic } from '@/hooks/useToeic';
+
 
 import {
   Dialog,
@@ -62,7 +62,7 @@ import { MediaUploadInput } from '@/components/MediaUploadInput';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 
 // Edit Zod Validation Schema
-const editTestSetSchema = z.object({
+const editToeicSetSchema = z.object({
   name: z.string().trim().min(1, 'Tên đề thi không được để trống'),
   description: z.string().optional(),
   audioUrl: z.string().optional(),
@@ -70,26 +70,8 @@ const editTestSetSchema = z.object({
   listeningPdfUrl: z.string().optional(),
   status: z.enum(['draft', 'public', 'private']).optional(),
 });
-// .superRefine((data, ctx) => {
-//   if (data.status !== 'draft') {
-//     if (!data.audioUrl) {
-//       ctx.addIssue({
-//         code: z.ZodIssueCode.custom,
-//         message: 'Bắt buộc phải có Audio khi public đề thi',
-//         path: ['audioUrl'],
-//       });
-//     }
-//     if (!data.readingPdfUrl) {
-//       ctx.addIssue({
-//         code: z.ZodIssueCode.custom,
-//         message: 'Bắt buộc phải có PDF Reading khi public đề thi',
-//         path: ['readingPdfUrl'],
-//       });
-//     }
-//   }
-// });
 
-type EditTestSetFormValues = z.infer<typeof editTestSetSchema>;
+type EditToeicSetFormValues = z.infer<typeof editToeicSetSchema>;
 
 // Setup PDF worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -103,23 +85,23 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
     useTestQuestions,
     useUpdateTestSetMutation,
     useDeleteTestSetMutation,
-  } = useTests();
-  const { useUpsertQuestionsMutation } = useQuestions();
+    useUpsertBulkQuestionsMutation,
+  } = useToeic();
 
-  const { data: testSet, isLoading: isTestLoading } = useTestSet(id);
+  const { data: ToeicSet, isLoading: isTestLoading } = useTestSet(id);
   const { data: questions, isLoading: isQuestionsLoading } =
     useTestQuestions(id);
 
-  const updateTestSetMutation = useUpdateTestSetMutation(id);
-  const deleteTestSetMutation = useDeleteTestSetMutation();
-  const upsertQuestionsMutation = useUpsertQuestionsMutation();
+  const updateToeicSetMutation = useUpdateTestSetMutation(id);
+  const deleteToeicSetMutation = useDeleteTestSetMutation();
+  const upsertQuestionsMutation = useUpsertBulkQuestionsMutation();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   // Edit form hook (for test set)
-  const editForm = useForm<EditTestSetFormValues>({
-    resolver: zodResolver(editTestSetSchema),
+  const editForm = useForm<EditToeicSetFormValues>({
+    resolver: zodResolver(editToeicSetSchema),
     defaultValues: {
       name: '',
       description: '',
@@ -127,22 +109,22 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
     },
   });
 
-  // Sync testSet data to form
+  // Sync ToeicSet data to form
   useEffect(() => {
-    if (testSet) {
+    if (ToeicSet) {
       editForm.reset({
-        name: testSet.name,
-        description: testSet.description || '',
-        audioUrl: testSet.audioUrl,
-        readingPdfUrl: testSet.readingPdfUrl,
-        listeningPdfUrl: testSet.listeningPdfUrl,
-        status: (testSet.status as 'draft' | 'public' | 'private') || 'draft',
+        name: ToeicSet.name,
+        description: ToeicSet.description || '',
+        audioUrl: ToeicSet.audioUrl,
+        readingPdfUrl: ToeicSet.readingPdfUrl,
+        listeningPdfUrl: ToeicSet.listeningPdfUrl,
+        status: (ToeicSet.status as 'draft' | 'public' | 'private') || 'draft',
       });
     }
-  }, [testSet, editForm]);
+  }, [ToeicSet, editForm]);
 
-  const onEditSubmit = (values: EditTestSetFormValues) => {
-    updateTestSetMutation.mutate(
+  const onEditSubmit = (values: EditToeicSetFormValues) => {
+    updateToeicSetMutation.mutate(
       {
         name: values.name,
         description: values.description,
@@ -238,8 +220,8 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
     reader.readAsBinaryString(file);
   };
 
-  const handleDeleteTestSet = () => {
-    deleteTestSetMutation.mutate(id, {
+  const handleDeleteToeicSet = () => {
+    deleteToeicSetMutation.mutate(id, {
       onSuccess: () => {
         toast.success('Xóa đề thi thành công!');
         setDeleteModalOpen(false);
@@ -268,14 +250,14 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
 
   // Set default active PDF if one is missing
   useEffect(() => {
-    if (testSet) {
-      if (!testSet.readingPdfUrl && testSet.listeningPdfUrl) {
+    if (ToeicSet) {
+      if (!ToeicSet.readingPdfUrl && ToeicSet.listeningPdfUrl) {
         setActivePdf('listening');
-      } else if (testSet.readingPdfUrl && !testSet.listeningPdfUrl) {
+      } else if (ToeicSet.readingPdfUrl && !ToeicSet.listeningPdfUrl) {
         setActivePdf('reading');
       }
     }
-  }, [testSet]);
+  }, [ToeicSet]);
 
   useEffect(() => {
     if (pdfWrapperRef.current) {
@@ -308,7 +290,7 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
     return <div className="p-8 text-center">Đang tải dữ liệu...</div>;
   }
 
-  if (!testSet) {
+  if (!ToeicSet) {
     return (
       <div className="p-8 text-center text-red-500">Không tìm thấy đề thi.</div>
     );
@@ -337,32 +319,73 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
   );
 
   const currentPdfUrl =
-    activePdf === 'reading' ? testSet.readingPdfUrl : testSet.listeningPdfUrl;
+    activePdf === 'reading' ? ToeicSet.readingPdfUrl : ToeicSet.listeningPdfUrl;
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
       <div className="w-1/2 border-r bg-slate-200/50 dark:bg-slate-800/50 flex flex-col relative">
         {/* PDF Tabs */}
-        {(testSet.readingPdfUrl || testSet.listeningPdfUrl) && (
-          <div className="flex justify-center p-2 gap-2 bg-white dark:bg-slate-900 border-b shrink-0 z-10">
-            {testSet.listeningPdfUrl && (
+        {(ToeicSet.readingPdfUrl || ToeicSet.listeningPdfUrl) && (
+          <div className="flex justify-between p-2 gap-2 bg-white dark:bg-slate-900 border-b shrink-0 z-10">
+            <div className="flex gap-2 items-center">
+              {ToeicSet.listeningPdfUrl && (
+                <Button
+                  variant={activePdf === 'listening' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setActivePdf('listening')}
+                >
+                  Listening PDF
+                </Button>
+              )}
+              {ToeicSet.readingPdfUrl && (
+                <Button
+                  variant={activePdf === 'reading' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setActivePdf('reading')}
+                >
+                  Reading PDF
+                </Button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
               <Button
-                variant={activePdf === 'listening' ? 'default' : 'outline'}
+                variant="outline"
                 size="sm"
-                onClick={() => setActivePdf('listening')}
+                onClick={() => setPdfScale(s => Math.max(0.5, s - 0.2))}
               >
-                Listening PDF
+                <Minimize2 className="h-4 w-4" />
               </Button>
-            )}
-            {testSet.readingPdfUrl && (
+              <span className="text-xs w-12 text-center">
+                {Math.round(pdfScale * 100)}%
+              </span>
               <Button
-                variant={activePdf === 'reading' ? 'default' : 'outline'}
+                variant="outline"
                 size="sm"
-                onClick={() => setActivePdf('reading')}
+                onClick={() => setPdfScale(s => Math.min(2.5, s + 0.2))}
               >
-                Reading PDF
+                <Maximize2 className="h-4 w-4" />
               </Button>
-            )}
+              <div className="w-px h-4 bg-border mx-2" />
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pageNumber <= 1}
+                onClick={() => setPageNumber(p => p - 1)}
+              >
+                Prev
+              </Button>
+              <span className="text-xs">
+                Trang {pageNumber} / {numPages || '-'}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pageNumber >= (numPages || 1)}
+                onClick={() => setPageNumber(p => p + 1)}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         )}
 
@@ -411,17 +434,17 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
               Chi tiết đề thi TOEIC
             </h1>
 
-            {testSet.status === 'public' && (
+            {ToeicSet.status === 'public' && (
               <Label className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                 Công Khai
               </Label>
             )}
-            {testSet.status === 'private' && (
+            {ToeicSet.status === 'private' && (
               <Label className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                 Riêng Tư
               </Label>
             )}
-            {(!testSet.status || testSet.status === 'draft') && (
+            {(!ToeicSet.status || ToeicSet.status === 'draft') && (
               <Label className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                 Bản Nháp
               </Label>
@@ -433,10 +456,10 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
             <CardHeader className="pb-4 flex flex-row items-start justify-between">
               <div>
                 <CardTitle className="text-2xl font-black text-foreground">
-                  {testSet.name}
+                  {ToeicSet.name}
                 </CardTitle>
                 <CardDescription className="text-sm text-muted-foreground mt-1">
-                  {testSet.description}
+                  {ToeicSet.description}
                 </CardDescription>
               </div>
 
@@ -474,11 +497,11 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
                             <Button
                               type="submit"
                               disabled={
-                                updateTestSetMutation.isPending ||
+                                updateToeicSetMutation.isPending ||
                                 !editForm.formState.isDirty
                               }
                             >
-                              {updateTestSetMutation.isPending
+                              {updateToeicSetMutation.isPending
                                 ? 'Đang lưu...'
                                 : 'Lưu thay đổi'}
                             </Button>
@@ -656,7 +679,7 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
                   variant="destructive"
                   size="sm"
                   onClick={() => setDeleteModalOpen(true)}
-                  disabled={deleteTestSetMutation.isPending}
+                  disabled={deleteToeicSetMutation.isPending}
                   className="h-8 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -681,7 +704,7 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
                   </span>
                   <span className="font-medium text-foreground flex items-center gap-1.5 mt-1">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    {new Date(testSet.createdAt).toLocaleDateString('vi-VN')}
+                    {new Date(ToeicSet.createdAt).toLocaleDateString('vi-VN')}
                   </span>
                 </div>
                 <div className="space-y-1 flex-1">
@@ -690,9 +713,9 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
                   </span>
                   <span
                     className="font-mono text-xs text-muted-foreground block truncate mt-1.5"
-                    title={testSet._id}
+                    title={ToeicSet._id}
                   >
-                    {testSet._id}
+                    {ToeicSet._id}
                   </span>
                 </div>
               </div>
@@ -702,50 +725,11 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
 
         {/* PDF Controls */}
         <div className="shrink-0 flex gap-2 items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-t border-border/50">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPdfScale(s => Math.max(0.5, s - 0.2))}
-            >
-              <Minimize2 className="h-4 w-4" />
-            </Button>
-            <span className="text-xs w-12 text-center">
-              {Math.round(pdfScale * 100)}%
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPdfScale(s => Math.min(2.5, s + 0.2))}
-            >
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-            <div className="w-px h-4 bg-border mx-2" />
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={pageNumber <= 1}
-              onClick={() => setPageNumber(p => p - 1)}
-            >
-              Prev
-            </Button>
-            <span className="text-xs">
-              Trang {pageNumber} / {numPages || '-'}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={pageNumber >= (numPages || 1)}
-              onClick={() => setPageNumber(p => p + 1)}
-            >
-              Next
-            </Button>
-          </div>
-          {testSet.audioUrl && (
-            <div className="flex items-center gap-4 bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-2">
+          {ToeicSet.audioUrl && (
+            <div className=" w-full flex items-center gap-4 bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-2">
               <audio
                 ref={audioRef}
-                src={testSet.audioUrl}
+                src={ToeicSet.audioUrl}
                 onEnded={() => setAudioPlaying(false)}
                 className="hidden"
               />
@@ -764,8 +748,8 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
               <div className="text-sm font-medium">Listening Audio</div>
               <audio
                 controls
-                src={testSet.audioUrl}
-                className="h-8 w-48 ml-2"
+                src={ToeicSet.audioUrl}
+                className="h-8 w-full ml-2"
               />
             </div>
           )}
@@ -789,7 +773,7 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
                 </div>
 
                 <div className="flex flex-wrap gap-2.5">
-                  {groupedQuestions[part].map(q => {
+                  {groupedQuestions[part].map((q: any) => {
                     return (
                       <div
                         key={q._id}
@@ -818,13 +802,13 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
       <ConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleDeleteTestSet}
+        onConfirm={handleDeleteToeicSet}
         title="Xác nhận xóa bộ đề"
         description="Bạn có chắc chắn muốn xóa bộ đề này và tất cả câu hỏi liên quan? Hành động này không thể hoàn tác."
         confirmText="Xóa đề thi"
         cancelText="Hủy"
         variant="destructive"
-        isLoading={deleteTestSetMutation.isPending}
+        isLoading={deleteToeicSetMutation.isPending}
       />
     </div>
   );

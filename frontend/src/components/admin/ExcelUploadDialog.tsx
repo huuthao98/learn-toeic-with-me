@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useQuestions } from '@/hooks/useQuestions';
+import { useInterview } from '@/hooks/useInterview';
 
 export function ExcelUploadDialog({
   isOpen,
@@ -25,8 +25,8 @@ export function ExcelUploadDialog({
 }) {
   const [excelFile, setExcelFile] = useState<File | null>(null);
   const [isUploadingExcel, setIsUploadingExcel] = useState(false);
-  const { useUpsertQuestionsMutation } = useQuestions();
-  const upsertQuestionsMutation = useUpsertQuestionsMutation();
+  const { useUpsertBulkQuestionsMutation } = useInterview();
+  const upsertQuestionsMutation = useUpsertBulkQuestionsMutation();
 
   const downloadInterviewTemplate = () => {
     const instructions = [

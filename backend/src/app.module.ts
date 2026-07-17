@@ -5,13 +5,15 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { TestsModule } from './modules/tests/tests.module';
+import { ToeicModule } from './modules/toeic/toeic.module';
+import { InterviewModule } from './modules/interview/interview.module';
+import { VocabularyModule } from './modules/vocabulary/vocabulary.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { CheckInsModule } from './modules/checkins/checkins.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { QuestionsModule } from './modules/questions/questions.module';
+
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { FirebaseModule } from './modules/firebase/firebase.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -38,8 +40,10 @@ import { TopicsModule } from './modules/topics/topics.module';
     ]),
     AuthModule,
     UsersModule,
-    QuestionsModule,
-    TestsModule,
+
+    ToeicModule,
+    InterviewModule,
+    VocabularyModule,
     DashboardModule,
     AdminModule,
     PlansModule,

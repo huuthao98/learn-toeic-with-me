@@ -1,8 +1,13 @@
 'use client';
 
 import { useAuthStore } from '@/store/authStore';
+import { useLayoutStore } from '@/store/layoutStore';
 import { Bell, Search, Sun, Moon, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
+
+import gridImg from '@/assets/img/grid.png';
+import sidebarImg from '@/assets/img/sidebar.png';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -12,6 +17,9 @@ import { Check } from 'lucide-react';
 
 export function Header() {
   const { user } = useAuthStore();
+  const isCollapsed = useLayoutStore(state => state.isCollapsed);
+  const toggleCollapse = useLayoutStore(state => state.toggleCollapse);
+  
   const [isDark, setIsDark] = useState(false);
 
   const { useNotificationsList, useMarkAsReadMutation, useMarkAllAsReadMutation } = useNotifications();
@@ -51,7 +59,20 @@ export function Header() {
   return (
     <header className="bg-background/80 backdrop-blur-md border-b border-border/40 h-16 sticky top-0 z-20 px-6 flex items-center justify-between">
       {/* Welcome Title */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
+        {/* Sidebar Toggle Button */}
+        <button
+          onClick={toggleCollapse}
+          className="p-1.5 rounded-md hover:bg-accent transition-all hidden md:flex items-center justify-center shrink-0"
+        >
+          <Image 
+            src={isCollapsed ? sidebarImg : gridImg} 
+            alt="Toggle Sidebar" 
+            width={20} 
+            height={20} 
+            className="opacity-70 hover:opacity-100 transition-opacity dark:invert" 
+          />
+        </button>
         <span className="hidden sm:inline-block text-sm text-muted-foreground font-medium">
           Xin chào,{' '}
           <span className="font-semibold text-foreground">
