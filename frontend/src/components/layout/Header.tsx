@@ -2,12 +2,8 @@
 
 import { useAuthStore } from '@/store/authStore';
 import { useLayoutStore } from '@/store/layoutStore';
-import { Bell, Search, Sun, Moon, TrendingUp } from 'lucide-react';
+import { Bell, Search, Sun, Moon, TrendingUp, Menu, PanelLeftClose } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
-
-import gridImg from '@/assets/img/grid.png';
-import sidebarImg from '@/assets/img/sidebar.png';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -63,15 +59,13 @@ export function Header() {
         {/* Sidebar Toggle Button */}
         <button
           onClick={toggleCollapse}
-          className="p-1.5 rounded-md hover:bg-accent transition-all hidden md:flex items-center justify-center shrink-0"
+          className="p-1.5 rounded-md hover:bg-accent transition-all hidden md:flex items-center justify-center shrink-0 text-muted-foreground hover:text-foreground"
         >
-          <Image 
-            src={isCollapsed ? sidebarImg.src : gridImg.src} 
-            alt="Toggle Sidebar" 
-            width={20} 
-            height={20} 
-            className="opacity-70 hover:opacity-100 transition-opacity dark:invert" 
-          />
+          {isCollapsed ? (
+            <Menu className="h-5 w-5" />
+          ) : (
+            <PanelLeftClose className="h-5 w-5" />
+          )}
         </button>
         <span className="hidden sm:inline-block text-sm text-muted-foreground font-medium">
           Xin chào,{' '}

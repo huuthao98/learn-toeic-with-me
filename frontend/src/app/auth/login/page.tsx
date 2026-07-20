@@ -8,6 +8,8 @@ import {
   ArrowRight,
   ShieldCheck,
   KeyRound,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import * as z from 'zod';
 import { toast } from 'sonner';
@@ -58,6 +60,7 @@ export default function LoginPage() {
 
   const [otpSent, setOtpSent] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('email');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirect to dashboard if already logged in
   useEffect(() => {
@@ -301,12 +304,23 @@ export default function LoginPage() {
                         <div className="relative">
                           <KeyRound className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             placeholder="••••••••"
-                            className="pl-9"
+                            className="pl-9 pr-9"
                             disabled={loginMutation.isPending}
                             {...emailForm.register('password')}
                           />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
                         </div>
                         {emailForm.formState.errors.password && (
                           <p className="text-xs text-destructive font-medium">
