@@ -31,6 +31,7 @@ export class InterviewService {
       if (q.questionText !== undefined) updateData.questionText = q.questionText;
       if (q.explanation !== undefined) updateData.explanation = q.explanation;
       if (q.isActive !== undefined) updateData.status = q.isActive ? 'active' : 'draft';
+      if (q.correctAnswer !== undefined) updateData.correctAnswer = q.correctAnswer;
 
       return {
         updateOne: {
@@ -188,7 +189,7 @@ export class InterviewService {
     dto: {
       name?: string;
       description?: string;
-      audioUrl?: string;
+      correctAnswer?: string;
       status?: string;
       topics?: string[];
       notifyUsers?: boolean;
@@ -199,6 +200,7 @@ export class InterviewService {
     
     if (dto.name !== undefined) interviewTopic.name = dto.name;
     if (dto.description !== undefined) interviewTopic.description = dto.description;
+    if (dto.correctAnswer !== undefined) interviewTopic.correctAnswer = dto.correctAnswer;
     if (dto.status !== undefined) interviewTopic.status = dto.status;
     if (dto.topics !== undefined) interviewTopic.topics = dto.topics;
     

@@ -99,7 +99,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
           roles: ['admin'],
           children: [
             {
-              name: 'Tạo bài trắc nghiệm',
+              name: 'Tạo Bài Trắc Nghiệm',
               href: '/admin/create-test',
               roles: ['admin'],
             },

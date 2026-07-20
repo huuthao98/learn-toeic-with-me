@@ -567,6 +567,16 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
                   </div>
                   {expandedQuestions.has(q._id) && (
                     <>
+                      {q.correctAnswer && (
+                        <div className="p-3.5 rounded-lg bg-green-200/35 border border-border/30 text-xs text-foreground leading-relaxed">
+                          <span className="font-extrabold uppercase text-[10px] tracking-wider text-primary block mb-1">
+                            Câu trả lời:
+                          </span>
+                          <p className="whitespace-pre-wrap">
+                            {q.correctAnswer}
+                          </p>
+                        </div>
+                      )}
                       {q.explanation && (
                         <div className="p-3.5 rounded-lg bg-green-200/35 border border-border/30 text-xs text-foreground leading-relaxed">
                           <span className="font-extrabold uppercase text-[10px] tracking-wider text-primary block mb-1">

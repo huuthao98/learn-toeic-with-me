@@ -6,8 +6,8 @@ export interface InterviewQuestion {
   questionNumber: number;
   questionType: string;
   questionText: string;
+  correctAnswer:string;
   explanation?: string;
-  audioUrl?: string;
   status: string;
 }
 
@@ -15,6 +15,7 @@ export interface CreateInterviewQuestionData {
   testSetId?: string;
   questionNumber?: number;
   questionText: string;
+  correctAnswer:string;
   explanation?: string;
   isActive?: boolean;
 }
@@ -54,16 +55,16 @@ export const interviewApi = {
     const response = await api.post(`/interview/${id}/submit`, data)
     return response.data
   },
-  createTestSet: async (data: { name: string; description?: string; audioUrl?: string; status?: string; notifyUsers?: boolean; topics?: string[] }) => {
+  createTestSet: async (data: { name: string; description?: string; status?: string; notifyUsers?: boolean; topics?: string[] }) => {
     const response = await api.post<InterviewTopic>("/interview/admin/create", data)
     return response.data
   },
   createInterviewTopic: async (data: any) => {
-    const response = await api.post<InterviewTopic>("/admin/interview/create", data)
+    const response = await api.post<InterviewTopic>("/interview/admin/create", data)
     return response.data
   },
   upsertBulkQuestions: async (data: { testSetId: string; questions: Partial<CreateInterviewQuestionData & { questionNumber: number }>[] }) => {
-    const response = await api.post(`/admin/interview/${data.testSetId}/questions/bulk-upsert`, { questions: data.questions })
+    const response = await api.post(`/interview/admin/${data.testSetId}/questions/bulk-upsert`, { questions: data.questions })
     return response.data
   },
   fetchQuestions: async (testSetId: string) => {
@@ -71,18 +72,18 @@ export const interviewApi = {
     return response.data
   },
   createQuestion: async (data: CreateInterviewQuestionData) => {
-    const response = await api.post<InterviewQuestion>("/admin/interview/questions", data)
+    const response = await api.post<InterviewQuestion>("/interview/admin/questions", data)
     return response.data
   },
   updateQuestion: async (id: string, data: Partial<CreateInterviewQuestionData>) => {
-    const response = await api.patch<InterviewQuestion>(`/admin/interview/questions/${id}`, data)
+    const response = await api.patch<InterviewQuestion>(`/interview/admin/questions/${id}`, data)
     return response.data
   },
   deleteQuestion: async (id: string) => {
-    const response = await api.delete(`/admin/interview/questions/${id}`)
+    const response = await api.delete(`/interview/admin/questions/${id}`)
     return response.data
   },
-  updateTestSet: async (id: string, data: { name?: string; description?: string; audioUrl?: string; status?: string; topics?: string[] }) => {
+  updateTestSet: async (id: string, data: { name?: string; description?: string; status?: string; topics?: string[] }) => {
     const response = await api.patch<InterviewTopic>(`/interview/admin/${id}`, data)
     return response.data
   },

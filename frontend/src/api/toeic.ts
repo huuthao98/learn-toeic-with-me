@@ -67,11 +67,11 @@ export const toeicApi = {
     return response.data
   },
   createToeicSet: async (data: any) => {
-    const response = await api.post<ToeicSet>("/admin/toeic/create", data)
+    const response = await api.post<ToeicSet>("/toeic/admin/create", data)
     return response.data
   },
   upsertBulkQuestions: async (data: { testSetId: string; questions: Partial<CreateToeicQuestionData & { questionNumber: number }>[] }) => {
-    const response = await api.post(`/admin/toeic/${data.testSetId}/questions/bulk-upsert`, { questions: data.questions })
+    const response = await api.post(`/toeic/admin/${data.testSetId}/questions/bulk-upsert`, { questions: data.questions })
     return response.data
   },
   fetchQuestions: async (testSetId: string) => {

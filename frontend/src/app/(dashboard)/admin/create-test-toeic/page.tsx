@@ -79,7 +79,8 @@ const downloadTemplate = () => {
 export default function CreateTestToeicPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { useCreateTestSetMutation, useUpsertBulkQuestionsMutation } = useToeic();
+  const { useCreateTestSetMutation, useUpsertBulkQuestionsMutation } =
+    useToeic();
 
   const upsertQuestionsMutation = useUpsertBulkQuestionsMutation();
   const { useTopicsList } = useTopics();
@@ -129,20 +130,19 @@ export default function CreateTestToeicPage() {
 
       const questionsToUpsert = data
         .map((row: any) => {
-          const getVal = (keys: string[]) => {
-            for (const key of keys) {
-              const foundKey = Object.keys(row).find(k =>
-                k.toLowerCase().includes(key),
-              );
-              if (foundKey) return row[foundKey];
-            }
-            return undefined;
+          const getVal = (searchKeys: string[]) => {
+            const k = Object.keys(row).find(key =>
+              searchKeys.some(sk =>
+                key.toLowerCase().includes(sk.toLowerCase()),
+              ),
+            );
+            return k ? row[k] : undefined;
           };
 
-          const qNumRaw = getVal(['số thứ tự', 'question number', 'câu số']);
-          const partRaw = getVal(['phần', 'part']);
-          const answerRaw = getVal(['đáp án', 'answer correct']);
-          const explanationRaw = getVal(['giải thích', 'explanation']);
+          const qNumRaw = getVal(['Số thứ tự', 'question number']);
+          const partRaw = getVal(['part', 'phần']);
+          const answerRaw = getVal(['correct answer', 'đáp án đúng', 'đáp án']);
+          const explanationRaw = getVal(['explanation', 'giải thích']);
 
           const qNum = parseInt(String(qNumRaw), 10);
           const part = String(partRaw).replace(/\D/g, '');
@@ -195,8 +195,9 @@ export default function CreateTestToeicPage() {
       });
       testSetId = testSetRes._id;
     } catch (err: any) {
-      console.error('Create test set failed:', err);
-      toast.error('Tạo thông tin bộ đề thất bại. Quá trình dừng lại.');
+      toast.error(
+        err.response?.data?.message || 'Tạo thông tin bộ đề thất bại.',
+      );
       setIsFinalSaving(false);
       return;
     }

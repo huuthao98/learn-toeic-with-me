@@ -11,6 +11,8 @@ export class InterviewTopic {
   @Prop()
   description?: string;
 
+  @Prop()
+  correctAnswer?: string;
 
   @Prop({ default: 'draft', enum: ['draft', 'public', 'private'] })
   status: string;

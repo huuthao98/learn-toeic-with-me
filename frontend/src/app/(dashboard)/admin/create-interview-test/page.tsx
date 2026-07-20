@@ -176,7 +176,7 @@ function CreateInterviewTestContent() {
           return {
             questionNumber: qNum,
             questionText: questionRaw || '',
-            correctAnswer: answerRaw || 'TEXT',
+            correctAnswer: answerRaw || '',
             explanation: expRaw || '',
             isActive: true,
           };

@@ -17,6 +17,9 @@ export class InterviewQuestion {
   @Prop({ required: true })
   questionText: string;
 
+  @Prop({ required: true })
+  correctAnswer: string;
+  
   @Prop()
   explanation?: string; // e.g. hint or sample answer
 

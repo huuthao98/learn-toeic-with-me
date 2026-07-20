@@ -29,6 +29,10 @@ export class CreateInterviewQuestionDto {
   @IsString()
   questionText: string;
 
+  @ApiProperty()
+  @IsString()
+  correctAnswer: string;
+
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
@@ -60,6 +64,11 @@ export class UpdateInterviewQuestionDto {
   @IsString()
   @IsOptional()
   questionText?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  correctAnswer?: string;
 
   @ApiPropertyOptional()
   @IsString()

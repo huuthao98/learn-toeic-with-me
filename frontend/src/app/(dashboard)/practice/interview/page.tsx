@@ -151,6 +151,17 @@ export default function PracticeInterviewPage() {
 
                             {expandedQuestions.has(q._id) && (
                               <div className="pr-4 pl-16 pb-4 flex flex-col gap-3">
+                                {q.correctAnswer && (
+                                  <div className="flex flex-col p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-lg text-sm">
+                                    <span className="font-semibold text-blue-700 dark:text-blue-400 mb-1">
+                                      Câu trả lời:
+                                    </span>
+                                    <span className="text-blue-900 dark:text-blue-300 whitespace-pre-wrap leading-relaxed">
+                                      {q.correctAnswer}
+                                    </span>
+                                  </div>
+                                )}
+
                                 {q.explanation && (
                                   <div className="flex flex-col p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-lg text-sm">
                                     <span className="font-semibold text-blue-700 dark:text-blue-400 mb-1">
