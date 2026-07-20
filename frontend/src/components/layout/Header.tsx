@@ -66,7 +66,7 @@ export function Header() {
           className="p-1.5 rounded-md hover:bg-accent transition-all hidden md:flex items-center justify-center shrink-0"
         >
           <Image 
-            src={isCollapsed ? sidebarImg : gridImg} 
+            src={isCollapsed ? sidebarImg.src : gridImg.src} 
             alt="Toggle Sidebar" 
             width={20} 
             height={20} 
