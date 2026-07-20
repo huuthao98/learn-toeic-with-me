@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
-import { vocabularyApi } from '@/api/vocabulary';
+import { CreateVocabularyQuestionData, vocabularyApi } from '@/api/vocabulary';
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 
 export type { VocabularySet, VocabularyQuestion, CreateVocabularyQuestionData } from '@/api/vocabulary';
 
@@ -99,6 +99,17 @@ export const useVocabulary = () => {
       },
     });
 
+  const useUpdateQuestionMutation = () =>
+    useMutation({
+      mutationFn: ({ id, data }: { id: string; data: Partial<CreateVocabularyQuestionData> }) => 
+        vocabularyApi.updateQuestion(id, data),
+    });
+
+  const useDeleteQuestionMutation = () =>
+    useMutation({
+      mutationFn: vocabularyApi.deleteQuestion,
+    });
+
   return {
     useTestSets,
     useTestSet,
@@ -110,5 +121,7 @@ export const useVocabulary = () => {
     useCreateTestSetMutation,
     useUpdateTestSetMutation,
     useDeleteTestSetMutation,
+    useUpdateQuestionMutation,
+    useDeleteQuestionMutation,
   };
 };

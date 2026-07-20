@@ -85,4 +85,12 @@ export const vocabularyApi = {
     const response = await api.delete<any>(`/vocabulary/admin/${id}`)
     return response.data
   },
+  updateQuestion: async (id: string, data: Partial<CreateVocabularyQuestionData>) => {
+    const response = await api.patch<VocabularyQuestion>(`/vocabulary/admin/questions/${id}`, data)
+    return response.data
+  },
+  deleteQuestion: async (id: string) => {
+    const response = await api.delete<any>(`/vocabulary/admin/questions/${id}`)
+    return response.data
+  },
 }

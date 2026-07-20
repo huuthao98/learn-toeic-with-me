@@ -8,16 +8,12 @@ import {
   HelpCircle,
   ArrowLeft,
   AlertCircle,
-  PlusCircle,
-  FileSpreadsheet,
-  Copy,
-  Check,
 } from 'lucide-react';
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 
@@ -55,35 +51,36 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { MediaUploadInput } from '@/components/MediaUploadInput';
-import { AddInterviewQuestionDialog } from '@/components/admin/AddInterviewQuestionDialog';
-import { ExcelUploadDialog } from '@/components/admin/ExcelUploadDialog';
 
-import { useInterview } from '@/hooks/useInterview';
-
+import { useVocabulary } from '@/hooks/useVocabulary';
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/constants/routes';
 
 // Edit Zod Validation Schema
-const editInterviewTopicSchema = z.object({
+const editVocabularySetSchema = z.object({
   name: z.string().trim().min(1, 'Tên đề thi không được để trống'),
   description: z.string(),
   status: z.enum(['draft', 'public', 'private']).optional(),
 });
 
-type EditInterviewTopicFormValues = z.infer<typeof editInterviewTopicSchema>;
+type EditVocabularySetFormValues = z.infer<typeof editVocabularySetSchema>;
 
 // Question Zod Validation Schema
 const editQuestionSchema = z.object({
-  questionText: z.string().trim().min(1, 'Vui lòng nhập câu hỏi'),
-  correctAnswer: z.string().trim().min(1, 'Vui lòng nhập câu trả lời'),
+  questionText: z.string().trim().min(1, 'Vui lòng nhập từ vựng'),
+  pinyin: z.string().optional(),
+  optionA: z.string().trim().min(1, 'Vui lòng nhập đáp án A'),
+  optionB: z.string().trim().min(1, 'Vui lòng nhập đáp án B'),
+  optionC: z.string().trim().min(1, 'Vui lòng nhập đáp án C'),
+  optionD: z.string().trim().min(1, 'Vui lòng nhập đáp án D'),
+  correctAnswer: z.string().min(1, 'Vui lòng chọn đáp án đúng'),
   status: z.string().optional(),
   explanation: z.string().optional(),
 });
 
 type EditQuestionFormValues = z.infer<typeof editQuestionSchema>;
 
-export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
+export const AdminTestVocabularyDetail = ({ id }: { id: string }) => {
   const router = useRouter();
   const { user } = useAuthStore();
 
@@ -99,47 +96,25 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
     useTestQuestions,
     useUpdateTestSetMutation,
     useDeleteTestSetMutation,
-    useUpsertBulkQuestionsMutation,
     useDeleteQuestionMutation,
     useUpdateQuestionMutation,
-  } = useInterview();
+  } = useVocabulary();
 
-  const { data: testSet, isLoading: loadingInterviewTopic } = useTestSet(id);
+  const { data: testSet, isLoading: loadingTestSet } = useTestSet(id);
   const { data: questions, isLoading: loadingQuestions } = useTestQuestions(id);
   const deleteQuestionMutation = useDeleteQuestionMutation();
-  const updateInterviewTopicMutation = useUpdateTestSetMutation(id);
+  const updateTestSetMutation = useUpdateTestSetMutation(id);
   const updateQuestionMutation = useUpdateQuestionMutation();
-  const upsertQuestionsMutation = useUpsertBulkQuestionsMutation();
-  const deleteInterviewTopicMutation = useDeleteTestSetMutation();
+  const deleteTestSetMutation = useDeleteTestSetMutation();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any | null>(null);
   const [editQuestionDialogOpen, setEditQuestionDialogOpen] = useState(false);
-  const [isAddManualOpen, setIsAddManualOpen] = useState(false);
-  const [isAddExcelOpen, setIsAddExcelOpen] = useState(false);
-  const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(
-    new Set(),
-  );
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deleteQuestionId, setDeleteQuestionId] = useState<string | null>(null);
-  const [isDeleteInterviewTopicOpen, setIsDeleteInterviewTopicOpen] =
-    useState(false);
+  const [isDeleteTestSetOpen, setIsDeleteTestSetOpen] = useState(false);
 
-  const toggleQuestionExpand = (id: string) => {
-    setExpandedQuestions(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  // Edit form hook (for test set)
-  const editForm = useForm<EditInterviewTopicFormValues>({
-    resolver: zodResolver(editInterviewTopicSchema),
+  const editForm = useForm<EditVocabularySetFormValues>({
+    resolver: zodResolver(editVocabularySetSchema),
     defaultValues: {
       name: '',
       description: '',
@@ -147,18 +122,21 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
     },
   });
 
-  // Edit question form hook
   const editQuestionForm = useForm<EditQuestionFormValues>({
     resolver: zodResolver(editQuestionSchema),
     defaultValues: {
       questionText: '',
-      correctAnswer: '',
+      pinyin: '',
+      optionA: '',
+      optionB: '',
+      optionC: '',
+      optionD: '',
+      correctAnswer: 'A',
       status: 'active',
       explanation: '',
     },
   });
 
-  // Sync testSet data to form
   useEffect(() => {
     if (testSet) {
       editForm.reset({
@@ -169,8 +147,8 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
     }
   }, [testSet, editForm]);
 
-  const onEditSubmit = (values: EditInterviewTopicFormValues) => {
-    updateInterviewTopicMutation.mutate(
+  const onEditSubmit = (values: EditVocabularySetFormValues) => {
+    updateTestSetMutation.mutate(
       {
         name: values.name,
         description: values.description,
@@ -192,9 +170,20 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
 
   const handleOpenEditQuestion = (q: any) => {
     setEditingQuestion(q);
+    const optionsMap =
+      q.options?.reduce((acc: any, curr: any) => {
+        acc[curr.label] = curr.text;
+        return acc;
+      }, {}) || {};
+
     editQuestionForm.reset({
       questionText: q.questionText || '',
-      correctAnswer: q.correctAnswer || '',
+      pinyin: q.pinyin || '',
+      optionA: optionsMap['A'] || '',
+      optionB: optionsMap['B'] || '',
+      optionC: optionsMap['C'] || '',
+      optionD: optionsMap['D'] || '',
+      correctAnswer: (q.correctAnswer as any) || 'A',
       status: q.status || 'active',
       explanation: q.explanation || '',
     });
@@ -209,7 +198,14 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
         id: editingQuestion._id,
         data: {
           questionText: values.questionText || '',
-
+          pinyin: values.pinyin || '',
+          correctAnswer: values.correctAnswer,
+          options: [
+            { label: 'A', text: values.optionA },
+            { label: 'B', text: values.optionB },
+            { label: 'C', text: values.optionC },
+            { label: 'D', text: values.optionD },
+          ],
           isActive: values.status === 'active',
           explanation: values.explanation || '',
         },
@@ -228,6 +224,7 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
       },
     );
   };
+
   const handleConfirmDeleteQuestion = () => {
     if (!deleteQuestionId) return;
     deleteQuestionMutation.mutate(deleteQuestionId, {
@@ -242,15 +239,15 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
     });
   };
 
-  const handleConfirmDeleteInterviewTopic = () => {
-    deleteInterviewTopicMutation.mutate(id, {
+  const handleConfirmDeleteTestSet = () => {
+    deleteTestSetMutation.mutate(id, {
       onSuccess: () => {
         toast.success('Xóa đề thi thành công!');
         router.push(ROUTES.ADMIN);
       },
       onError: (err: any) => {
         toast.error(err.response?.data?.message || 'Xóa đề thi thất bại.');
-        setIsDeleteInterviewTopicOpen(false);
+        setIsDeleteTestSetOpen(false);
       },
     });
   };
@@ -260,7 +257,7 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-8 animate-fade-in">
         {/* Navigation & Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -275,35 +272,17 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
             <div>
               <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
                 <BookOpen className="h-6 w-6 text-primary" />
-                <span className="text-gradient">Chi Tiết Đề Thi</span>
+                <span className="text-gradient">Chi Tiết Đề Từ Vựng</span>
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Xem cấu trúc đề thi, danh sách câu hỏi và quản lý nội dung.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-4 sm:mt-0">
-            <Button
-              variant="outline"
-              className="gap-2 shadow-sm"
-              onClick={() => setIsAddManualOpen(true)}
-            >
-              <PlusCircle className="h-4 w-4" />
-              Thêm 1 câu
-            </Button>
-            <Button
-              variant="default"
-              className="gap-2 shadow-md shadow-primary/20"
-              onClick={() => setIsAddExcelOpen(true)}
-            >
-              <FileSpreadsheet className="h-4 w-4" />
-              Nhập Excel
-            </Button>
-          </div>
         </div>
 
         {/* Metadata Details Card */}
-        {loadingInterviewTopic ? (
+        {loadingTestSet ? (
           <div className="h-44 bg-secondary/80 animate-pulse rounded-xl" />
         ) : testSet ? (
           <Card className="glass-card gap-0 overflow-hidden relative border-primary/25">
@@ -319,9 +298,16 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
               </div>
 
               <div className="flex items-center gap-2">
-                {/* Edit Metadata Dialog */}
                 <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                  <DialogTrigger className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-input bg-background text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground px-2.5 h-8 text-xs font-semibold transition-all duration-200 cursor-pointer">
+                  <DialogTrigger
+                    render={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs font-semibold gap-1.5"
+                      />
+                    }
+                  >
                     <Edit className="h-3.5 w-3.5" />
                     <span>Chỉnh sửa</span>
                   </DialogTrigger>
@@ -345,7 +331,7 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
                                 </FormLabel>
                                 <FormControl>
                                   <Input
-                                    placeholder="Ví dụ: TOEIC Exam 2026 - Test 1"
+                                    placeholder="Ví dụ: Vocabulary Test 1"
                                     {...field}
                                   />
                                 </FormControl>
@@ -363,7 +349,7 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
                                 </FormLabel>
                                 <FormControl>
                                   <Input
-                                    placeholder="Ví dụ: Đề thi thử kỹ năng đọc Part 5 cấu trúc mới"
+                                    placeholder="Ví dụ: Đề thi thử từ vựng cơ bản"
                                     {...field}
                                   />
                                 </FormControl>
@@ -416,9 +402,9 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
                           </Button>
                           <Button
                             type="submit"
-                            disabled={updateInterviewTopicMutation.isPending}
+                            disabled={updateTestSetMutation.isPending}
                           >
-                            {updateInterviewTopicMutation.isPending
+                            {updateTestSetMutation.isPending
                               ? 'Đang lưu...'
                               : 'Lưu thay đổi'}
                           </Button>
@@ -431,15 +417,13 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => setIsDeleteInterviewTopicOpen(true)}
-                  disabled={deleteInterviewTopicMutation.isPending}
+                  onClick={() => setIsDeleteTestSetOpen(true)}
+                  disabled={deleteTestSetMutation.isPending}
                   className="h-8 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   <span>
-                    {deleteInterviewTopicMutation.isPending
-                      ? 'Đang xóa...'
-                      : 'Xóa đề'}
+                    {deleteTestSetMutation.isPending ? 'Đang xóa...' : 'Xóa đề'}
                   </span>
                 </Button>
               </div>
@@ -454,7 +438,6 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
                     {questions?.length || 0}
                   </span>
                 </div>
-
                 <div className="space-y-1">
                   <span className="text-xs text-muted-foreground uppercase font-bold block">
                     Thời gian tạo
@@ -503,44 +486,23 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
             ))}
           </div>
         ) : questions && questions.length > 0 ? (
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {questions.map((q, index) => (
-              <Card
-                key={q._id}
-                className="flex-row justify-between glass-card overflow-hidden group"
-              >
-                <CardContent className="p-2 space-y-4 flex-1">
-                  <div
-                    className="flex flex-row items-center justify-between mb-0 cursor-pointer select-none"
-                    onClick={() => toggleQuestionExpand(q._id)}
-                  >
-                    {q.questionText && (
-                      <div className="flex items-start gap-2 flex-1 pr-4">
-                        <p className="text-sm font-semibold text-foreground leading-relaxed whitespace-pre-wrap">
-                          {q.questionNumber || index}. {q.questionText}
+              <Card key={q._id} className="glass-card overflow-hidden group">
+                <CardContent className="p-4 space-y-4">
+                  <div className="flex flex-row items-center justify-between mb-0">
+                    <div className="flex items-start gap-2 flex-1 pr-4">
+                      <div>
+                        <p className="text-lg font-bold text-foreground leading-relaxed whitespace-pre-wrap">
+                          {q.questionNumber || index + 1}. {q.questionText}
                         </p>
-                        <button
-                          onClick={e => {
-                            e.stopPropagation();
-                            navigator.clipboard.writeText(q.questionText);
-                            setCopiedId(q._id);
-                            setTimeout(() => setCopiedId(null), 2000);
-                          }}
-                          className={`mt-0.5 p-1 shrink-0 rounded-md transition-all cursor-pointer ${
-                            copiedId === q._id
-                              ? 'text-green-500 bg-green-500/10 opacity-100'
-                              : 'text-muted-foreground hover:text-foreground hover:bg-secondary/80 opacity-0 group-hover:opacity-100'
-                          }`}
-                          title="Sao chép nội dung câu hỏi"
-                        >
-                          {copiedId === q._id ? (
-                            <Check className="h-3.5 w-3.5" />
-                          ) : (
-                            <Copy className="h-3.5 w-3.5" />
-                          )}
-                        </button>
+                        {q.pinyin && (
+                          <p className="text-sm text-muted-foreground">
+                            {q.pinyin}
+                          </p>
+                        )}
                       </div>
-                    )}
+                    </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={e => {
@@ -565,17 +527,26 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
                       </button>
                     </div>
                   </div>
-                  {expandedQuestions.has(q._id) && (
-                    <>
-                      {q.explanation && (
-                        <div className="p-3.5 rounded-lg bg-green-200/35 border border-border/30 text-xs text-foreground leading-relaxed">
-                          <span className="font-extrabold uppercase text-[10px] tracking-wider text-primary block mb-1">
-                            Giải thích chi tiết:
-                          </span>
-                          <p className="whitespace-pre-wrap">{q.explanation}</p>
-                        </div>
-                      )}
-                    </>
+
+                  <div className="grid grid-cols-2 gap-2 mt-4">
+                    {q.options?.map((opt: any) => (
+                      <div
+                        key={opt.label}
+                        className={`p-2 rounded-md border text-sm ${opt.label === q.correctAnswer ? 'bg-emerald-500/10 border-emerald-500/30 font-semibold text-emerald-700 dark:text-emerald-400' : 'bg-secondary/30 border-border/50 text-foreground'}`}
+                      >
+                        <span className="font-bold mr-2">{opt.label}.</span>
+                        {opt.text}
+                      </div>
+                    ))}
+                  </div>
+
+                  {q.explanation && (
+                    <div className="mt-3 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-foreground leading-relaxed">
+                      <span className="font-extrabold uppercase text-[10px] tracking-wider text-blue-600 block mb-1">
+                        Giải thích chi tiết:
+                      </span>
+                      <p className="whitespace-pre-wrap">{q.explanation}</p>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -587,10 +558,6 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
             <h4 className="font-bold text-lg text-foreground">
               Không có câu hỏi nào
             </h4>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Đề thi này hiện tại chưa chứa câu hỏi nào. Nhấp nút phía trên để
-              bắt đầu thêm câu hỏi mới.
-            </p>
           </div>
         )}
       </div>
@@ -600,7 +567,7 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
         open={editQuestionDialogOpen}
         onOpenChange={setEditQuestionDialogOpen}
       >
-        <DialogContent className="sm:max-w-3xl md:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-xl">
+        <DialogContent className="sm:max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-xl">
           <Form {...editQuestionForm}>
             <form
               onSubmit={editQuestionForm.handleSubmit(onEditQuestionSubmit)}
@@ -608,53 +575,130 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
               <DialogHeader>
                 <DialogTitle>Chỉnh Sửa Câu Hỏi</DialogTitle>
                 <DialogDescription>
-                  Cập nhật nội dung câu hỏi và câu trả lời.
+                  Cập nhật nội dung từ vựng và các đáp án.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                <FormField
-                  control={editQuestionForm.control}
-                  name="questionText"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Câu hỏi</FormLabel>
-                      <FormControl>
-                        <textarea
-                          placeholder="Nội dung câu hỏi phỏng vấn..."
-                          className="w-full min-h-[80px] p-3 text-sm rounded-md border border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={editQuestionForm.control}
+                    name="questionText"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Từ vựng (Question)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ví dụ: 儿子" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editQuestionForm.control}
+                    name="pinyin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pinyin (Tùy chọn)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ví dụ: ér zi" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <FormField
+                    control={editQuestionForm.control}
+                    name="optionA"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Đáp án A</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nhập đáp án A..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editQuestionForm.control}
+                    name="optionB"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Đáp án B</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nhập đáp án B..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editQuestionForm.control}
+                    name="optionC"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Đáp án C</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nhập đáp án C..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editQuestionForm.control}
+                    name="optionD"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Đáp án D</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nhập đáp án D..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={editQuestionForm.control}
                   name="correctAnswer"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Câu trả lời mẫu</FormLabel>
-                      <FormControl>
-                        <textarea
-                          placeholder="Câu trả lời gợi ý hoặc barem điểm..."
-                          className="w-full min-h-[120px] p-3 text-sm rounded-md border border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                          {...field}
-                        />
-                      </FormControl>
+                    <FormItem className="mt-4">
+                      <FormLabel>Đáp án đúng</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn đáp án đúng" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="A">Đáp án A</SelectItem>
+                          <SelectItem value="B">Đáp án B</SelectItem>
+                          <SelectItem value="C">Đáp án C</SelectItem>
+                          <SelectItem value="D">Đáp án D</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={editQuestionForm.control}
                   name="explanation"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="mt-4">
                       <FormLabel>Giải thích (Tùy chọn)</FormLabel>
                       <FormControl>
                         <textarea
-                          placeholder="Giải thích thêm cho câu trả lời..."
+                          placeholder="Giải thích thêm cho từ vựng..."
                           className="w-full min-h-[80px] p-3 text-sm rounded-md border border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                           {...field}
                         />
@@ -686,20 +730,6 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
         </DialogContent>
       </Dialog>
 
-      <AddInterviewQuestionDialog
-        isOpen={isAddManualOpen}
-        onClose={() => setIsAddManualOpen(false)}
-        testSetId={id}
-        onSuccess={msg => toast.success(msg)}
-      />
-
-      <ExcelUploadDialog
-        isOpen={isAddExcelOpen}
-        onClose={() => setIsAddExcelOpen(false)}
-        testSetId={id}
-        onSuccess={msg => toast.success(msg)}
-      />
-
       <ConfirmModal
         isOpen={!!deleteQuestionId}
         onClose={() => setDeleteQuestionId(null)}
@@ -711,14 +741,14 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
       />
 
       <ConfirmModal
-        isOpen={isDeleteInterviewTopicOpen}
-        onClose={() => setIsDeleteInterviewTopicOpen(false)}
-        onConfirm={handleConfirmDeleteInterviewTopic}
+        isOpen={isDeleteTestSetOpen}
+        onClose={() => setIsDeleteTestSetOpen(false)}
+        onConfirm={handleConfirmDeleteTestSet}
         title="Xóa Đề Thi"
         description="Bạn có chắc chắn muốn xóa toàn bộ đề thi này? Mọi câu hỏi và kết quả thi liên quan cũng sẽ bị xóa vĩnh viễn!"
         variant="destructive"
-        isLoading={deleteInterviewTopicMutation.isPending}
+        isLoading={deleteTestSetMutation.isPending}
       />
-    </DashboardLayout>
+    </>
   );
 };

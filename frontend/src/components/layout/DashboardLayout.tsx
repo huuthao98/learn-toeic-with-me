@@ -15,7 +15,7 @@ let isAppMounted = false;
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { isAuthenticated, token } = useAuthStore();
-  const isCollapsed = useLayoutStore((state) => state.isCollapsed);
+  const isCollapsed = useLayoutStore(state => state.isCollapsed);
   const [mounted, setMounted] = useState(isAppMounted);
 
   // Ensure state hydration completes before rendering protected pages

@@ -347,11 +347,17 @@ export default function AdminPage() {
                               </span>
                             </div>
                             <Link
-                              href={
-                                true
-                                  ? getAdminTestToeicDetailRoute(set._id)
-                                  : getAdminTestInterviewDetailRoute(set._id)
-                              }
+                              href={(() => {
+                                switch (set.type) {
+                                  case 'toeic':
+                                    return getAdminTestToeicDetailRoute(set._id);
+                                  case 'interview':
+                                    return getAdminTestInterviewDetailRoute(set._id);
+                                  case 'vocabulary':
+                                  default:
+                                    return getAdminTestDetailRoute(set._id);
+                                }
+                              })()}
                               className="text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-colors"
                             >
                               <span>Chi tiết</span>
