@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 
-
 const addInterviewQuestionSchema = z.object({
   questionText: z.string().trim().min(1, 'Vui lòng nhập câu hỏi'),
   correctAnswer: z.string().trim().min(1, 'Vui lòng nhập câu trả lời mẫu'),
@@ -60,6 +59,7 @@ export function AddInterviewQuestionDialog({
         questionText: values.questionText,
         explanation: values.explanation,
         isActive: true,
+        correctAnswer: values.correctAnswer,
       },
       {
         onSuccess: () => {
