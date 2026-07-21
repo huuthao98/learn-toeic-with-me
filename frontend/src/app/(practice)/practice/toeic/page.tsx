@@ -68,15 +68,14 @@ export default function PracticeCatalogPage() {
 
   return (
     <>
-      <div className="space-y-8 pt-32 px-4">
+      <div className="mx-auto space-y-8 pt-32 px-4 sm:px-6 lg:px-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-primary animate-pulse" />
             <span className="text-gradient">Thư Viện Đề Thi TOEIC</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Chọn một đề thi trắc nghiệm để bắt đầu làm bài kiểm tra thử kỹ năng
-            Đọc (Reading).
+            Chọn một đề thi trắc nghiệm để bắt đầu làm bài kiểm tra thử.
           </p>
         </div>
 
@@ -161,8 +160,8 @@ export default function PracticeCatalogPage() {
                           <Link
                             href={
                               set.readingPdfUrl
-                                ? `/practice/toeic/${set._id}`
-                                : `/practice/toeic/${set._id}?autoplay=true`
+                                ? `/exam-toeic/${set._id}`
+                                : `/exam-toeic/${set._id}?autoplay=true`
                             }
                             className="w-full"
                           >

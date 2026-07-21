@@ -51,17 +51,6 @@ export default function PracticeV2Page() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Set default active PDF if one is missing
-  // useEffect(() => {
-  //   if (testSet) {
-  //     if (!testSet.readingPdfUrl && testSet.listeningPdfUrl) {
-  //       setActivePdf('listening');
-  //     } else if (testSet.readingPdfUrl && !testSet.listeningPdfUrl) {
-  //       setActivePdf('reading');
-  //     }
-  //   }
-  // }, [testSet]);
-
   useEffect(() => {
     if (pdfWrapperRef.current) {
       setPdfContainerWidth(pdfWrapperRef.current.clientWidth);
@@ -107,7 +96,7 @@ export default function PracticeV2Page() {
 
     try {
       const res = await toeicApi.submitExam(id, { answers, durationMinutes });
-      router.push(`/practice/english/${id}/results?resultId=${res.resultId}`);
+      router.push(`/exam-toeic/${id}/results?resultId=${res.resultId}`);
     } catch (err) {
       console.error(err);
       toast.error('Có lỗi xảy ra khi nộp bài!');

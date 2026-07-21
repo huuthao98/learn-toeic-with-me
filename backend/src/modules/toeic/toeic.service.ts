@@ -136,7 +136,7 @@ export class ToeicService {
   async findResult(resultId: string) {
     const result = await this.TestResultModel
       .findById(resultId)
-      .populate('testSetId', 'name total_questions parts_count')
+      .populate({ path: 'testSetId', model: 'ToeicSet', select: 'name total_questions parts_count' })
       .exec();
     if (!result) {
       throw new NotFoundException('Test result not found');

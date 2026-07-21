@@ -14,6 +14,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { TeachersSection } from '@/components/feature/TeachersSection';
 
 function Hero() {
   return (
@@ -664,7 +665,7 @@ function Footer() {
   );
 }
 
-export default function PracticePage() {
+export default function HomePage() {
   return (
     <div
       className="w-screen relative left-[50%] -translate-x-1/2 bg-white text-gray-900"
@@ -675,6 +676,7 @@ export default function PracticePage() {
         <Stats />
         <Features />
         <Process />
+        <TeachersSection />
         <Testimonials />
         <CTA />
       </main>

@@ -42,7 +42,7 @@ export default function PracticeInterviewPage() {
 
   return (
     <>
-      <div className="flex flex-col h-[calc(100vh-6rem)] space-y-6 pt-32 px-4">
+      <div className="flex flex-col h-[calc(100vh-6rem)] space-y-6 pt-32 px-4 sm:px-6 lg:px-8 mx-auto">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">

@@ -147,7 +147,7 @@ export default function LoginPage() {
 
         <div className="w-full flex items-center gap-2 relative z-10">
           <Link
-            href={'/practice'}
+            href={ROUTES.HOME}
             className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300"
           >
             Learn Everything

@@ -104,7 +104,7 @@ export default function PracticeV2ResultsPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(ROUTES.PRACTICE)}
+            onClick={() => router.push(ROUTES.PRACTICE_TOEIC)}
             className={'bg-slate-200/50 dark:bg-slate-800/50'}
           >
             <ArrowLeft className="h-5 w-5" />

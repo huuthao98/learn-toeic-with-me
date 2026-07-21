@@ -40,7 +40,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
 
 const editUserSchema = z.object({

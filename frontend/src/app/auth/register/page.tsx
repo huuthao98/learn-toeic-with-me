@@ -195,7 +195,7 @@ export default function RegisterPage() {
         {/* Brand Header */}
         <div className="w-full flex items-center gap-2 relative z-10">
           <Link
-            href={'/practice'}
+            href={ROUTES.HOME}
             className="font-bold text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300"
           >
             Learn-Everything

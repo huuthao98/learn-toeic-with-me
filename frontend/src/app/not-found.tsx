@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { ROUTES } from '@/constants/routes';
 
 export default function NotFound() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function NotFound() {
             Go Back
           </Button>
           <Link
-            href="/practice"
+            href={ROUTES.HOME}
             className={cn(
               buttonVariants({ variant: 'default' }),
               'w-full sm:w-auto rounded-lg h-11 px-8 font-medium',

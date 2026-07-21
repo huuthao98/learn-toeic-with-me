@@ -2,23 +2,39 @@
 
 import { useAuthStore } from '@/store/authStore';
 import { useLayoutStore } from '@/store/layoutStore';
-import { Bell, Search, Sun, Moon, TrendingUp, Menu, PanelLeftClose } from 'lucide-react';
+import {
+  Bell,
+  Search,
+  Sun,
+  Moon,
+  TrendingUp,
+  Menu,
+  PanelLeftClose,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
 
-export function Header() {
+export function DashboardHeader() {
   const { user } = useAuthStore();
   const isCollapsed = useLayoutStore(state => state.isCollapsed);
   const toggleCollapse = useLayoutStore(state => state.toggleCollapse);
-  
+
   const [isDark, setIsDark] = useState(false);
 
-  const { useNotificationsList, useMarkAsReadMutation, useMarkAllAsReadMutation } = useNotifications();
+  const {
+    useNotificationsList,
+    useMarkAsReadMutation,
+    useMarkAllAsReadMutation,
+  } = useNotifications();
   const { data: notificationsData } = useNotificationsList(1, 20);
   const markAsReadMutation = useMarkAsReadMutation();
   const markAllAsReadMutation = useMarkAllAsReadMutation();
@@ -122,9 +138,9 @@ export function Header() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <span className="text-sm font-bold">Thông báo</span>
               {unreadCount > 0 && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={handleMarkAllAsRead}
                   className="h-auto p-0 text-xs text-primary hover:text-primary hover:bg-transparent"
                 >
@@ -141,13 +157,18 @@ export function Header() {
               ) : (
                 <div className="flex flex-col">
                   {notifications.map((notification: any) => (
-                    <div 
+                    <div
                       key={notification._id}
                       className={`p-4 border-b border-border/50 cursor-pointer hover:bg-muted/50 transition-colors ${!notification.isRead ? 'bg-primary/5' : ''}`}
-                      onClick={() => !notification.isRead && handleMarkAsRead(notification._id)}
+                      onClick={() =>
+                        !notification.isRead &&
+                        handleMarkAsRead(notification._id)
+                      }
                     >
                       <div className="flex justify-between items-start mb-1">
-                        <span className={`text-sm ${!notification.isRead ? 'font-bold' : 'font-medium text-foreground'}`}>
+                        <span
+                          className={`text-sm ${!notification.isRead ? 'font-bold' : 'font-medium text-foreground'}`}
+                        >
                           {notification.title}
                         </span>
                         {!notification.isRead && (
@@ -158,7 +179,9 @@ export function Header() {
                         {notification.body}
                       </p>
                       <span className="text-[10px] text-muted-foreground mt-2 block">
-                        {new Date(notification.createdAt).toLocaleString('vi-VN')}
+                        {new Date(notification.createdAt).toLocaleString(
+                          'vi-VN',
+                        )}
                       </span>
                     </div>
                   ))}

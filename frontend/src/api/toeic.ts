@@ -79,7 +79,7 @@ export const toeicApi = {
     return response.data
   },
   updateTestSet: async (id: string, data: { name?: string; description?: string; audioUrl?: string; status?: string; readingPdfUrl?: string; listeningPdfUrl?: string; topics?: string[] }) => {
-    const response = await api.patch<ToeicSet>(`/toeic/admin/${id}`, data)
+    const response = await api.patch<ToeicSet>(`/toeic/admin/${id}/submit`, data)
     return response.data
   },
   deleteTestSet: async (id: string) => {

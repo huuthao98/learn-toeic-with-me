@@ -6,7 +6,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useLayoutStore } from '@/store/layoutStore';
 import { Sidebar } from './Sidebar';
-import { Header } from './Header';
+import { DashboardHeader } from './DashboardHeader';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/constants/routes';
 
@@ -54,7 +54,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           isCollapsed ? 'pl-16' : 'pl-64',
         )}
       >
-        <Header />
+        <DashboardHeader />
         <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto animate-fade-in">
           {children}
         </main>

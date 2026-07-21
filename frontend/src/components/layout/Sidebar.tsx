@@ -5,13 +5,11 @@ import {
   Users,
   LogOut,
   BookOpen,
-  ChevronLeft,
   ShieldCheck,
   ChevronRight,
   ChevronDown,
   LayoutDashboard,
   ChevronsUpDown,
-  CircleDashed,
   Sparkles,
   BadgeCheck,
   CreditCard,
@@ -61,19 +59,18 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
       items: [
         {
           name: 'Dashboard',
-          href: '/dashboard',
+          href: ROUTES.DASHBOARD,
           icon: LayoutDashboard,
           roles: ['user', 'admin'],
         },
         {
           name: 'Luyện Tập',
-          href: '/practice',
           icon: BookOpen,
           roles: ['user', 'admin'],
           children: [
             {
               name: 'Thi Thử TOEIC',
-              href: ROUTES.PRACTICE,
+              href: ROUTES.PRACTICE_TOEIC,
               roles: ['user', 'admin'],
             },
             {
@@ -95,58 +92,57 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
       items: [
         {
           name: 'Tạo Đề Thi',
-          href: '/admin/create-test',
+          href: ROUTES.ADMIN_CREATE_TEST,
           icon: FilePlus,
           roles: ['admin'],
           children: [
             {
               name: 'Tạo Bài Trắc Nghiệm',
-              href: '/admin/create-test',
+              href: ROUTES.ADMIN_CREATE_TEST,
               roles: ['admin'],
             },
             {
               name: 'Tạo Bài Phỏng Vấn',
-              href: '/admin/create-interview-test',
+              href: ROUTES.ADMIN_CREATE_INTERVIEW_TEST,
               roles: ['admin'],
             },
             {
               name: 'Tạo Đề Thi Toeic',
-              href: '/admin/create-test-toeic',
+              href: ROUTES.ADMIN_CREATE_TEST_V2,
               roles: ['admin'],
             },
           ],
         },
         {
-          name: 'Quản Lý Đề Thi',
-          href: '/admin',
+          name: 'Quản Lý',
           icon: ShieldCheck,
           roles: ['admin'],
           children: [
             {
               name: 'Quản Lý Đề',
-              href: '/admin',
+              href: ROUTES.ADMIN,
               roles: ['admin'],
             },
             {
               name: 'Quản Lý Media',
-              href: '/admin/media',
+              href: ROUTES.ADMIN_MEDIA,
               roles: ['admin'],
             },
             {
               name: 'Quản Lý Chủ Đề',
-              href: '/admin/topics',
+              href: ROUTES.ADMIN_TOPICS,
               roles: ['admin'],
             },
             {
               name: 'Quản Lý Thông Báo',
-              href: '/admin/notifications',
+              href: ROUTES.ADMIN_NOTIFICATIONS,
               roles: ['admin'],
             },
           ],
         },
         {
           name: 'Quản lý Người Dùng',
-          href: '/user',
+          href: ROUTES.ADMIN_USERS,
           icon: Users,
           roles: ['admin'],
         },
@@ -157,7 +153,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
       items: [
         {
           name: 'Trang Cá Nhân',
-          href: '/profile',
+          href: ROUTES.PROFILE,
           icon: User,
           roles: ['user', 'admin'],
         },
@@ -182,14 +178,14 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
       >
         {!isCollapsed ? (
           <Link
-            href={ROUTES.DASHBOARD}
+            href={ROUTES.HOME}
             className="flex items-center gap-2 font-bold text-xl tracking-tight animate-fade-in"
           >
             <span className="text-sidebar-primary">learnEverything</span>
           </Link>
         ) : (
           <Link
-            href={ROUTES.DASHBOARD}
+            href={ROUTES.HOME}
             className="flex items-center justify-center animate-fade-in font-black text-xl text-sidebar-primary"
           >
             lE
@@ -198,7 +194,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
       </div>
 
       {/* Navigation Items */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-4 space-y-6">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-3 py-4 space-y-6">
         {navGroups.map((group, groupIdx) => {
           // Filter items based on role
           const filteredItems = group.items.filter(item =>

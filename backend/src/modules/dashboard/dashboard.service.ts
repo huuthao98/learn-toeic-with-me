@@ -90,7 +90,11 @@ export class DashboardService {
     const data = await this.testResultModel
       .find({ userId: new Types.ObjectId(userId) })
       .select('score listeningScore readingScore durationMinutes createdAt status testSetId')
-      .populate('testSetId', 'name total_questions parts_count')
+      .populate({
+        path: 'testSetId',
+        model: 'ToeicSet',
+        select: 'name total_questions parts_count'
+      })
       .sort({ createdAt: -1 })
       .limit(5)
       .exec();
