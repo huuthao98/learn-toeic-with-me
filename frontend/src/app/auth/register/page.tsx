@@ -189,14 +189,17 @@ export default function RegisterPage() {
       {/* Brand Column (Left) */}
       <div className="items-center hidden lg:flex lg:col-span-6 xl:col-span-7 bg-slate-900 text-white min-h-screen flex-col justify-between p-12 relative overflow-hidden">
         {/* Background Gradients */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.25),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(13,148,136,0.15),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.25),transparent_50%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(13,148,136,0.15),transparent_50%)] pointer-events-none" />
 
         {/* Brand Header */}
-        <div className="w-full flex items-center gap-2 ">
-          <span className="font-bold text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300">
+        <div className="w-full flex items-center gap-2 relative z-10">
+          <Link
+            href={'/practice'}
+            className="font-bold text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300"
+          >
             Learn-Everything
-          </span>
+          </Link>
         </div>
 
         {/* Feature Presentation */}
@@ -356,7 +359,7 @@ export default function RegisterPage() {
                     <div className="relative">
                       <KeyRound className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         className="pl-9 pr-9"
                         disabled={registerMutation.isPending}
@@ -533,7 +536,7 @@ export default function RegisterPage() {
             </Tabs>
           </CardContent>
 
-          <CardFooter className="text-center justify-center">
+          <CardFooter className="text-center justify-center bg-white">
             <div className="text-sm text-muted-foreground">
               Đã có tài khoản?{' '}
               <Link

@@ -31,8 +31,8 @@ export default function PracticeInterviewPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
-              <Bot className="h-8 w-8 text-indigo-500 animate-bounce" />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
+              <Bot className="h-8 w-8 text-[#0F2356] animate-bounce" />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#C8982A] to-[#D4AF37]">
                 Luyện tập Phỏng vấn AI
               </span>
             </h1>
@@ -56,11 +56,11 @@ export default function PracticeInterviewPage() {
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-slate-800 to-slate-950">
                 {/* Simulated AI Avatar */}
                 <div className="relative">
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-[0_0_40px_rgba(99,102,241,0.4)]">
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-[#0F2356] to-[#1a3882] flex items-center justify-center shadow-[0_0_40px_rgba(15,35,86,0.4)]">
                     <Bot className="w-16 h-16 text-white" />
                   </div>
                   {/* Speaking indicator */}
-                  <div className="absolute -inset-4 border-2 border-indigo-500/50 rounded-full animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
+                  <div className="absolute -inset-4 border-2 border-[#0F2356]/50 rounded-full animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
                 </div>
                 <h3 className="text-white mt-6 font-medium text-lg">
                   Sarah - AI HR Manager
@@ -120,7 +120,7 @@ export default function PracticeInterviewPage() {
               </Button>
               <Button
                 variant={isRecording ? 'destructive' : 'default'}
-                className={`rounded-full px-8 h-12 gap-2 font-bold transition-all ${isRecording ? 'animate-pulse bg-red-500 hover:bg-red-600' : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700'}`}
+                className={`rounded-full px-8 h-12 gap-2 font-bold transition-all ${isRecording ? 'animate-pulse bg-red-500 hover:bg-red-600' : 'bg-[#C8982A] hover:bg-[#b08524]'}`}
                 onClick={toggleRecording}
               >
                 {isRecording ? (

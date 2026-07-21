@@ -16,6 +16,7 @@ import {
   BadgeCheck,
   CreditCard,
   Bell,
+  FilePlus,
 } from 'lucide-react';
 import Link from 'next/link';
 import { HTMLAttributes, useState, useEffect } from 'react';
@@ -93,9 +94,9 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
       title: 'Quản Trị',
       items: [
         {
-          name: 'Quản Lý Đề Thi',
-          href: '/admin',
-          icon: ShieldCheck,
+          name: 'Tạo Đề Thi',
+          href: '/admin/create-test',
+          icon: FilePlus,
           roles: ['admin'],
           children: [
             {
@@ -113,6 +114,14 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
               href: '/admin/create-test-toeic',
               roles: ['admin'],
             },
+          ],
+        },
+        {
+          name: 'Quản Lý Đề Thi',
+          href: '/admin',
+          icon: ShieldCheck,
+          roles: ['admin'],
+          children: [
             {
               name: 'Quản Lý Đề',
               href: '/admin',
@@ -136,7 +145,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
           ],
         },
         {
-          name: 'Quản lý người dùng',
+          name: 'Quản lý Người Dùng',
           href: '/user',
           icon: Users,
           roles: ['admin'],
@@ -246,7 +255,11 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
                                   : 'text-sidebar-foreground/70 group-hover:text-sidebar-accent-foreground',
                               )}
                             />
-                            {!isCollapsed && <span>{item.name}</span>}
+                            {!isCollapsed && (
+                              <span className="font-medium text-gray">
+                                {item.name}
+                              </span>
+                            )}
                           </div>
                           {!isCollapsed &&
                             (isExpanded ? (
@@ -283,7 +296,11 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
                                 : 'text-sidebar-foreground/70 group-hover:text-sidebar-accent-foreground',
                             )}
                           />
-                          {!isCollapsed && <span>{item.name}</span>}
+                          {!isCollapsed && (
+                            <span className="font-medium text-gray">
+                              {item.name}
+                            </span>
+                          )}
 
                           {/* Tooltip for collapsed state */}
                           {isCollapsed && (
@@ -322,7 +339,9 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
                                     {child.icon && (
                                       <child.icon className="h-4 w-4 shrink-0 opacity-70" />
                                     )}
-                                    <span>{child.name}</span>
+                                    <span className="font-medium text-gray">
+                                      {child.name}
+                                    </span>
                                   </Link>
                                 );
                               })}

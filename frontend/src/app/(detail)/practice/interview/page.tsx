@@ -42,12 +42,12 @@ export default function PracticeInterviewPage() {
 
   return (
     <>
-      <div className="flex flex-col h-[calc(100vh-6rem)] space-y-6">
+      <div className="flex flex-col h-[calc(100vh-6rem)] space-y-6 pt-32 px-4">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
-            <Bot className="h-8 w-8 text-indigo-500 animate-bounce" />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
+            <Bot className="h-8 w-8 text-[#0F2356] animate-bounce" />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#C8982A] to-[#D4AF37]">
               Luyện tập phỏng vấn
             </span>
           </h1>

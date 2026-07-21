@@ -260,7 +260,7 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-8 animate-fade-in">
         {/* Navigation & Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -729,6 +729,6 @@ export const AdminTestInterviewDetail = ({ id }: { id: string }) => {
         variant="destructive"
         isLoading={deleteInterviewTopicMutation.isPending}
       />
-    </DashboardLayout>
+    </>
   );
 };

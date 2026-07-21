@@ -118,7 +118,7 @@ export function NotificationPreferencesCard() {
             Đang tải danh sách chủ đề...
           </div>
         ) : topics && topics.length > 0 ? (
-          <div className="flex flex-wrap gap-2 p-4 bg-secondary/30 rounded-xl border border-border/30">
+          <div className="flex flex-col gap-2 p-4 bg-secondary/30 rounded-xl border border-border/30">
             {topics.map((topic: any) => {
               const isSelected = selectedTopics.includes(topic.code);
               return (

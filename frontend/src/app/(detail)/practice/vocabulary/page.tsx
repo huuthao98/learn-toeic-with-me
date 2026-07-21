@@ -156,13 +156,13 @@ export default function VocabularyPracticePage() {
 
   if (!selectedCategory) {
     return (
-      <div className="max-w-3xl mx-auto space-y-8">
+      <div className="max-w-3xl mx-auto space-y-8 pt-32">
         <div className="text-center md:text-left">
           <h1 className="text-4xl font-extrabold tracking-tight flex items-center justify-center md:justify-start gap-3 mb-4">
             <div className="p-3 bg-primary/10 rounded-2xl">
               <Languages className="h-8 w-8 text-primary animate-pulse" />
             </div>
-            <span className="bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#C8982A] to-[#D4AF37] bg-clip-text text-transparent">
               Luyện Tập Từ Vựng
             </span>
           </h1>
@@ -229,7 +229,7 @@ export default function VocabularyPracticePage() {
       ].find(l => l.id === selectedCategory)?.label || 'Ngôn ngữ';
 
     return (
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-8 pt-32 px-4">
         <div className="text-center md:text-left flex flex-col md:items-start gap-4">
           <Button
             variant="ghost"
@@ -246,7 +246,7 @@ export default function VocabularyPracticePage() {
               <div className="p-3 bg-primary/10 rounded-2xl">
                 <Layers className="h-8 w-8 text-primary" />
               </div>
-              <span className="bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#C8982A] to-[#D4AF37] bg-clip-text text-transparent">
                 Chọn Bộ Từ Vựng
               </span>
             </h1>
@@ -308,7 +308,7 @@ export default function VocabularyPracticePage() {
 
   return (
     <>
-      <div className="max-w-3xl mx-auto space-y-8">
+      <div className="max-w-3xl mx-auto space-y-8 pt-32">
         <div className="text-center md:text-left flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
             <Button
@@ -321,18 +321,14 @@ export default function VocabularyPracticePage() {
             >
               <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại chọn bộ đề
             </Button>
-            <h1 className="text-4xl font-extrabold tracking-tight flex items-center justify-center md:justify-start gap-3">
+            {/* <h1 className="text-4xl font-extrabold tracking-tight flex items-center justify-center md:justify-start gap-3">
               <div className="p-3 bg-primary/10 rounded-2xl">
                 <Languages className="h-8 w-8 text-primary animate-pulse" />
               </div>
-              <span className="bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#C8982A] to-[#D4AF37] bg-clip-text text-transparent">
                 {activeTestSet?.name || 'Luyện Tập Từ Vựng'}
               </span>
-            </h1>
-            <p className="text-base text-muted-foreground mt-2 max-w-xl">
-              {activeTestSet?.description ||
-                'Nâng cao vốn từ vựng của bạn mỗi ngày. Trả lời nhanh, học thông minh và theo dõi tiến độ.'}
-            </p>
+            </h1> */}
           </div>
 
           <div className="bg-secondary/40 backdrop-blur-sm px-4 py-2 rounded-full border border-border/50 text-sm font-medium mt-12 md:mt-0">
@@ -361,7 +357,7 @@ export default function VocabularyPracticePage() {
                 {/* Progress bar */}
                 <div className="absolute -top-4 left-0 right-0 h-1.5 bg-secondary/50 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-500 ease-out"
+                    className="h-full bg-gradient-to-r from-[#0F2356] to-[#1a3882] transition-all duration-500 ease-out"
                     style={{
                       width: `${(currentIndex / (activeTestSet?.totalQuestions || 1)) * 100}%`,
                     }}

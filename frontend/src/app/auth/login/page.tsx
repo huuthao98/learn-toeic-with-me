@@ -142,13 +142,16 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center lg:grid lg:grid-cols-12 overflow-hidden px-4 sm:px-0">
       {/* Brand Column (Left) */}
       <div className="hidden lg:flex lg:col-span-6 xl:col-span-7 bg-slate-900 text-white items-center min-h-screen w-full flex-col justify-between p-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.25),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(13,148,136,0.15),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.25),transparent_50%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(13,148,136,0.15),transparent_50%)] pointer-events-none" />
 
-        <div className="w-full flex items-center gap-2">
-          <span className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300">
+        <div className="w-full flex items-center gap-2 relative z-10">
+          <Link
+            href={'/practice'}
+            className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300"
+          >
             Learn Everything
-          </span>
+          </Link>
         </div>
 
         <div className="max-w-md my-auto">
@@ -272,7 +275,7 @@ export default function LoginPage() {
                         <label className="text-xs font-semibold text-muted-foreground uppercase">
                           Địa chỉ Email
                         </label>
-                        <div className="relative">
+                        <div className="relative m-2">
                           <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="email"
@@ -301,10 +304,10 @@ export default function LoginPage() {
                             Quên mật khẩu?
                           </Link>
                         </div>
-                        <div className="relative">
+                        <div className="relative m-2">
                           <KeyRound className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input
-                            type={showPassword ? "text" : "password"}
+                            type={showPassword ? 'text' : 'password'}
                             placeholder="••••••••"
                             className="pl-9 pr-9"
                             disabled={loginMutation.isPending}
@@ -422,8 +425,8 @@ export default function LoginPage() {
             </Tabs>
           </CardContent>
 
-          <CardFooter className="flex flex-col gap-4 text-center">
-            <div className="text-sm text-muted-foreground">
+          <CardFooter className="flex flex-col gap-4 text-center bg-white">
+            <div className="text-sm">
               Chưa có tài khoản?{' '}
               <Link
                 href={ROUTES.REGISTER}

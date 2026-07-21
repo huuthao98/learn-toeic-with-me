@@ -68,8 +68,7 @@ export default function PracticeCatalogPage() {
 
   return (
     <>
-      <div className="space-y-8">
-        {/* Title Heading */}
+      <div className="space-y-8 pt-32 px-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-primary animate-pulse" />
@@ -81,7 +80,6 @@ export default function PracticeCatalogPage() {
           </p>
         </div>
 
-        {/* Catalog Content */}
         {loadingTests || loadingHistory ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map(i => (
@@ -96,7 +94,7 @@ export default function PracticeCatalogPage() {
             {Object.entries(groupedExams).map(([groupName, exams]) => (
               <div key={groupName} className="space-y-4">
                 {/* Group Heading */}
-                <h3 className="text-lg font-bold flex items-center gap-2 text-indigo-900 dark:text-indigo-200">
+                <h3 className="text-lg font-bold flex items-center gap-2 text-[#0F2356] dark:text-[#C8982A]">
                   <ClipboardList className="h-5 w-5 text-primary shrink-0" />
                   <span>{groupName}</span>
                 </h3>
@@ -114,7 +112,7 @@ export default function PracticeCatalogPage() {
                         className="glass-card flex flex-col justify-between overflow-hidden relative group"
                       >
                         {/* Glowing highlight border on hover */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#C8982A] to-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity" />
 
                         <CardHeader className="pb-3">
                           <div className="flex justify-between items-start gap-2 mb-2">

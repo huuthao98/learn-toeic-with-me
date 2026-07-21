@@ -44,10 +44,12 @@ export const vocabularyApi = {
     const response = await api.get<VocabularySet[]>(`/vocabulary${queryString}`)
     return response.data
   },
+  
   fetchTestSet: async (id: string) => {
     const response = await api.get<VocabularySet>(`/vocabulary/${id}`)
     return response.data
   },
+
   fetchTestQuestions: async (id: string) => {
     const response = await api.get<any[]>(`/vocabulary/${id}/questions`)
     return response.data
@@ -77,7 +79,7 @@ export const vocabularyApi = {
     const response = await api.get<VocabularyQuestion[]>(url)
     return response.data
   },
-  updateTestSet: async (id: string, data: { name?: string; description?: string; audioUrl?: string; status?: string; category?: string; topics?: string[] }) => {
+  updateTestSet: async (id: string, data: { name?: string; description?: string; status?: string; category?: string; topics?: string[] }) => {
     const response = await api.patch<VocabularySet>(`/vocabulary/admin/${id}`, data)
     return response.data
   },
