@@ -10,6 +10,10 @@ import {
   ShieldCheck,
   ExternalLink,
   FileSpreadsheet,
+  BookOpen,
+  Target,
+  Sparkles,
+  GraduationCap,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useMemo } from 'react';
@@ -41,8 +45,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 import { useToeic } from '@/hooks/useToeic';
 import { useVocabulary } from '@/hooks/useVocabulary';
@@ -53,6 +57,7 @@ import {
   getAdminTestToeicDetailRoute,
   getAdminTestDetailRoute,
   getAdminTestInterviewDetailRoute,
+  getAdminDetailPracticeRoute,
 } from '@/constants/routes';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { toast } from 'sonner';
@@ -62,6 +67,7 @@ const editToeicSetSchema = z.object({
   name: z.string().trim().min(1, 'Tên đề thi không được để trống'),
   description: z.string(),
   status: z.enum(['draft', 'public', 'private']).optional(),
+  type: z.enum(['practice', 'exam']).optional(),
 });
 
 type EditToeicSetFormValues = z.infer<typeof editToeicSetSchema>;
@@ -103,14 +109,36 @@ export default function AdminPage() {
 
   const allTestSets = useMemo(() => {
     return [
-      ...(toeicSets || []).map((set: any) => ({ ...set, type: 'toeic' })),
-      ...(vocabSets || []).map((set: any) => ({ ...set, type: 'vocabulary' })),
+      ...(toeicSets || []).map((set: any) => ({
+        ...set,
+        category: 'toeic',
+      })),
+      ...(vocabSets || []).map((set: any) => ({
+        ...set,
+        category: 'vocabulary',
+      })),
       ...(interviewSets || []).map((set: any) => ({
         ...set,
-        type: 'interview',
+        category: 'interview',
       })),
     ];
   }, [toeicSets, vocabSets, interviewSets]);
+
+  const groupedSets = useMemo(() => {
+    const categories: Record<string, any[]> = {
+      toeic: [],
+      vocabulary: [],
+      interview: [],
+    };
+
+    allTestSets.forEach(set => {
+      const cat = set.category || 'other';
+      if (!categories[cat]) categories[cat] = [];
+      categories[cat].push(set);
+    });
+
+    return categories;
+  }, [allTestSets]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<
@@ -133,16 +161,18 @@ export default function AdminPage() {
       name: '',
       description: '',
       status: 'draft',
+      type: 'practice',
     },
   });
 
   const handleOpenEditModal = (set: any) => {
     setSelectedId(set._id);
-    setSelectedType(set.type);
+    setSelectedType(set.category);
     editForm.reset({
       name: set.name,
       description: set.description || '',
       status: (set.status as 'draft' | 'public' | 'private') || 'draft',
+      type: (set.type as 'practice' | 'exam') || 'practice',
     });
     setEditModalOpen(true);
   };
@@ -187,32 +217,58 @@ export default function AdminPage() {
     return null;
   }
 
+  const categoryMeta: Record<
+    string,
+    { title: string; icon: any; color: string; desc: string }
+  > = {
+    toeic: {
+      title: 'Đề Thi TOEIC',
+      icon: GraduationCap,
+      color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+      desc: 'Quản lý bài thi đọc, nghe và cấu trúc TOEIC',
+    },
+    vocabulary: {
+      title: 'Bộ Đề Từ Vựng',
+      icon: BookOpen,
+      color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
+      desc: 'Quản lý các bộ từ vựng luyện tập theo chủ đề',
+    },
+    interview: {
+      title: 'Đề Thi Phỏng Vấn (Speaking)',
+      icon: Mic,
+      color: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+      desc: 'Quản lý đề thi nói và thu âm trực tiếp',
+    },
+  };
+
   return (
     <>
-      <div className="space-y-8">
+      <div className="space-y-10">
         {/* Title greeting */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-primary/5 via-secondary/10 to-background p-6 rounded-2xl border border-border/40 shadow-xs">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
-              <ShieldCheck className="h-7 w-7 text-primary" />
-              <span className="text-gradient">Cổng Quản Trị</span>
+            <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2.5">
+              <ShieldCheck className="h-8 w-8 text-primary" />
+              <span className="text-gradient">Cổng Quản Trị Hệ Thống</span>
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Quản lý danh sách các đề thi thử.
+            <p className="text-sm text-muted-foreground mt-1.5">
+              Quản lý, chỉnh sửa và khởi tạo bộ đề thi TOEIC, Từ vựng và Phỏng
+              vấn.
             </p>
           </div>
 
           <Button
             onClick={() => setCreateModalOpen(true)}
-            className="font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 flex items-center gap-2"
+            size="lg"
+            className="font-bold shadow-md shadow-primary/20 hover:shadow-primary/30 rounded-xl flex items-center gap-2 cursor-pointer"
           >
-            <PlusCircle className="h-4 w-4" />
+            <PlusCircle className="h-5 w-5" />
             <span>Tạo đề thi mới</span>
           </Button>
         </div>
 
-        {/* Test Sets Grid Layout */}
-        <div className="space-y-4">
+        {/* Test Sets Overview List */}
+        <div className="space-y-8">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold flex items-center gap-2 text-foreground">
               <Layers className="h-5 w-5 text-indigo-500" />
@@ -221,97 +277,129 @@ export default function AdminPage() {
           </div>
 
           {loadingTests ? (
-            <div className="flex flex-wrap gap-8 items-start">
-              {[1, 2, 3].map(i => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map(i => (
                 <div
                   key={i}
-                  className="flex-1 min-w-[320px] flex flex-col gap-4"
-                >
-                  <div className="h-8 bg-secondary/60 animate-pulse rounded w-1/3" />
-                  <div className="h-44 bg-secondary/60 animate-pulse rounded-2xl" />
-                </div>
+                  className="h-48 bg-secondary/40 animate-pulse rounded-2xl border border-border/40"
+                />
               ))}
             </div>
           ) : allTestSets && allTestSets.length > 0 ? (
-            <div className="flex flex-wrap gap-8 items-start">
-              {(() => {
-                const groupedSets = allTestSets.reduce(
-                  (acc, set) => {
-                    const type = set.type || 'other';
-                    if (!acc[type]) acc[type] = [];
-                    acc[type].push(set);
-                    return acc;
-                  },
-                  {} as Record<string, typeof allTestSets>,
-                );
+            <div className="space-y-10">
+              {['toeic', 'vocabulary', 'interview'].map(catKey => {
+                const sets = groupedSets[catKey] || [];
+                if (sets.length === 0) return null;
 
-                const testTypes = Object.keys(groupedSets).sort();
+                const meta = categoryMeta[catKey] || {
+                  title: catKey.toUpperCase(),
+                  icon: Layers,
+                  color: 'text-primary bg-primary/10 border-primary/20',
+                  desc: '',
+                };
+                const IconComp = meta.icon;
 
-                return testTypes.map(type => (
-                  <div
-                    key={type}
-                    className="flex-1 min-w-[400px] max-w-[500px] flex flex-col gap-4"
-                  >
-                    <div className="flex items-center gap-2 border-b border-border/50 pb-2">
-                      <h3 className="font-bold text-base uppercase text-muted-foreground tracking-wider">
-                        {type === 'other' ? 'Khác' : type}
-                      </h3>
-                      <span className="bg-secondary/50 text-secondary-foreground text-xs font-semibold px-2 py-0.5 rounded-full">
-                        {groupedSets[type].length}
-                      </span>
+                return (
+                  <div key={catKey} className="space-y-4">
+                    {/* Category Header */}
+                    <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-xl border ${meta.color}`}>
+                          <IconComp className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg text-foreground">
+                            {meta.title}
+                          </h3>
+                          <p className="text-xs text-muted-foreground">
+                            {meta.desc}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className="font-bold text-xs px-3 py-1 rounded-full"
+                      >
+                        {sets.length} bộ đề
+                      </Badge>
                     </div>
 
-                    <div className="flex flex-col gap-4">
-                      {groupedSets[type].map((set: any) => (
-                        <div
-                          key={set._id}
-                          className="group relative flex flex-col glass-card border border-border/40 hover:border-indigo-400/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300"
-                        >
-                          <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              onClick={() => handleOpenEditModal(set)}
-                              className="p-2 text-indigo-600 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-full transition-colors cursor-pointer"
-                              title="Chỉnh sửa đề thi"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setSelectedId(set._id);
-                                setSelectedType(set.type);
-                                setDeleteModalOpen(true);
-                              }}
-                              disabled={
-                                deleteToeicSetMutation.isPending ||
-                                deleteVocabSetMutation.isPending ||
-                                deleteInterviewSetMutation.isPending
-                              }
-                              className="p-2 text-destructive bg-destructive/10 hover:bg-destructive/20 rounded-full transition-colors cursor-pointer"
-                              title="Xóa đề thi"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 border border-indigo-500/20">
-                              <Layers className="h-6 w-6" />
+                    {/* Responsive Grid of Test Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sets.map((set: any) => {
+                        return (
+                          <div
+                            key={set._id}
+                            className="group relative flex flex-col bg-card/90 backdrop-blur-md border border-border/50 hover:border-primary/50 rounded-2xl p-5 shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                          >
+                            {/* Action Buttons (Edit / Delete) */}
+                            <div className="absolute top-4 right-4 flex items-center gap-1.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all z-10">
+                              <button
+                                onClick={() => handleOpenEditModal(set)}
+                                className="p-2 text-indigo-600 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-full transition-colors cursor-pointer"
+                                title="Chỉnh sửa đề thi"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedId(set._id);
+                                  setSelectedType(set.category);
+                                  setDeleteModalOpen(true);
+                                }}
+                                disabled={
+                                  deleteToeicSetMutation.isPending ||
+                                  deleteVocabSetMutation.isPending ||
+                                  deleteInterviewSetMutation.isPending
+                                }
+                                className="p-2 text-destructive bg-destructive/10 hover:bg-destructive/20 rounded-full transition-colors cursor-pointer"
+                                title="Xóa đề thi"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
                             </div>
-                            <div className="flex-1 min-w-0 pr-8">
-                              <h3
-                                className="font-bold text-base truncate text-foreground leading-tight mb-1"
+
+                            {/* Card Header: Title & Badges */}
+                            <div className="flex flex-col gap-2 mb-3 pr-14">
+                              <h4
+                                className="font-bold text-lg text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors"
                                 title={set.name}
                               >
                                 {set.name}
-                              </h3>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              </h4>
+
+                              <div className="flex flex-wrap items-center gap-2 text-xs">
+                                {/* Practice vs Exam Type Badge for TOEIC */}
+                                {set.category === 'toeic' && (
+                                  <span
+                                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold shadow-2xs ${
+                                      set.type === 'exam'
+                                        ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20'
+                                        : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                                    }`}
+                                  >
+                                    {set.type === 'exam' ? (
+                                      <>
+                                        <Sparkles className="w-3 h-3" /> Thi thử
+                                        (Exam)
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Target className="w-3 h-3" /> Luyện tập
+                                        (Practice)
+                                      </>
+                                    )}
+                                  </span>
+                                )}
+
+                                {/* Status Badge */}
                                 <span
-                                  className={`px-2 py-0.5 rounded-full font-semibold ${
+                                  className={`px-2.5 py-0.5 rounded-full font-semibold ${
                                     set.status === 'public'
-                                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
                                       : set.status === 'private'
-                                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                                        : 'bg-secondary text-secondary-foreground'
+                                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                                        : 'bg-secondary text-secondary-foreground border border-border/40'
                                   }`}
                                 >
                                   {set.status === 'public'
@@ -320,56 +408,62 @@ export default function AdminPage() {
                                       ? 'Nội bộ'
                                       : 'Nháp'}
                                 </span>
-                                <span>•</span>
-                                <span>
-                                  {new Date(set.createdAt).toLocaleDateString(
-                                    'vi-VN',
-                                  )}
-                                </span>
                               </div>
                             </div>
-                          </div>
 
-                          <div className="flex-1 mt-2">
-                            <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">
-                              {set.description ||
-                                'Không có mô tả cho đề thi này.'}
-                            </p>
-                          </div>
-
-                          <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">
-                                Số Câu Hỏi
-                              </span>
-                              <span className="font-bold text-sm text-foreground">
-                                {set.totalQuestions} câu
-                              </span>
+                            {/* Description */}
+                            <div className="flex-1 mt-1 mb-4">
+                              <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px] leading-relaxed">
+                                {set.description ||
+                                  'Không có mô tả chi tiết cho bộ đề thi này.'}
+                              </p>
                             </div>
-                            <Link
-                              href={(() => {
-                                switch (set.type) {
-                                  case 'toeic':
-                                    return getAdminTestToeicDetailRoute(set._id);
-                                  case 'interview':
-                                    return getAdminTestInterviewDetailRoute(set._id);
-                                  case 'vocabulary':
-                                  default:
-                                    return getAdminTestDetailRoute(set._id);
-                                }
-                              })()}
-                              className="text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-colors"
-                            >
-                              <span>Chi tiết</span>
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </Link>
+
+                            {/* Footer: Question Count & Details Button */}
+                            <div className="mt-auto pt-4 border-t border-border/40 flex items-center justify-between">
+                              <div className="flex flex-col">
+                                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">
+                                  Số câu hỏi
+                                </span>
+                                <span className="font-extrabold text-sm text-foreground">
+                                  {set.totalQuestions || 0} câu
+                                </span>
+                              </div>
+
+                              <Link
+                                href={(() => {
+                                  switch (set.category) {
+                                    case 'toeic':
+                                      if (set.type === 'exam') {
+                                        return getAdminTestToeicDetailRoute(
+                                          set._id,
+                                        );
+                                      }
+                                      return getAdminDetailPracticeRoute(
+                                        set._id,
+                                      );
+                                    case 'interview':
+                                      return getAdminTestInterviewDetailRoute(
+                                        set._id,
+                                      );
+                                    case 'vocabulary':
+                                    default:
+                                      return getAdminTestDetailRoute(set._id);
+                                  }
+                                })()}
+                                className="text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-2xs hover:shadow-xs"
+                              >
+                                <span>Chi tiết</span>
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </Link>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
-                ));
-              })()}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-20 border-2 border-dashed border-border rounded-2xl bg-secondary/15 flex flex-col items-center justify-center">
@@ -397,6 +491,8 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
@@ -417,15 +513,17 @@ export default function AdminPage() {
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
         <DialogContent
           showCloseButton={false}
-          className="bg-background/80 backdrop-blur-md border-b border-border/40 sm:max-w-2xl"
+          className="bg-background/95 backdrop-blur-md border border-border/40 sm:max-w-2xl"
         >
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(onEditSubmit)}>
-              <DialogHeader className="flex flex-row items-center justify-between">
+              <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/40">
                 <div>
-                  <DialogTitle>Chỉnh Sửa Thông Tin Đề Thi</DialogTitle>
-                  <DialogDescription>
-                    Cập nhật tiêu đề, trạng thái và mô tả của bộ đề thi.
+                  <DialogTitle className="text-xl font-bold">
+                    Chỉnh Sửa Thông Tin Đề Thi
+                  </DialogTitle>
+                  <DialogDescription className="text-sm">
+                    Cập nhật tiêu đề, chế độ và trạng thái của bộ đề thi.
                   </DialogDescription>
                 </div>
 
@@ -433,12 +531,14 @@ export default function AdminPage() {
                   <Button
                     type="button"
                     variant="ghost"
+                    size="sm"
                     onClick={() => setEditModalOpen(false)}
                   >
                     Hủy
                   </Button>
                   <Button
                     type="submit"
+                    size="sm"
                     disabled={
                       updateToeicSetMutation.isPending ||
                       !editForm.formState.isDirty
@@ -452,18 +552,18 @@ export default function AdminPage() {
               </DialogHeader>
 
               <div className="space-y-4 py-4 px-1">
-                <div className="flex gap-6">
+                <div className="flex gap-4">
                   <FormField
                     control={editForm.control}
                     name="name"
                     render={({ field }) => (
-                      <FormItem className="space-y-1.5 w-full">
+                      <FormItem className="space-y-1.5 flex-1">
                         <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
                           Tên Đề Thi
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Ví dụ: TOEIC Exam 2026 - Test 1"
+                            placeholder="Ví dụ: Practice TOEIC 1"
                             {...field}
                           />
                         </FormControl>
@@ -471,11 +571,46 @@ export default function AdminPage() {
                       </FormItem>
                     )}
                   />
+
+                  {/* Mode select for TOEIC sets */}
+                  {selectedType === 'toeic' && (
+                    <FormField
+                      control={editForm.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1.5 w-40">
+                          <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                            Chế độ đề
+                          </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value || 'practice'}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Chọn chế độ" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="practice">
+                                Luyện tập (Practice)
+                              </SelectItem>
+                              <SelectItem value="exam">
+                                Thi thử (Exam)
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
                   <FormField
                     control={editForm.control}
                     name="status"
                     render={({ field }) => (
-                      <FormItem className="space-y-1.5 w-[25%]">
+                      <FormItem className="space-y-1.5 w-36">
                         <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
                           Trạng thái
                         </FormLabel>
@@ -499,6 +634,7 @@ export default function AdminPage() {
                     )}
                   />
                 </div>
+
                 <FormField
                   control={editForm.control}
                   name="description"
@@ -557,10 +693,7 @@ export default function AdminPage() {
               </div>
             </Link>
 
-            <Link
-              // href={ROUTES.ADMIN_CREATE_TEST} onClick={() => setCreateModalOpen(false)}
-              href={''}
-            >
+            <Link href={''}>
               <div className="disabled flex items-start gap-4 p-5 rounded-xl border-2 border-border/50 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all cursor-pointer group">
                 <div className="p-3.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm">
                   <FileText className="h-7 w-7" />

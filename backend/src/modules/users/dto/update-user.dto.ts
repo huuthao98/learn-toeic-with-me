@@ -1,5 +1,4 @@
-import { PartialType } from '@nestjs/swagger';
-import { IsOptional, IsString, IsNumber } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsArray } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -11,9 +10,9 @@ export class UpdateUserDto {
   role?: string;
 
   @IsOptional()
-  @IsString()
-  plan?: string;
-
+  @IsArray()
+  vipPackages?: any[];
+  
   @IsOptional()
   @IsNumber()
   targetScore?: number;

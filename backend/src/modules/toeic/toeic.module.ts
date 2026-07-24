@@ -7,8 +7,8 @@ import { TestResult, TestResultSchema } from '../dashboard/schemas/test-result.s
 import { ToeicQuestion, ToeicQuestionSchema } from './schemas/toeic-question.schema';
 import { UserStreak, UserStreakSchema } from '../dashboard/schemas/user-streak.schema';
 
+import { UsersModule } from '../users/users.module';
 import { NotificationsModule } from '../notifications/notifications.module';
-
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -17,6 +17,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       { name: ToeicQuestion.name, schema: ToeicQuestionSchema },
       { name: UserStreak.name, schema: UserStreakSchema },
     ]),
+    UsersModule,
     NotificationsModule,
   ],
   controllers: [ToeicController],

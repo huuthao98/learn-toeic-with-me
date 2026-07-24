@@ -18,7 +18,7 @@ import {
   ApiPropertyOptional,
 } from '@nestjs/swagger';
 import { VocabularyService } from './vocabulary.service';
-import { JwtAuthGuard, AdminGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard, AdminGuard, OptionalJwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 import { SubmitVocabularyDto } from './dto/submit-vocabulary.dto';
 import { CreateVocabularySetDto } from './dto/create-vocabulary-set.dto';
@@ -30,19 +30,19 @@ export class VocabularyController {
   constructor(private readonly VocabularyService: VocabularyService) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all test sets' })
-  findAll(@Query('category') category?: string, @Query('status') status?: string) {
-    return this.VocabularyService.findAll(status, category);
+  findAll(@Request() req: any, @Query('category') category?: string, @Query('status') status?: string) {
+    return this.VocabularyService.findAll(status, category, req.user);
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get test set metadata by ID' })
-  findOne(@Param('id') id: string) {
-    return this.VocabularyService.findOne(id);
+  findOne(@Request() req: any, @Param('id') id: string) {
+    return this.VocabularyService.findOne(id, req.user);
   }
 
   @Get('results/:resultId')
@@ -54,17 +54,18 @@ export class VocabularyController {
   }
 
   @Get(':id/questions')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get questions belonging to a test set' })
   findQuestions(
+    @Request() req: any,
     @Param('id') id: string,
     @Query('skip') skip?: string,
     @Query('limit') limit?: string,
   ) {
     const skipNum = skip ? parseInt(skip, 10) : 0;
     const limitNum = limit ? parseInt(limit, 10) : 0;
-    return this.VocabularyService.findQuestions(id, skipNum, limitNum);
+    return this.VocabularyService.findQuestions(id, req.user, skipNum, limitNum);
   }
 
   @Post('admin/:id/questions/bulk-upsert')
@@ -79,11 +80,21 @@ export class VocabularyController {
   }
 
   @Post(':id/submit')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Submit answers for a test set' })
   submitExam(@Request() req: any, @Param('id') id: string, @Body() dto: SubmitVocabularyDto) {
-    return this.VocabularyService.submitExam(req.user.sub, id, dto.answers, dto.durationMinutes);
+    return this.VocabularyService.submitExam(
+      req.user, 
+      id, 
+      dto.answers, 
+      dto.durationMinutes,
+      dto.timePerQuestion,
+      dto.isTest,
+      dto.isReview,
+      dto.isTestOut,
+      dto.isRescueStreak
+    );
   }
 
   @Post('admin/create')

@@ -1,7 +1,6 @@
 'use client';
 
 import { Bell } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { NotificationTable } from '@/components/feature/admin/notifications/NotificationTable';
 import { useAdminNotifications } from '@/hooks/useAdminNotifications';
 import { useState } from 'react';
@@ -29,9 +28,13 @@ export default function AdminNotificationsPage() {
         </div>
 
         {isLoading ? (
-          <div className="text-center py-12 text-muted-foreground">Đang tải dữ liệu...</div>
+          <div className="text-center py-12 text-muted-foreground">
+            Đang tải dữ liệu...
+          </div>
         ) : isError ? (
-          <div className="text-center py-12 text-destructive">Lỗi khi tải dữ liệu. Vui lòng thử lại.</div>
+          <div className="text-center py-12 text-destructive">
+            Lỗi khi tải dữ liệu. Vui lòng thử lại.
+          </div>
         ) : (
           <NotificationTable campaigns={data?.data || []} />
         )}

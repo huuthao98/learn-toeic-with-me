@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useToeic, ToeicSet } from '@/hooks/useToeic';
 import { useDashboard } from '@/hooks/useDashboard';
 import {
@@ -28,10 +28,11 @@ export default function PracticeCatalogPage() {
 
   const { data: ToeicSets, isLoading: loadingTests } = useTestSets(
     'public',
-    'exam',
+    'practice',
   );
   const { data: recentTests, isLoading: loadingHistory } = useRecentTests();
 
+  const [mode, setMode] = useState<'practice' | 'exam'>('practice');
   // Track completed test IDs
   const completedTestIds = useMemo(() => {
     if (!recentTests) return new Set<string>();
@@ -71,12 +72,35 @@ export default function PracticeCatalogPage() {
 
   return (
     <>
-      <div className="mx-auto space-y-8 pt-32 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto space-y-8 px-4 sm:px-6 lg:px-8">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary animate-pulse" />
-            <span className="text-gradient">Thư Viện Đề Thi TOEIC</span>
-          </h1>
+          <div className="flex justify-between w-full">
+            <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
+              <BookOpen className="h-6 w-6 text-primary animate-pulse" />
+              <span className="text-gradient">Thư Viện Đề Thi TOEIC</span>
+            </h1>
+            {/* <div className="flex flex-col items-center md:items-end gap-2 shrink-0 self-center md:self-auto mt-4 md:mt-0">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Chế độ làm bài
+              </span>
+              <div className="bg-secondary/80 backdrop-blur-md p-1.5 rounded-2xl border border-border/60 flex shadow-inner">
+                <button
+                  onClick={() => setMode('practice')}
+                  className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 ${mode === 'practice' ? 'bg-background shadow-md text-primary scale-[1.02] border border-border/50' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'}`}
+                >
+                  <Target className="w-4 h-4" />
+                  Luyện tập
+                </button>
+                <button
+                  onClick={() => setMode('exam')}
+                  className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 ${mode === 'exam' ? 'bg-background shadow-md text-primary scale-[1.02] border border-border/50' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'}`}
+                >
+                  <Timer className="w-4 h-4" />
+                  Thi thử
+                </button>
+              </div>
+            </div> */}
+          </div>
           <p className="text-sm text-muted-foreground mt-1">
             Chọn một đề thi trắc nghiệm để bắt đầu làm bài kiểm tra thử.
           </p>
@@ -163,8 +187,8 @@ export default function PracticeCatalogPage() {
                           <Link
                             href={
                               set.readingPdfUrl
-                                ? `/exam-toeic/${set._id}`
-                                : `/exam-toeic/${set._id}?autoplay=true`
+                                ? `/practice-exam-toeic/${set._id}`
+                                : `/practice-exam-toeic/${set._id}?autoplay=true`
                             }
                             className="w-full"
                           >

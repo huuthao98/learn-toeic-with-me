@@ -35,7 +35,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 import { toeicApi } from '@/api/toeic';
 import { useAuthStore } from '@/store/authStore';
@@ -54,6 +53,7 @@ const testSetSchema = z.object({
   listeningPdfUrl: z.string().optional(),
   notifyUsers: z.string().optional(),
   topicsString: z.string().optional(),
+  type: z.enum(['practice', 'exam']),
 });
 
 type TestSetFormValues = z.infer<typeof testSetSchema>;
@@ -110,18 +110,44 @@ export default function CreateTestToeicPage() {
       listeningPdfUrl: '',
       notifyUsers: 'false',
       topicsString: '',
+      type: 'practice',
     },
   });
 
-  const handleExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setExcelFile(file);
 
+    if (file.name.toLowerCase().endsWith('.json')) {
+      const reader = new FileReader();
+      reader.onload = evt => {
+        try {
+          const jsonStr = evt.target?.result as string;
+          const data = JSON.parse(jsonStr);
+          if (data && Array.isArray(data.questions)) {
+            const questionsToUpsert = data.questions.filter(
+              (q: any) => !isNaN(parseInt(q.questionNumber, 10)),
+            );
+            setParsedQuestions(questionsToUpsert);
+            toast.success(
+              `Đã tải file JSON thành công (${questionsToUpsert.length} câu).`,
+            );
+          } else {
+            toast.error('File JSON không hợp lệ (thiếu mảng questions).');
+          }
+        } catch (err) {
+          toast.error('Lỗi khi đọc file JSON.');
+        }
+      };
+      reader.readAsText(file);
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = evt => {
-      const bstr = evt.target?.result;
-      const wb = XLSX.read(bstr, { type: 'binary' });
+      const arrayBuffer = evt.target?.result;
+      const wb = XLSX.read(arrayBuffer, { type: 'array' });
       const wsname =
         wb.SheetNames.find(name => !name.toLowerCase().includes('hướng dẫn')) ||
         wb.SheetNames[0];
@@ -139,15 +165,48 @@ export default function CreateTestToeicPage() {
             return k ? row[k] : undefined;
           };
 
-          const qNumRaw = getVal(['Số thứ tự', 'question number']);
+          const qNumRaw = getVal([
+            'Số thứ tự',
+            'question number',
+            'question_no',
+          ]);
           const partRaw = getVal(['part', 'phần']);
-          const answerRaw = getVal(['correct answer', 'đáp án đúng', 'đáp án']);
+          const answerRaw = getVal([
+            'correct answer',
+            'đáp án đúng',
+            'đáp án',
+            'answer',
+          ]);
           const explanationRaw = getVal(['explanation', 'giải thích']);
+
+          const setNoRaw = getVal(['set_no']);
+          const passageTypeRaw = getVal(['passage_type']);
+          const passageLabelRaw = getVal(['passage_label']);
+          const passageContextRaw = getVal(['passage_context']);
+          const questionTextRaw = getVal(['question_text']);
+          const blankPositionRaw = getVal(['blank_position']);
+          const questionTypeRaw = getVal(['question_type']);
+          const noteRaw = getVal(['note']);
+
+          const choiceARaw = getVal(['choice_a']);
+          const choiceBRaw = getVal(['choice_b']);
+          const choiceCRaw = getVal(['choice_c']);
+          const choiceDRaw = getVal(['choice_d']);
 
           const qNum = parseInt(String(qNumRaw), 10);
           const part = String(partRaw).replace(/\D/g, '');
 
-          return {
+          const options: { label: string; text: string }[] = [];
+          if (choiceARaw !== undefined && choiceARaw !== '')
+            options.push({ label: 'A', text: String(choiceARaw) });
+          if (choiceBRaw !== undefined && choiceBRaw !== '')
+            options.push({ label: 'B', text: String(choiceBRaw) });
+          if (choiceCRaw !== undefined && choiceCRaw !== '')
+            options.push({ label: 'C', text: String(choiceCRaw) });
+          if (choiceDRaw !== undefined && choiceDRaw !== '')
+            options.push({ label: 'D', text: String(choiceDRaw) });
+
+          const questionObj: any = {
             questionNumber: qNum,
             part: part,
             correctAnswer: String(answerRaw || '')
@@ -155,6 +214,29 @@ export default function CreateTestToeicPage() {
               .toUpperCase(),
             explanation: String(explanationRaw || ''),
           };
+
+          if (setNoRaw !== undefined && setNoRaw !== '')
+            questionObj.setId = String(setNoRaw);
+          if (passageTypeRaw !== undefined && passageTypeRaw !== '')
+            questionObj.passageType = String(passageTypeRaw);
+          if (passageLabelRaw !== undefined && passageLabelRaw !== '')
+            questionObj.passageLabel = String(passageLabelRaw);
+          if (passageContextRaw !== undefined && passageContextRaw !== '')
+            questionObj.passageContext = String(passageContextRaw);
+          if (questionTextRaw !== undefined && questionTextRaw !== '')
+            questionObj.questionText = String(questionTextRaw);
+          if (blankPositionRaw !== undefined && blankPositionRaw !== '')
+            questionObj.blankPosition = String(blankPositionRaw);
+          if (questionTypeRaw !== undefined && questionTypeRaw !== '')
+            questionObj.questionType = String(questionTypeRaw);
+          if (noteRaw !== undefined && noteRaw !== '')
+            questionObj.note = String(noteRaw);
+
+          if (options.length > 0) {
+            questionObj.options = options;
+          }
+
+          return questionObj;
         })
         .filter(q => !isNaN(q.questionNumber));
 
@@ -163,13 +245,13 @@ export default function CreateTestToeicPage() {
         `Đã tải file Excel thành công (${questionsToUpsert.length} câu).`,
       );
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
   };
 
   const onSubmit = async (values: TestSetFormValues) => {
     if (!excelFile || parsedQuestions.length === 0) {
       toast.error(
-        'Vui lòng tải lên File Excel đáp án hợp lệ (ít nhất cần có câu hỏi để tạo bộ đề).',
+        'Vui lòng tải lên File Excel / JSON đáp án hợp lệ (ít nhất cần có câu hỏi để tạo bộ đề).',
       );
       return;
     }
@@ -257,16 +339,42 @@ export default function CreateTestToeicPage() {
                 <CardTitle>Thông tin chung & Files</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 py-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={testSetForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tên đề thi *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="TOEIC Test 2026 V2" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex gap-4 items-center">
                   <FormField
                     control={testSetForm.control}
-                    name="name"
+                    name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tên đề thi *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="TOEIC Test 2026 V2" {...field} />
-                        </FormControl>
+                        <FormLabel>Type</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn trạng thái" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="practice">
+                              Luyện tập (Practice)
+                            </SelectItem>
+                            <SelectItem value="exam">Thi thử (Exam)</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -302,6 +410,8 @@ export default function CreateTestToeicPage() {
                       </FormItem>
                     )}
                   />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={testSetForm.control}
                     name="topicsString"
@@ -489,16 +599,18 @@ export default function CreateTestToeicPage() {
                   />
 
                   <div className="space-y-2 md:col-span-2">
-                    <FormLabel>File Excel Đáp Án & Giải Thích *</FormLabel>
+                    <FormLabel>
+                      File Excel / JSON Đáp Án & Giải Thích *
+                    </FormLabel>
                     <Input
                       type="file"
-                      accept=".xlsx,.xls"
-                      onChange={handleExcelUpload}
+                      accept=".xlsx,.xls,.json"
+                      onChange={handleFileUpload}
                     />
                     {parsedQuestions.length > 0 && (
                       <p className="text-sm text-emerald-600 font-medium">
                         ✓ Đã đọc được {parsedQuestions.length} câu hỏi từ file
-                        Excel.
+                        tải lên.
                       </p>
                     )}
                   </div>

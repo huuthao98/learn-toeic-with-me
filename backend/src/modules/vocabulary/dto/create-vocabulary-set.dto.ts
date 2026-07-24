@@ -16,6 +16,11 @@ export class CreateVocabularySetDto {
   @IsOptional()
   status?: string;
 
+  @ApiPropertyOptional({ example: 'external', enum: ['external', 'vip0', 'vip1', 'vip2', 'vip3'] })
+  @IsString()
+  @IsOptional()
+  accessLevel?: string;
+
   @ApiPropertyOptional({ example: 'english' })
   @IsString()
   @IsOptional()

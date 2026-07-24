@@ -18,7 +18,7 @@ import {
   ApiPropertyOptional,
 } from '@nestjs/swagger';
 import { ToeicService } from './toeic.service';
-import { JwtAuthGuard, AdminGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard, AdminGuard, OptionalJwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 import { SubmitToeicDto } from './dto/submit-toeic.dto';
 import { CreateToeicSetDto } from './dto/create-toeic-set.dto';
@@ -33,8 +33,8 @@ export class ToeicController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all test sets' })
-  findAll(@Query('status') status?: string) {
-    return this.ToeicService.findAll(status);
+  findAll(@Query('status') status?: string, @Query('type') type?: string) {
+    return this.ToeicService.findAll(status, type);
   }
 
   @Get(':id')
@@ -78,12 +78,33 @@ export class ToeicController {
     return this.ToeicService.upsertBulkQuestions(id, dto.questions);
   }
 
+  @Patch('admin/questions/:questionId')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a question by ID (Admin)' })
+  updateQuestion(
+    @Param('questionId') questionId: string,
+    @Body() dto: any,
+  ) {
+    return this.ToeicService.updateQuestion(questionId, dto);
+  }
+
+  @Delete('admin/questions/:questionId')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a question by ID (Admin)' })
+  deleteQuestion(
+    @Param('questionId') questionId: string,
+  ) {
+    return this.ToeicService.deleteQuestion(questionId);
+  }
+
   @Post(':id/submit')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Submit answers for a test set' })
   submitExam(@Request() req: any, @Param('id') id: string, @Body() dto: SubmitToeicDto) {
-    return this.ToeicService.submitExam(req.user.sub, id, dto.answers, dto.durationMinutes);
+    return this.ToeicService.submitExam(req.user, id, dto.answers, dto.durationMinutes, dto.timePerQuestion, dto.isTest);
   }
 
   @Post('admin/create')

@@ -1,5 +1,5 @@
 'use client';
-
+import { toast } from 'sonner';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -25,15 +25,38 @@ export default function PracticeV2ResultsPage() {
   const { id } = useParams() as { id: string };
   const searchParams = useSearchParams();
   const resultId = searchParams.get('resultId');
+  const localResultId = searchParams.get('localResultId');
   const router = useRouter();
 
   const { useTestSet, useTestQuestions, useTestResult } = useToeic();
   const { data: testSet, isLoading: isTestLoading } = useTestSet(id);
   const { data: questions, isLoading: isQuestionsLoading } =
     useTestQuestions(id);
-  const { data: resultData, isLoading: isResultLoading } = useTestResult(
-    resultId || '',
-  );
+
+  // If localResultId exists, we don't fetch from server.
+  const { data: serverResultData, isLoading: isServerResultLoading } =
+    useTestResult(resultId || '');
+
+  const [localResultData, setLocalResultData] = useState<any>(null);
+
+  useEffect(() => {
+    if (localResultId) {
+      const stored = sessionStorage.getItem(localResultId);
+      if (stored) {
+        setLocalResultData(JSON.parse(stored));
+      } else {
+        toast.error('Không tìm thấy kết quả làm bài!');
+        router.push(ROUTES.EXAM_TOEIC);
+      }
+    }
+  }, [localResultId, router]);
+
+  const resultData = localResultId ? localResultData : serverResultData;
+  const isResultLoading = resultId
+    ? isServerResultLoading
+    : localResultId
+      ? !localResultData
+      : false;
 
   // PDF Viewer states
   const [activePdf, setActivePdf] = useState<'reading' | 'listening'>(

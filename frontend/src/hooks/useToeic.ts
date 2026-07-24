@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
-import { toeicApi } from '@/api/toeic';
+import { toeicApi, ToeicQuestion } from '@/api/toeic';
 
 export type { ToeicSet, ToeicQuestion, CreateToeicQuestionData } from '@/api/toeic';
 
@@ -8,25 +8,25 @@ export const useToeic = () => {
   const queryClient = useQueryClient();
   const token = useAuthStore(state => state.token);
 
-  const useTestSets = (status?: string) =>
+  const useTestSets = (status?: string, type?: string) =>
     useQuery({
-      queryKey: ['toeic-tests', status],
-      queryFn: () => toeicApi.fetchTestSets(status),
-      enabled: !!token,
+      queryKey: ['toeic-tests', status, type],
+      queryFn: () => toeicApi.fetchTestSets(status, type),
+      enabled: true,
     });
 
   const useTestSet = (id: string) =>
     useQuery({
       queryKey: ['toeic-test', id],
       queryFn: () => toeicApi.fetchTestSet(id),
-      enabled: !!token && !!id,
+      enabled: !!id,
     });
 
   const useTestQuestions = (id: string) =>
     useQuery({
       queryKey: ['toeic-test-questions', id],
       queryFn: () => toeicApi.fetchQuestions(id),
-      enabled: !!token && !!id,
+      enabled: !!id,
     });
 
   const useUpsertBulkQuestionsMutation = () =>
@@ -49,6 +49,8 @@ export const useToeic = () => {
       mutationFn: (data: {
         answers: { [questionId: string]: string };
         durationMinutes?: number;
+        timePerQuestion?: number[];
+        isTest?: boolean;
       }) => toeicApi.submitExam(id, data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
@@ -74,6 +76,7 @@ export const useToeic = () => {
         status?: string;
         readingPdfUrl?: string;
         listeningPdfUrl?: string;
+        type?: string;
       }) => toeicApi.updateTestSet(id, data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['toeic-tests'] });
@@ -89,6 +92,32 @@ export const useToeic = () => {
       },
     });
 
+  const useUpdateQuestionMutation = (testSetId: string) =>
+    useMutation({
+      mutationFn: ({
+        questionId,
+        data,
+      }: {
+        questionId: string;
+        data: Partial<ToeicQuestion>;
+      }) => toeicApi.updateQuestion(questionId, data),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['toeic-test-questions', testSetId],
+        });
+      },
+    });
+
+  const useDeleteQuestionMutation = (testSetId: string) =>
+    useMutation({
+      mutationFn: (questionId: string) => toeicApi.deleteQuestion(questionId),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['toeic-test-questions', testSetId],
+        });
+      },
+    });
+
   return {
     useTestSets,
     useTestSet,
@@ -99,5 +128,7 @@ export const useToeic = () => {
     useCreateTestSetMutation,
     useUpdateTestSetMutation,
     useDeleteTestSetMutation,
+    useUpdateQuestionMutation,
+    useDeleteQuestionMutation,
   };
 };

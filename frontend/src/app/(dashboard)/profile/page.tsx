@@ -36,11 +36,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToeic } from '@/hooks/useToeic';
+import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { useDashboard } from '@/hooks/useDashboard';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { ROUTES } from '@/constants/routes';
 import { NotificationPreferencesCard } from '@/components/feature/profile/NotificationPreferencesCard';
 
 export default function ProfilePage() {

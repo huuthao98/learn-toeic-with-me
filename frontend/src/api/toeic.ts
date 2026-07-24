@@ -12,8 +12,11 @@ export interface ToeicQuestion {
   explanation?: string;
   audioUrl?: string;
   imageUrl?: string;
-  passageText?: string;
-  groupId?: string;
+  passageContext?: string;
+  passageType?: string;
+  setId?: number;
+  blankPosition?: string;
+  note?: string;
   status: string;
 }
 
@@ -25,6 +28,17 @@ export interface CreateToeicQuestionData {
   isActive?: boolean;
   part: string;
   options?: { label: string; text: string }[];
+  passageContext?: string;
+  passageType?: string;
+  setId?: number;
+  blankPosition?: string;
+  note?: string;
+  questionType?: string;
+}
+
+export enum ToeicSetType {
+  PRACTICE = 'practice',
+  EXAM = 'exam',
 }
 
 export interface ToeicSet {
@@ -38,13 +52,20 @@ export interface ToeicSet {
   totalQuestions: number
   listeningPdfUrl?: string
   topics?: string[]
+  type: ToeicSetType
 }
 
 export const toeicApi = {
-  fetchTestSets: async (status?: string) => {
+  fetchTestSets: async (status?: string, type?: string) => {
     let query = ""
     if (status) {
       query = `?status=${status}`
+    }
+    if (type) {
+      query = `?type=${type}`
+    }
+    if (status && type) {
+      query = `?status=${status}&type=${type}`
     }
     const response = await api.get<ToeicSet[]>(`/toeic${query}`)
     return response.data
@@ -62,7 +83,7 @@ export const toeicApi = {
     const response = await api.get<any>(`/toeic/results/${resultId}`)
     return response.data
   },
-  submitExam: async (id: string, data: { answers: { [questionId: string]: string }; durationMinutes?: number }) => {
+  submitExam: async (id: string, data: { answers: { [questionId: string]: string }; durationMinutes?: number, timePerQuestion?: number[], isTest?: boolean }) => {
     const response = await api.post(`/toeic/${id}/submit`, data)
     return response.data
   },
@@ -78,12 +99,20 @@ export const toeicApi = {
     const response = await api.get<ToeicQuestion[]>(`/toeic/${testSetId}/questions`)
     return response.data
   },
-  updateTestSet: async (id: string, data: { name?: string; description?: string; audioUrl?: string; status?: string; readingPdfUrl?: string; listeningPdfUrl?: string; topics?: string[] }) => {
-    const response = await api.patch<ToeicSet>(`/toeic/admin/${id}/submit`, data)
+  updateTestSet: async (id: string, data: { name?: string; description?: string; audioUrl?: string; status?: string; readingPdfUrl?: string; listeningPdfUrl?: string; topics?: string[]; type?: string }) => {
+    const response = await api.patch<ToeicSet>(`/toeic/admin/${id}`, data)
     return response.data
   },
   deleteTestSet: async (id: string) => {
     const response = await api.delete<any>(`/toeic/admin/${id}`)
+    return response.data
+  },
+  updateQuestion: async (questionId: string, data: Partial<ToeicQuestion>) => {
+    const response = await api.patch<ToeicQuestion>(`/toeic/admin/questions/${questionId}`, data)
+    return response.data
+  },
+  deleteQuestion: async (questionId: string) => {
+    const response = await api.delete<any>(`/toeic/admin/questions/${questionId}`)
     return response.data
   },
 }

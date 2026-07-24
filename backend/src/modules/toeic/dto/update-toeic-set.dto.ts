@@ -44,4 +44,8 @@ export class UpdateToeicSetDto {
   @ApiPropertyOptional({ type: [String], example: ['english', 'toeic'] })
   @IsOptional()
   topics?: string[];
+
+  @ApiPropertyOptional({ example: 'exam', enum: ['practice', 'exam'] })
+  @IsString()
+  type: string;
 }

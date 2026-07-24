@@ -166,33 +166,58 @@ export const AdminTestToeicDetail = ({ id }: { id: string }) => {
           const getVal = (searchKeys: string[]) => {
             const k = Object.keys(row).find(key =>
               searchKeys.some(sk =>
-                key.toLowerCase().includes(sk.toLowerCase()),
+                key.toLowerCase().trim() === sk.toLowerCase().trim() || key.toLowerCase().includes(sk.toLowerCase()),
               ),
             );
             return k ? row[k] : undefined;
           };
 
-          const qNumRaw = getVal(['Số thứ tự', 'question number']);
           const partRaw = getVal(['part', 'phần']);
-          const ansRaw = getVal(['correct answer', 'đáp án đúng']);
+          const setNoRaw = getVal(['set_no', 'set no']);
+          const passageTypeRaw = getVal(['passage_type', 'passage type']);
+          const passageContextRaw = getVal(['passage_context', 'passage context']);
+          const qNumRaw = getVal(['question_no', 'question no', 'số thứ tự', 'question number']);
+          const qTextRaw = getVal(['question_text', 'question text']);
+          const blankPosRaw = getVal(['blank_position', 'blank position']);
+          const qTypeRaw = getVal(['question_type', 'question type']);
+          const choiceA = getVal(['choice_a', 'choice a']);
+          const choiceB = getVal(['choice_b', 'choice b']);
+          const choiceC = getVal(['choice_c', 'choice c']);
+          const choiceD = getVal(['choice_d', 'choice d']);
+          const ansRaw = getVal(['answer', 'correct answer', 'đáp án đúng']);
           const expRaw = getVal(['explanation', 'giải thích']);
+          const noteRaw = getVal(['note', 'ghi chú']);
 
           const qNum = parseInt(String(qNumRaw), 10);
-          const part = String(partRaw).trim();
+          const part = String(partRaw || '').trim();
+
+          const options = [];
+          if (choiceA !== undefined) options.push({ label: 'A', text: String(choiceA) });
+          if (choiceB !== undefined) options.push({ label: 'B', text: String(choiceB) });
+          if (choiceC !== undefined) options.push({ label: 'C', text: String(choiceC) });
+          if (choiceD !== undefined) options.push({ label: 'D', text: String(choiceD) });
 
           return {
             questionNumber: qNum,
             part: part,
-            correctAnswer: String(ansRaw).toUpperCase().trim(),
+            correctAnswer: String(ansRaw || '').toUpperCase().trim(),
             explanation: expRaw || '',
             isActive: true,
+            passageContext: passageContextRaw || '',
+            passageType: passageTypeRaw || '',
+            setId: setNoRaw ? parseInt(String(setNoRaw), 10) : undefined,
+            blankPosition: blankPosRaw ? String(blankPosRaw) : '',
+            note: noteRaw || '',
+            questionType: qTypeRaw || '',
+            questionText: qTextRaw || '',
+            options: options.length > 0 ? options : undefined
           };
         })
         .filter(
           q =>
             !isNaN(q.questionNumber) &&
             q.correctAnswer &&
-            q.correctAnswer !== 'UNDEFINED',
+            q.correctAnswer !== 'UNDEFINED' && q.correctAnswer !== '',
         );
 
       if (questionsToUpsert.length === 0) {

@@ -5,6 +5,13 @@ import { AuthGuard } from '@nestjs/passport';
 export class JwtAuthGuard extends AuthGuard('jwt') {}
 
 @Injectable()
+export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
+  handleRequest(err: any, user: any, info: any) {
+    return user || null;
+  }
+}
+
+@Injectable()
 export class AdminGuard extends AuthGuard('jwt') {
   canActivate(context: ExecutionContext) {
     const result = super.canActivate(context);

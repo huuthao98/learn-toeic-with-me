@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Play, Pause, ChevronLeft, Maximize2, Minimize2 } from 'lucide-react';
+import { Play, Pause, Maximize2, Minimize2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useToeic } from '@/hooks/useToeic';
@@ -140,6 +140,28 @@ export default function PracticeV2Page() {
   const currentPdfUrl =
     activePdf === 'reading' ? testSet.readingPdfUrl : testSet.listeningPdfUrl;
 
+  // const toggleUI = (
+  //   <div className="flex items-center p-1 rounded-xl bg-secondary/40 border border-border/50">
+  //     <Button
+  //       variant="ghost"
+  //       size="sm"
+  //       className="rounded-lg"
+  //       onClick={() => router.push(`/practice-exam-toeic/${id}`)}
+  //     >
+  //       <LayoutList className="w-4 h-4 mr-2" />
+  //       Tương tác
+  //     </Button>
+  //     <Button
+  //       variant="default"
+  //       size="sm"
+  //       className="rounded-lg shadow-sm"
+  //     >
+  //       <FileText className="w-4 h-4 mr-2" />
+  //       PDF
+  //     </Button>
+  //   </div>
+  // );
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
       <div className="flex-1 border-r bg-slate-200/50 dark:bg-slate-800/50 flex flex-col relative">
@@ -147,25 +169,29 @@ export default function PracticeV2Page() {
         {(testSet.readingPdfUrl || testSet.listeningPdfUrl) && (
           <>
             <div className="flex p-2 gap-2 bg-white dark:bg-slate-900 border-b shrink-0 z-10 justify-between items-center">
-              <div className="flex gap-2">
-                {testSet.listeningPdfUrl && (
-                  <Button
-                    variant={activePdf === 'listening' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setActivePdf('listening')}
-                  >
-                    Listening PDF
-                  </Button>
-                )}
-                {testSet.readingPdfUrl && (
-                  <Button
-                    variant={activePdf === 'reading' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setActivePdf('reading')}
-                  >
-                    Reading PDF
-                  </Button>
-                )}
+              <div className="flex items-center gap-4">
+                <div className="flex gap-2">
+                  {testSet.listeningPdfUrl && (
+                    <Button
+                      variant={
+                        activePdf === 'listening' ? 'default' : 'outline'
+                      }
+                      size="sm"
+                      onClick={() => setActivePdf('listening')}
+                    >
+                      Listening PDF
+                    </Button>
+                  )}
+                  {testSet.readingPdfUrl && (
+                    <Button
+                      variant={activePdf === 'reading' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setActivePdf('reading')}
+                    >
+                      Reading PDF
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="flex flex-col items-end">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">

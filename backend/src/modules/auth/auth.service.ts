@@ -118,13 +118,46 @@ export class AuthService {
   }
 
   private formatUser(user: any) {
+    let hasVip3 = false;
+    const vipPackages = (user.vipPackages || []).map((pkg: any) => {
+      let finalVipLevel = pkg.vipLevel || 'vip0';
+      
+      if (finalVipLevel === 'vip3' && pkg.vip3Expiry && new Date() > new Date(pkg.vip3Expiry)) {
+        const points = pkg.points || 0;
+        if (points >= 30000) finalVipLevel = 'vip2';
+        else if (points >= 10000) finalVipLevel = 'vip1';
+        else finalVipLevel = 'vip0';
+      } else if (finalVipLevel !== 'vip3') {
+        const points = pkg.points || 0;
+        let expectedVip = 'vip0';
+        if (points >= 30000) expectedVip = 'vip2';
+        else if (points >= 10000) expectedVip = 'vip1';
+        
+        if (expectedVip > finalVipLevel) {
+          finalVipLevel = expectedVip;
+        }
+      }
+
+      if (finalVipLevel === 'vip3') {
+        hasVip3 = true;
+      }
+
+      return {
+        category: pkg.category,
+        vipLevel: finalVipLevel,
+        points: pkg.points || 0,
+        vip3Expiry: pkg.vip3Expiry,
+      };
+    });
+
     return {
       id: user._id || user.id,
       email: user.email,
       phone: user.phone,
       fullName: user.fullName,
       role: user.role,
-      plan: user.plan,
+      globalPlan: hasVip3 ? 'vip' : 'free',
+      vipPackages: vipPackages,
       targetScore: user.targetScore,
       age: user.age,
       avatar: user.avatarUrl,

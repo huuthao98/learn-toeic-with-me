@@ -168,6 +168,7 @@ export class InterviewService {
     // Save test result without score/streak for interview
     const result = new this.TestResultModel({
       userId: new Types.ObjectId(userId),
+      testType: 'InterviewTopic',
       testSetId: new Types.ObjectId(testSetId),
       score: 0,
       listeningScore: 0,

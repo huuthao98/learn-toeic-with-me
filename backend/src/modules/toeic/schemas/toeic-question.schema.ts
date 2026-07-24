@@ -24,7 +24,7 @@ export class ToeicQuestion {
   @Prop({ required: true })
   part: string;
 
-  @Prop({ required: true, enum: ['multiple_choice', 'fill_in_the_blank'], default: 'multiple_choice' })
+  @Prop({ required: true, default: 'multiple_choice' })
   questionType: string;
 
   @Prop({ type: [ToeicAnswerOptionSchema] })
@@ -43,10 +43,19 @@ export class ToeicQuestion {
   status: string;
 
   @Prop()
-  passageText?: string;
+  passageContext?: string;
 
   @Prop()
-  groupId?: string;
+  passageType?: string; // SINGLE, DOUBLE, TRIPLE
+
+  @Prop()
+  setId?: number;
+
+  @Prop()
+  blankPosition?: string;
+
+  @Prop()
+  note?: string;
 
   @Prop()
   audioUrl?: string;

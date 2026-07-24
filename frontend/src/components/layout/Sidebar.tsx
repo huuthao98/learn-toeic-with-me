@@ -15,6 +15,7 @@ import {
   CreditCard,
   Bell,
   FilePlus,
+  NotebookPen,
 } from 'lucide-react';
 import Link from 'next/link';
 import { HTMLAttributes, useState, useEffect } from 'react';
@@ -69,8 +70,8 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
           roles: ['user', 'admin'],
           children: [
             {
-              name: 'Thi Thử TOEIC',
-              href: ROUTES.PRACTICE_TOEIC,
+              name: 'Luyện Thi TOEIC',
+              href: ROUTES.PRACTICE_EXAM_TOEIC,
               roles: ['user', 'admin'],
             },
             {
@@ -83,6 +84,28 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
               href: ROUTES.PRACTICE_INTERVIEW,
               roles: ['user', 'admin'],
             },
+          ],
+        },
+        {
+          name: 'Thi Thử',
+          icon: NotebookPen,
+          roles: ['user', 'admin'],
+          children: [
+            {
+              name: 'Thi Thử TOEIC',
+              href: ROUTES.PRACTICE_TOEIC,
+              roles: ['user', 'admin'],
+            },
+            // {
+            //   name: 'Luyện Từ Vựng',
+            //   href: ROUTES.PRACTICE_VOCABULARY,
+            //   roles: ['user', 'admin'],
+            // },
+            // {
+            //   name: 'Luyện Phỏng Vấn',
+            //   href: ROUTES.PRACTICE_INTERVIEW,
+            //   roles: ['user', 'admin'],
+            // },
           ],
         },
       ],

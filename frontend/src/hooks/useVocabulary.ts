@@ -12,21 +12,21 @@ export const useVocabulary = () => {
     useQuery({
       queryKey: ['vocabulary-tests', category, status],
       queryFn: () => vocabularyApi.fetchTestSets(category, status),
-      enabled: !!token,
+      enabled: true,
     });
 
   const useTestSet = (id: string) =>
     useQuery({
       queryKey: ['vocabulary-test', id],
       queryFn: () => vocabularyApi.fetchTestSet(id),
-      enabled: !!token && !!id,
+      enabled: !!id,
     });
 
   const useTestQuestions = (id: string, skip?: number, limit?: number) =>
     useQuery({
       queryKey: ['vocabulary-test-questions', id, skip, limit],
       queryFn: () => vocabularyApi.fetchQuestions(id, skip, limit),
-      enabled: !!token && !!id,
+      enabled: !!id,
     });
 
   const useTestQuestionsInfinite = (id: string, limit = 20) =>
@@ -37,7 +37,7 @@ export const useVocabulary = () => {
         return lastPage.length === limit ? allPages.length * limit : undefined;
       },
       initialPageParam: 0,
-      enabled: !!token && !!id,
+      enabled: !!id,
     });
 
   const useUpsertBulkQuestionsMutation = () =>
@@ -57,10 +57,7 @@ export const useVocabulary = () => {
 
   const useSubmitExamMutation = (id: string) =>
     useMutation({
-      mutationFn: (data: {
-        answers: { [questionId: string]: string };
-        durationMinutes?: number;
-      }) => vocabularyApi.submitExam(id, data),
+      mutationFn: (data: Parameters<typeof vocabularyApi.submitExam>[1]) => vocabularyApi.submitExam(id, data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
         queryClient.invalidateQueries({ queryKey: ['dashboard-recent-tests'] });

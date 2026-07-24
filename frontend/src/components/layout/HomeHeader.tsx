@@ -62,13 +62,19 @@ export function HomeHeader() {
                     href={ROUTES.PRACTICE_VOCABULARY}
                     className="px-3 py-2 hover:bg-muted rounded-md text-sm font-medium transition-colors"
                   >
-                    Học Từ Vựng
+                    Luyện Từ Vựng
                   </Link>
                   <Link
                     href={ROUTES.PRACTICE_INTERVIEW}
                     className="px-3 py-2 hover:bg-muted rounded-md text-sm font-medium transition-colors"
                   >
                     Luyện Phỏng Vấn
+                  </Link>
+                  <Link
+                    href={ROUTES.PRACTICE_EXAM_TOEIC}
+                    className="px-3 py-2 hover:bg-muted rounded-md text-sm font-medium transition-colors"
+                  >
+                    Luyện Thi TOEIC
                   </Link>
                 </div>
               </PopoverContent>

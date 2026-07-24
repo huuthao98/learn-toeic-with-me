@@ -108,7 +108,8 @@ const downloadVocabularyTemplate = () => {
 export const CreateTestForm = () => {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { useCreateTestSetMutation, useUpsertBulkQuestionsMutation } = useVocabulary();
+  const { useCreateTestSetMutation, useUpsertBulkQuestionsMutation } =
+    useVocabulary();
 
   const createVocabularySetMutation = useCreateTestSetMutation();
   const upsertQuestionsMutation = useUpsertBulkQuestionsMutation();
@@ -231,7 +232,7 @@ export const CreateTestForm = () => {
         description: values.description,
         status: values.status,
         category: values.category,
-
+        accessLevel: 'external',
         notifyUsers: values.notifyUsers === 'true',
         topics: values.topicsString
           ? values.topicsString
@@ -318,7 +319,9 @@ export const CreateTestForm = () => {
             </CardDescription>
           </CardHeader>
           <Form {...VocabularySetForm}>
-            <form onSubmit={VocabularySetForm.handleSubmit(onVocabularySetSubmit)}>
+            <form
+              onSubmit={VocabularySetForm.handleSubmit(onVocabularySetSubmit)}
+            >
               <CardContent className="space-y-6 py-6">
                 <div className="space-y-4">
                   <div className="flex justify-between gap-4">
@@ -363,10 +366,18 @@ export const CreateTestForm = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="english" label="Tiếng Anh">Tiếng Anh</SelectItem>
-                              <SelectItem value="chinese" label="Tiếng Trung">Tiếng Trung</SelectItem>
-                              <SelectItem value="japanese" label="Tiếng Nhật">Tiếng Nhật</SelectItem>
-                              <SelectItem value="korean" label="Tiếng Hàn">Tiếng Hàn</SelectItem>
+                              <SelectItem value="english" label="Tiếng Anh">
+                                Tiếng Anh
+                              </SelectItem>
+                              <SelectItem value="chinese" label="Tiếng Trung">
+                                Tiếng Trung
+                              </SelectItem>
+                              <SelectItem value="japanese" label="Tiếng Nhật">
+                                Tiếng Nhật
+                              </SelectItem>
+                              <SelectItem value="korean" label="Tiếng Hàn">
+                                Tiếng Hàn
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </FormItem>
@@ -562,7 +573,9 @@ export const CreateTestForm = () => {
                 <div className="pt-4 border-t space-y-4">
                   <div className="space-y-2 md:col-span-2">
                     <div className="flex items-center justify-between mb-2">
-                      <FormLabel className="text-base font-semibold">File Excel Câu Hỏi *</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        File Excel Câu Hỏi *
+                      </FormLabel>
                       <Button
                         type="button"
                         variant="outline"
@@ -582,7 +595,8 @@ export const CreateTestForm = () => {
                     />
                     {parsedQuestions.length > 0 && (
                       <p className="text-sm text-emerald-600 font-medium mt-2">
-                        ✓ Đã đọc được {parsedQuestions.length} câu hỏi từ file Excel.
+                        ✓ Đã đọc được {parsedQuestions.length} câu hỏi từ file
+                        Excel.
                       </p>
                     )}
                   </div>

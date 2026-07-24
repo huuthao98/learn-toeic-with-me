@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useTopics } from '@/hooks/useTopics';
 import { Button } from '@/components/ui/button';
 import {
@@ -173,7 +172,11 @@ export default function AdminTopicsPage() {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="destructive" size="icon" onClick={() => setTopicToDelete(topic)}>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => setTopicToDelete(topic)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>

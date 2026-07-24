@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

@@ -6,8 +6,8 @@ import { TestResult, TestResultDocument } from '../dashboard/schemas/test-result
 import { ToeicQuestion, ToeicQuestionDocument } from './schemas/toeic-question.schema';
 import { CreateToeicQuestionDto } from './dto/toeic-question.dto';
 import { UserStreak, UserStreakDocument } from '../dashboard/schemas/user-streak.schema';
-
 import { NotificationsService } from '../notifications/notifications.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ToeicService {
@@ -16,6 +16,7 @@ export class ToeicService {
     @InjectModel(TestResult.name) private TestResultModel: Model<TestResultDocument>,
     @InjectModel(ToeicQuestion.name) private questionModel: Model<ToeicQuestionDocument>,
     @InjectModel(UserStreak.name) private userStreakModel: Model<UserStreakDocument>,
+    private readonly usersService: UsersService,
     private readonly notificationsService: NotificationsService,
   ) {}
 
@@ -36,6 +37,14 @@ export class ToeicService {
       if (q.options !== undefined) updateData.options = q.options;
       if (q.part !== undefined) updateData.part = q.part;
       if (q.isActive !== undefined) updateData.status = q.isActive ? 'active' : 'draft';
+      
+      // New fields for reading
+      if ((q as any).passageContext !== undefined) updateData.passageContext = (q as any).passageContext;
+      if ((q as any).passageType !== undefined) updateData.passageType = (q as any).passageType;
+      if ((q as any).setId !== undefined) updateData.setId = (q as any).setId;
+      if ((q as any).blankPosition !== undefined) updateData.blankPosition = (q as any).blankPosition;
+      if ((q as any).note !== undefined) updateData.note = (q as any).note;
+      if ((q as any).questionType !== undefined) updateData.questionType = (q as any).questionType;
 
       return {
         updateOne: {
@@ -55,9 +64,42 @@ export class ToeicService {
     return { message: `Upserted ${questions.length} questions` };
   }
 
-  async findAll(status?: string) {
+  async updateQuestion(questionId: string, dto: any) {
+    const question = await this.questionModel.findById(questionId).exec();
+    if (!question) {
+      throw new NotFoundException('Question not found');
+    }
+
+    if (dto.questionNumber !== undefined) question.questionNumber = dto.questionNumber;
+    if (dto.questionText !== undefined) question.questionText = dto.questionText;
+    if (dto.correctAnswer !== undefined) question.correctAnswer = dto.correctAnswer;
+    if (dto.explanation !== undefined) question.explanation = dto.explanation;
+    if (dto.options !== undefined) question.options = dto.options;
+    if (dto.part !== undefined) question.part = dto.part;
+    if (dto.passageContext !== undefined) (question as any).passageContext = dto.passageContext;
+    if (dto.passageType !== undefined) (question as any).passageType = dto.passageType;
+    if (dto.setId !== undefined) (question as any).setId = dto.setId;
+    if (dto.blankPosition !== undefined) (question as any).blankPosition = dto.blankPosition;
+    if (dto.audioUrl !== undefined) (question as any).audioUrl = dto.audioUrl;
+    if (dto.imageUrl !== undefined) (question as any).imageUrl = dto.imageUrl;
+    if (dto.status !== undefined) question.status = dto.status;
+
+    return question.save();
+  }
+
+  async deleteQuestion(questionId: string) {
+    const result = await this.questionModel.findByIdAndDelete(questionId).exec();
+    if (!result) {
+      throw new NotFoundException('Question not found');
+    }
+    return { message: 'Question deleted successfully' };
+  }
+
+
+  async findAll(status?: string,type?: string) {
     const query: any = {};
     if (status) query.status = status;
+    if (type) query.type = type;
     const matchStage = { $match: query };
 
     return this.ToeicSetModel.aggregate([
@@ -101,6 +143,7 @@ export class ToeicService {
     listeningPdfUrl?:string;
     topics?: string[];
     notifyUsers?: boolean;
+    type?: string;
   }) {
     const existingTest = await this.ToeicSetModel.findOne({ name: dto.name }).exec();
     if (existingTest) {
@@ -115,6 +158,7 @@ export class ToeicService {
       readingPdfUrl: dto.readingPdfUrl,
       listeningPdfUrl: dto.listeningPdfUrl,
       topics: dto.topics || [],
+      type: dto.type,
     });
     
     const savedTest = await newToeicSet.save();
@@ -145,10 +189,12 @@ export class ToeicService {
   }
 
   async submitExam(
-    userId: string,
+    user: any,
     testSetId: string,
     answers: { [questionId: string]: string },
     durationMinutes?: number,
+    timePerQuestion?: number[],
+    isTest: boolean = false
   ) {
     const ToeicSet = await this.ToeicSetModel.findById(testSetId).exec();
     if (!ToeicSet) {
@@ -168,8 +214,10 @@ export class ToeicService {
     let readingCorrect = 0;
     let listeningTotal = 0;
     let readingTotal = 0;
+    let maxConsecutiveSpeed = 0;
+    let currentSpeedStreak = 0;
 
-    questions.forEach((q) => {
+    questions.forEach((q, index) => {
       const userAnswer = answers[q._id.toString()];
       const isCorrect = userAnswer && userAnswer.trim().toUpperCase() === q.correctAnswer.trim().toUpperCase();
       
@@ -186,20 +234,70 @@ export class ToeicService {
         readingTotal++;
         if (isCorrect) readingCorrect++;
       }
+      
+      const timeSpent = timePerQuestion && timePerQuestion.length > index ? timePerQuestion[index] : 10000;
+      if (isCorrect && timeSpent <= 5000) {
+        currentSpeedStreak++;
+        if (currentSpeedStreak > maxConsecutiveSpeed) {
+          maxConsecutiveSpeed = currentSpeedStreak;
+        }
+      } else {
+        currentSpeedStreak = 0;
+      }
     });
 
     let score = 0;
     let listeningScore = 0;
     let readingScore = 0;
 
+    // Simplified TOEIC Score Calculation (Approximate based on correct answers percentage)
+    // Actually standard is mapping, but using ratio * 495 is okay for gamification
     listeningScore = listeningTotal > 0 ? Math.round((listeningCorrect / listeningTotal) * 495) : 0;
     readingScore = readingTotal > 0 ? Math.round((readingCorrect / readingTotal) * 495) : 0;
     score = listeningScore + readingScore;
     if (score > 990) score = 990;
+    
+    // Gamification Points Calculation
+    let pointsCorrect = correctCount * 2;
+    let pointsCompletion = isTest ? 150 : 15;
+    let pointsPerfect = 0;
+    let pointsSpeed = 0;
+    let pointsStreak = 0;
+    
+    if (correctCount === questions.length && questions.length > 0) {
+      pointsPerfect = 20;
+    }
+    
+    if (maxConsecutiveSpeed >= 5) {
+      pointsSpeed = 10;
+    }
+
+    if (!user) {
+      const totalEarned = pointsCorrect + pointsCompletion + pointsPerfect + pointsSpeed;
+      return {
+        resultId: null,
+        totalEarned,
+        breakdown: {
+          correctAnswers: pointsCorrect,
+          lessonCompletion: pointsCompletion,
+          perfectLesson: pointsPerfect,
+          streakBonus: 0,
+          speedDemon: pointsSpeed,
+          testOut: 0,
+        },
+        currentStreak: 0,
+        score,
+        listeningScore,
+        readingScore,
+        correctCount,
+        totalQuestions: questions.length,
+      };
+    }
 
     // Save test result
     const result = new this.TestResultModel({
-      userId: new Types.ObjectId(userId),
+      userId: new Types.ObjectId(user.sub),
+      testType: 'ToeicSet',
       testSetId: new Types.ObjectId(testSetId),
       score,
       listeningScore,
@@ -211,7 +309,13 @@ export class ToeicService {
 
     await result.save();
 
-    const currentStreak = await this.updateUserStreak(userId);
+    const currentStreak = await this.updateUserStreak(user.sub);
+    pointsStreak = currentStreak > 0 ? Math.min(currentStreak, 10) * 2 : 0;
+
+    const totalEarned = pointsCorrect + pointsCompletion + pointsPerfect + pointsSpeed + pointsStreak;
+
+    // Give XP
+    await this.usersService.addPoints(user.sub, 'TOEIC', totalEarned);
 
     return {
       resultId: result._id,
@@ -221,6 +325,15 @@ export class ToeicService {
       correctCount,
       totalQuestions: questions.length,
       currentStreak,
+      totalEarned,
+      breakdown: {
+        correctAnswers: pointsCorrect,
+        lessonCompletion: pointsCompletion,
+        perfectLesson: pointsPerfect,
+        streakBonus: pointsStreak,
+        speedDemon: pointsSpeed,
+        testOut: 0,
+      }
     };
   }
 
@@ -235,6 +348,7 @@ export class ToeicService {
       listeningPdfUrl?: string;
       topics?: string[];
       notifyUsers?: boolean;
+      type?: string;
     },
   ) {
     const ToeicSet = await this.findOne(id);
@@ -247,6 +361,7 @@ export class ToeicService {
     if (dto.readingPdfUrl !== undefined) ToeicSet.readingPdfUrl = dto.readingPdfUrl;
     if (dto.listeningPdfUrl !== undefined) ToeicSet.listeningPdfUrl = dto.listeningPdfUrl;
     if (dto.topics !== undefined) ToeicSet.topics = dto.topics;
+    if (dto.type !== undefined) (ToeicSet as any).type = dto.type;
     
     const savedTest = await ToeicSet.save();
 

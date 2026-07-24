@@ -14,6 +14,9 @@ export class VocabularySet {
   @Prop({ default: 'draft', enum: ['draft', 'public', 'private'] })
   status: string;
 
+  @Prop({ default: 'external', enum: ['external', 'vip0', 'vip1', 'vip2', 'vip3'] })
+  accessLevel: string;
+
   @Prop({ enum: ['english', 'chinese', 'korean', 'japanese'] })
   category?: string;
 

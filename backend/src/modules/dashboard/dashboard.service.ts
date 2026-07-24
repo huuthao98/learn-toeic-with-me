@@ -92,7 +92,6 @@ export class DashboardService {
       .select('score listeningScore readingScore durationMinutes createdAt status testSetId')
       .populate({
         path: 'testSetId',
-        model: 'ToeicSet',
         select: 'name total_questions parts_count'
       })
       .sort({ createdAt: -1 })

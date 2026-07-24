@@ -58,7 +58,15 @@ export const vocabularyApi = {
     const response = await api.get<any>(`/vocabulary/results/${resultId}`)
     return response.data
   },
-  submitExam: async (id: string, data: { answers: { [questionId: string]: string }; durationMinutes?: number }) => {
+  submitExam: async (id: string, data: { 
+    answers: { [questionId: string]: string }; 
+    durationMinutes?: number;
+    timePerQuestion?: number[];
+    isTest?: boolean;
+    isReview?: boolean;
+    isTestOut?: boolean;
+    isRescueStreak?: boolean;
+  }) => {
     const response = await api.post(`/vocabulary/${id}/submit`, data)
     return response.data
   },

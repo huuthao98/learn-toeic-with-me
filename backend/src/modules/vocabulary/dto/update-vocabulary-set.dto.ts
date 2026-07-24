@@ -12,10 +12,15 @@ export class UpdateVocabularySetDto {
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ example: 'public', enum: ['draft', 'public', 'private'] })
+  @ApiPropertyOptional({ example: 'draft', enum: ['draft', 'public', 'private'] })
   @IsString()
   @IsOptional()
   status?: string;
+
+  @ApiPropertyOptional({ example: 'external', enum: ['external', 'vip0', 'vip1', 'vip2', 'vip3'] })
+  @IsString()
+  @IsOptional()
+  accessLevel?: string;
 
   @ApiPropertyOptional({ example: 'english' })
   @IsString()

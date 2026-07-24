@@ -17,6 +17,9 @@ export class ToeicSet {
   @Prop({ default: 'draft', enum: ['draft', 'public', 'private'] })
   status: string;
 
+  @Prop({ default: 'external', enum: ['internal', 'external'] })
+  accessLevel: string;
+
   @Prop()
   readingPdfUrl?: string;
 
@@ -25,6 +28,9 @@ export class ToeicSet {
 
   @Prop({ type: [String], default: [] })
   topics?: string[];
+
+  @Prop({ type: String, default: 'exam', enum: ['exam', 'practice'] })
+  type: string;
 }
 
 export const ToeicSetSchema = SchemaFactory.createForClass(ToeicSet);

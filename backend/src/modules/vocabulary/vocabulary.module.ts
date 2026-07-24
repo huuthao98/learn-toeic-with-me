@@ -9,6 +9,8 @@ import { UserStreak, UserStreakSchema } from '../dashboard/schemas/user-streak.s
 
 import { NotificationsModule } from '../notifications/notifications.module';
 
+import { UsersModule } from '../users/users.module';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -18,6 +20,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       { name: UserStreak.name, schema: UserStreakSchema },
     ]),
     NotificationsModule,
+    UsersModule,
   ],
   controllers: [VocabularyController],
   providers: [VocabularyService],

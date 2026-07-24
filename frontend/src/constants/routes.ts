@@ -10,6 +10,7 @@ export const ROUTES = {
   //practice
   PRACTICE: '/practice',
   PRACTICE_TOEIC: '/practice/toeic',
+  PRACTICE_EXAM_TOEIC: '/practice/practice-toeic',
   PRACTICE_INTERVIEW: '/practice/interview',
   PRACTICE_VOCABULARY: '/practice/vocabulary',
 
@@ -32,3 +33,5 @@ export const getPracticeToeicResultsRoute = (id: string) => `/practice/toeic/${i
 export const getAdminTestDetailRoute = (id: string) => `/admin/tests/${id}`;
 export const getAdminTestInterviewDetailRoute = (id: string) => `/admin/tests-interview/${id}`;
 export const getAdminTestToeicDetailRoute = (id: string) => `/detail-test-toeic/${id}`;
+export const getAdminDetailPracticeRoute = (id: string) => `/detail-practice/${id}`;
+
