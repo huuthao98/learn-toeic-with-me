@@ -11,8 +11,7 @@ export default function PracticeB1Page() {
 
   const { useTestSet, useTestQuestions } = useB1();
   const { data: testSet, isLoading: isTestLoading } = useTestSet(id);
-  const { data: questions, isLoading: isQuestionsLoading } =
-    useTestQuestions(id);
+  const { data: questions, isLoading: isQuestionsLoading } = useTestQuestions(id);
 
   if (isTestLoading || isQuestionsLoading) {
     return (
@@ -30,7 +29,7 @@ export default function PracticeB1Page() {
     );
   }
   return (
-    <div className="bg-background min-h-screen pt-32">
+    <div className="bg-background min-h-screen sm:pt-32 pt-20">
       <InteractiveB1Runner
         testSetId={id}
         questions={questions || []}

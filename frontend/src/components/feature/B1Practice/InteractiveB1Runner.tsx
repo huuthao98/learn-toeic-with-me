@@ -108,6 +108,12 @@ export function InteractiveB1Runner({
     setAnswers(prev => ({ ...prev, [qId]: answer }));
   };
 
+  const handleFinishRequest = () => {
+    // Determine if user has attempted enough questions
+    // For B1, writing and speaking might not be easily 'checked' for completeness if they are empty
+    setIsSubmitWarningModalOpen(true);
+  };
+
   const handleNext = () => {
     if (safeQuestionIndex < currentGroup.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -212,12 +218,6 @@ export function InteractiveB1Runner({
     audioRef.current.currentTime = Number(e.target.value);
   };
 
-  const handleFinishRequest = () => {
-    // Determine if user has attempted enough questions
-    // For B1, writing and speaking might not be easily 'checked' for completeness if they are empty
-    setIsSubmitWarningModalOpen(true);
-  };
-
   if (!currentGroup || !currentQuestion) return null;
 
   const selectedAnswer = answers[currentQuestion._id];
@@ -231,21 +231,10 @@ export function InteractiveB1Runner({
       speaking: Mic,
     }[currentGroup.skill] || BookOpen;
 
-  const getSkillName = (skill: string) => {
-    return (
-      {
-        listening: 'Kỹ năng Nghe',
-        reading: 'Kỹ năng Đọc',
-        writing: 'Kỹ năng Viết',
-        speaking: 'Kỹ năng Nói',
-      }[skill] || skill
-    );
-  };
-
   return (
     <div className="max-w-5xl mx-auto space-y-6 px-4 pt-2 pb-24">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-background/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="flex items-center gap-3 flex-1">
+      <div className="flex flex-wrap items-center gap-2 justify-between bg-background/80 backdrop-blur-md sticky top-0 z-40 py-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="destructive"
             className="text-muted-foreground hover:text-primary transition-colors"
@@ -261,43 +250,36 @@ export function InteractiveB1Runner({
             className="text-sm px-3 py-1 bg-background capitalize flex items-center gap-2"
           >
             <SkillIcon className="w-4 h-4 text-primary" />
-            {getSkillName(currentGroup.skill)}
+            {currentGroup.skill}
           </Badge>
-          {currentGroup.skill === 'listening' && (
-            <div className="h-14 flex-1 shrink-0 flex items-center justify-between p-4">
-              {testAudioUrl && (
-                <div className="flex items-center gap-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-2">
-                  <audio
-                    ref={audioRef}
-                    src={testAudioUrl}
-                    className="hidden"
-                    onEnded={() => setAudioPlaying(false)}
-                  />
-
-                  <Button size="icon" className="rounded-full" onClick={toggleAudio}>
-                    {audioPlaying ? <Pause size={18} /> : <PlayIcon size={18} />}
-                  </Button>
-
-                  <input
-                    type="range"
-                    min={0}
-                    max={duration || 0}
-                    value={currentTime}
-                    onChange={handleSeek}
-                    className="flex-1"
-                  />
-
-                  <span className="text-xs w-20 text-right">
-                    {Math.floor(currentTime / 60)}:
-                    {Math.floor(currentTime % 60)
-                      .toString()
-                      .padStart(2, '0')}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
         </div>
+        {currentGroup.skill === 'listening' && testAudioUrl && (
+          <div className="order-last sm:order-none w-full sm:w-auto sm:flex-1 min-w-0 flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-full px-3 py-1.5">
+            <audio
+              ref={audioRef}
+              src={testAudioUrl}
+              className="hidden"
+              onEnded={() => setAudioPlaying(false)}
+            />
+            <Button size="icon" className="rounded-full shrink-0 w-8 h-8" onClick={toggleAudio}>
+              {audioPlaying ? <Pause size={16} /> : <PlayIcon size={16} />}
+            </Button>
+            <input
+              type="range"
+              min={0}
+              max={duration || 0}
+              value={currentTime}
+              onChange={handleSeek}
+              className="flex-1 min-w-0"
+            />
+            <span className="text-xs shrink-0 w-14 text-right tabular-nums">
+              {Math.floor(currentTime / 60)}:
+              {Math.floor(currentTime % 60)
+                .toString()
+                .padStart(2, '0')}
+            </span>
+          </div>
+        )}
 
         <Sheet>
           <SheetTrigger
@@ -666,51 +648,53 @@ export function InteractiveB1Runner({
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t p-4 z-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t p-3 sm:p-4 z-50">
+        <div className="max-w-4xl mx-auto flex flex-wrap items-center gap-3 sm:gap-4">
           <Button
             variant="outline"
             size="lg"
             onClick={handlePrev}
             disabled={currentGroupIndex === 0 && safeQuestionIndex === 0}
-            className="w-[120px]"
+            className="flex-1 sm:flex-none sm:w-[120px] order-2 sm:order-1"
           >
             <ArrowLeft className="w-4 h-4 mr-2" /> Trước
           </Button>
 
           {/* Danh sách câu hỏi khi cùng setId */}
-          {currentGroup.questions.length > 1 ? (
-            <div className="flex items-center gap-1.5 flex-wrap justify-center">
-              {currentGroup.questions.map((q, idx) => {
-                const isCurrentQ = idx === safeQuestionIndex;
-                const isAnswered = !!answers[q._id];
-                return (
-                  <button
-                    key={q._id}
-                    onClick={() => setCurrentQuestionIndex(idx)}
-                    className={`h-9 w-9 rounded-full text-xs font-bold border-2 transition-all ${
-                      isCurrentQ
-                        ? 'bg-primary text-primary-foreground border-primary ring-2 ring-primary ring-offset-2'
-                        : isAnswered
-                          ? 'bg-emerald-500 text-white border-emerald-500'
-                          : 'bg-background border-border hover:border-primary/50 text-foreground'
-                    }`}
-                  >
-                    {q.questionNumber || idx + 1}
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <span className="text-sm font-semibold text-primary-foreground bg-primary px-2 py-1 rounded-full">
-              {currentQuestion.questionNumber ? `Câu ${currentQuestion.questionNumber}` : ''}
-            </span>
-          )}
+          <div className="w-full sm:flex-1 sm:w-auto order-1 sm:order-2 flex justify-center max-h-24 sm:max-h-none overflow-y-auto custom-scrollbar">
+            {currentGroup.questions.length > 1 ? (
+              <div className="flex items-center gap-1.5 flex-wrap justify-center py-1">
+                {currentGroup.questions.map((q, idx) => {
+                  const isCurrentQ = idx === safeQuestionIndex;
+                  const isAnswered = !!answers[q._id];
+                  return (
+                    <button
+                      key={q._id}
+                      onClick={() => setCurrentQuestionIndex(idx)}
+                      className={`h-9 w-9 rounded-full text-xs font-bold border-2 transition-all shrink-0 ${
+                        isCurrentQ
+                          ? 'bg-primary text-primary-foreground border-primary ring-2 ring-primary ring-offset-2'
+                          : isAnswered
+                            ? 'bg-emerald-500 text-white border-emerald-500'
+                            : 'bg-background border-border hover:border-primary/50 text-foreground'
+                      }`}
+                    >
+                      {q.questionNumber || idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <span className="text-sm font-semibold text-primary-foreground bg-primary px-2 py-1 rounded-full my-auto">
+                {currentQuestion.questionNumber ? `Câu ${currentQuestion.questionNumber}` : ''}
+              </span>
+            )}
+          </div>
 
           <Button
             size="lg"
             onClick={handleNext}
-            className={`w-[140px] shadow-md transition-all ${
+            className={`flex-1 sm:flex-none sm:w-[140px] shadow-md transition-all order-3 ${
               !isCurrentAnswered && currentQuestion.questionType !== 'speaking'
                 ? 'opacity-80'
                 : 'hover:scale-105'
@@ -718,11 +702,11 @@ export function InteractiveB1Runner({
           >
             {currentGroupIndex === groups.length - 1 &&
             safeQuestionIndex === (currentGroup?.questions.length || 1) - 1 ? (
-              <span className="flex items-center">
+              <span className="flex items-center justify-center">
                 Hoàn thành <CheckCircle className="w-4 h-4 ml-2" />
               </span>
             ) : (
-              <span className="flex items-center">
+              <span className="flex items-center justify-center">
                 Tiếp theo <ArrowRight className="w-4 h-4 ml-2" />
               </span>
             )}

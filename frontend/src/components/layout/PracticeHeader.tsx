@@ -133,13 +133,13 @@ export function PracticeHeader() {
                 </>
               )}
             </div> */}
-            <button
+            {/* <button
               className="md:hidden text-gray-900 p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Mở menu"
             >
               {mobileMenuOpen ? <X /> : <Menu />}
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
