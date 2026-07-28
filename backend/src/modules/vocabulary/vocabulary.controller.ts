@@ -14,8 +14,6 @@ import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiProperty,
-  ApiPropertyOptional,
 } from '@nestjs/swagger';
 import { VocabularyService } from './vocabulary.service';
 import { JwtAuthGuard, AdminGuard, OptionalJwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,34 +27,28 @@ import { UpdateVocabularySetDto } from './dto/update-vocabulary-set.dto';
 export class VocabularyController {
   constructor(private readonly VocabularyService: VocabularyService) {}
 
-  @Get()
+  // ─── Public / User Routes ───────────────────────────────────────────────────
+
+  @Get('sets')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all test sets' })
+  @ApiOperation({ summary: 'Get all vocabulary sets' })
   findAll(@Request() req: any, @Query('category') category?: string, @Query('status') status?: string) {
     return this.VocabularyService.findAll(status, category, req.user);
   }
 
-  @Get(':id')
+  @Get('sets/:id')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get test set metadata by ID' })
+  @ApiOperation({ summary: 'Get a vocabulary set by ID' })
   findOne(@Request() req: any, @Param('id') id: string) {
     return this.VocabularyService.findOne(id, req.user);
   }
 
-  @Get('results/:resultId')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a specific test result by ID' })
-  findResult(@Param('resultId') resultId: string) {
-    return this.VocabularyService.findResult(resultId);
-  }
-
-  @Get(':id/questions')
+  @Get('sets/:id/questions')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get questions belonging to a test set' })
+  @ApiOperation({ summary: 'Get questions belonging to a vocabulary set' })
   findQuestions(
     @Request() req: any,
     @Param('id') id: string,
@@ -68,26 +60,23 @@ export class VocabularyController {
     return this.VocabularyService.findQuestions(id, req.user, skipNum, limitNum);
   }
 
-  @Post('admin/:id/questions/bulk-upsert')
-  @UseGuards(AdminGuard)
+  @Get('results/:resultId')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Bulk upsert questions for a test set (Admin)' })
-  bulkUpsertQuestions(
-    @Param('id') id: string,
-    @Body() dto: { questions: any[] },
-  ) {
-    return this.VocabularyService.upsertBulkQuestions(id, dto.questions);
+  @ApiOperation({ summary: 'Get a specific test result by ID' })
+  findResult(@Param('resultId') resultId: string) {
+    return this.VocabularyService.findResult(resultId);
   }
 
-  @Post(':id/submit')
+  @Post('sets/:id/submit')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Submit answers for a test set' })
+  @ApiOperation({ summary: 'Submit answers for a vocabulary set' })
   submitExam(@Request() req: any, @Param('id') id: string, @Body() dto: SubmitVocabularyDto) {
     return this.VocabularyService.submitExam(
-      req.user, 
-      id, 
-      dto.answers, 
+      req.user,
+      id,
+      dto.answers,
       dto.durationMinutes,
       dto.timePerQuestion,
       dto.isTest,
@@ -97,27 +86,59 @@ export class VocabularyController {
     );
   }
 
-  @Post('admin/create')
-  @UseGuards(AdminGuard)
+  // ─── Admin Routes ───────────────────────────────────────────────────────────
+
+  @Post('sets')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a new test set (Admin)' })
+  @ApiOperation({ summary: 'Create a new vocabulary set (Admin)' })
   createVocabularySet(@Body() dto: CreateVocabularySetDto) {
     return this.VocabularyService.create(dto);
   }
 
-  @Patch('admin/:id')
-  @UseGuards(AdminGuard)
+  @Patch('sets/:id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update a test set (Admin)' })
+  @ApiOperation({ summary: 'Update a vocabulary set (Admin)' })
   updateVocabularySet(@Param('id') id: string, @Body() dto: UpdateVocabularySetDto) {
     return this.VocabularyService.update(id, dto);
   }
 
-  @Delete('admin/:id')
-  @UseGuards(AdminGuard)
+  @Delete('sets/:id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete a test set (Admin)' })
+  @ApiOperation({ summary: 'Delete a vocabulary set (Admin)' })
   deleteVocabularySet(@Param('id') id: string) {
     return this.VocabularyService.delete(id);
+  }
+
+  @Post('sets/:id/questions/bulk-upsert')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bulk upsert questions for a vocabulary set (Admin)' })
+  bulkUpsertQuestions(
+    @Param('id') id: string,
+    @Body() dto: { questions: any[] },
+  ) {
+    return this.VocabularyService.upsertBulkQuestions(id, dto.questions);
+  }
+
+  @Patch('questions/:questionId')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a question by ID (Admin)' })
+  updateQuestion(
+    @Param('questionId') questionId: string,
+    @Body() dto: any,
+  ) {
+    return this.VocabularyService.updateQuestion(questionId, dto);
+  }
+
+  @Delete('questions/:questionId')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a question by ID (Admin)' })
+  deleteQuestion(@Param('questionId') questionId: string) {
+    return this.VocabularyService.deleteQuestion(questionId);
   }
 }

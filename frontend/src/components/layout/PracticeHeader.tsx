@@ -4,15 +4,12 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, GraduationCap, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ROUTES } from '@/constants/routes';
+import { getListPracticeB1Route, getListPracticeToeicRoute, ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/store/authStore';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export function PracticeHeader() {
+  const user = useAuthStore(state => state.user);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -46,10 +43,7 @@ export function PracticeHeader() {
             </span>
           </Link>
 
-          <nav
-            className="hidden md:flex items-center gap-8"
-            aria-label="Điều hướng chính"
-          >
+          <nav className="hidden md:flex items-center gap-8" aria-label="Điều hướng chính">
             <Popover>
               <PopoverTrigger className="text-gray-600 hover:text-primary font-medium transition-colors flex items-center gap-1">
                 Luyện Tập
@@ -75,25 +69,28 @@ export function PracticeHeader() {
                   >
                     Luyện Thi TOEIC
                   </Link>
-                </div>
-              </PopoverContent>
-            </Popover>
-            <Popover>
-              <PopoverTrigger className="text-gray-600 hover:text-primary font-medium transition-colors flex items-center gap-1">
-                Thi Thử
-                <ChevronDown className="w-4 h-4" />
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-2" align="start">
-                <div className="flex flex-col gap-1">
                   <Link
-                    href={ROUTES.PRACTICE_TOEIC}
+                    href={getListPracticeB1Route('practice')}
                     className="px-3 py-2 hover:bg-muted rounded-md text-sm font-medium transition-colors"
                   >
-                    Thi Thử TOEIC
+                    Luyện Thi B1
                   </Link>
                 </div>
               </PopoverContent>
             </Popover>
+
+            <Link
+              href={getListPracticeToeicRoute('exam')}
+              className="text-gray-600 hover:text-primary font-medium transition-colors flex items-center gap-1"
+            >
+              Thi Thử TOEIC
+            </Link>
+            <Link
+              href={getListPracticeB1Route('exam')}
+              className="text-gray-600 hover:text-primary font-medium transition-colors flex items-center gap-1"
+            >
+              Thi Thử B1
+            </Link>
             {/* <a
               href="#teachers"
               className="text-gray-600 hover:text-primary font-medium transition-colors"
@@ -111,7 +108,7 @@ export function PracticeHeader() {
           </nav>
 
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-4">
+            {/* <div className="hidden md:flex items-center gap-4">
               {mounted && isAuthenticated ? (
                 <Link
                   href={ROUTES.DASHBOARD}
@@ -135,7 +132,7 @@ export function PracticeHeader() {
                   </Link>
                 </>
               )}
-            </div>
+            </div> */}
             <button
               className="md:hidden text-gray-900 p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -149,28 +146,16 @@ export function PracticeHeader() {
 
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-lg py-4 px-4 flex flex-col gap-4">
-          <a
-            href="#courses"
-            className="text-lg font-medium text-gray-800 py-2 border-b"
-          >
+          <a href="#courses" className="text-lg font-medium text-gray-800 py-2 border-b">
             Khóa Học
           </a>
-          <a
-            href="#exams"
-            className="text-lg font-medium text-gray-800 py-2 border-b"
-          >
+          <a href="#exams" className="text-lg font-medium text-gray-800 py-2 border-b">
             Thi Thử
           </a>
-          <a
-            href="#teachers"
-            className="text-lg font-medium text-gray-800 py-2 border-b"
-          >
+          <a href="#teachers" className="text-lg font-medium text-gray-800 py-2 border-b">
             Giảng Viên
           </a>
-          <a
-            href="#testimonials"
-            className="text-lg font-medium text-gray-800 py-2 border-b"
-          >
+          <a href="#testimonials" className="text-lg font-medium text-gray-800 py-2 border-b">
             Thành Tích
           </a>
           {mounted && isAuthenticated ? (

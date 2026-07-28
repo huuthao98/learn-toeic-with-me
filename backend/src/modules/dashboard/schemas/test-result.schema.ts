@@ -8,7 +8,7 @@ export class TestResult {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ required: true, enum: ['ToeicSet', 'VocabularySet', 'InterviewTopic'], default: 'ToeicSet' })
+  @Prop({ required: true, enum: ['ToeicSet', 'VocabularySet', 'InterviewTopic', 'B1Set'], default: 'ToeicSet' })
   testType: string;
 
   @Prop({ type: Types.ObjectId, refPath: 'testType' })
@@ -22,6 +22,12 @@ export class TestResult {
 
   @Prop({ required: true })
   readingScore: number;
+
+  @Prop()
+  writingScore?: number;
+
+  @Prop()
+  speakingScore?: number;
 
   @Prop()
   durationMinutes?: number;

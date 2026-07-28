@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useToeic, ToeicSet } from '@/hooks/useToeic';
 import { useDashboard } from '@/hooks/useDashboard';
 import {
@@ -21,14 +21,24 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useSearchParams } from 'next/navigation';
+import {
+  getPracticeToeicExamRoute,
+  getToeicExamRoute,
+} from '@/constants/routes';
 
-export default function PracticeCatalogPage() {
+function PracticeToeicPageContent() {
   const { useTestSets } = useToeic();
   const { useRecentTests } = useDashboard();
 
+  const searchParams = useSearchParams();
+  const isExamMode =
+    searchParams.has('mode') && searchParams.get('mode') === 'exam';
+  const currentMode = isExamMode ? 'exam' : 'practice';
+
   const { data: ToeicSets, isLoading: loadingTests } = useTestSets(
     'public',
-    'practice',
+    currentMode,
   );
   const { data: recentTests, isLoading: loadingHistory } = useRecentTests();
 
@@ -186,9 +196,9 @@ export default function PracticeCatalogPage() {
                         <CardFooter className="bg-secondary/20 px-6 py-3 border-t border-border/10 flex justify-end">
                           <Link
                             href={
-                              set.readingPdfUrl
-                                ? `/practice-exam-toeic/${set._id}`
-                                : `/practice-exam-toeic/${set._id}?autoplay=true`
+                              isExamMode
+                                ? getToeicExamRoute(set._id)
+                                : getPracticeToeicExamRoute(set._id)
                             }
                             className="w-full"
                           >
@@ -226,5 +236,19 @@ export default function PracticeCatalogPage() {
         )}
       </div>
     </>
+  );
+}
+
+export default function PracticeToeicPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen w-screen flex items-center justify-center bg-background">
+          <div className="h-10 bg-secondary/80 animate-pulse rounded w-32" />
+        </div>
+      }
+    >
+      <PracticeToeicPageContent />
+    </Suspense>
   );
 }

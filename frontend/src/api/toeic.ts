@@ -67,16 +67,15 @@ export const toeicApi = {
     if (status && type) {
       query = `?status=${status}&type=${type}`
     }
-    const response = await api.get<ToeicSet[]>(`/toeic${query}`)
+    const response = await api.get<ToeicSet[]>(`/toeic/sets${query}`)
     return response.data
   },
   fetchTestSet: async (id: string) => {
-    const response = await api.get<ToeicSet>(`/toeic/${id}`)
+    const response = await api.get<ToeicSet>(`/toeic/sets/${id}`)
     return response.data
   },
   fetchTestQuestions: async (id: string) => {
-    // Need to import Question if needed, or use any
-    const response = await api.get<any[]>(`/toeic/${id}/questions`)
+    const response = await api.get<any[]>(`/toeic/sets/${id}/questions`)
     return response.data
   },
   fetchTestResult: async (resultId: string) => {
@@ -84,35 +83,35 @@ export const toeicApi = {
     return response.data
   },
   submitExam: async (id: string, data: { answers: { [questionId: string]: string }; durationMinutes?: number, timePerQuestion?: number[], isTest?: boolean }) => {
-    const response = await api.post(`/toeic/${id}/submit`, data)
+    const response = await api.post(`/toeic/sets/${id}/submit`, data)
     return response.data
   },
   createToeicSet: async (data: any) => {
-    const response = await api.post<ToeicSet>("/toeic/admin/create", data)
+    const response = await api.post<ToeicSet>("/toeic/sets", data)
     return response.data
   },
   upsertBulkQuestions: async (data: { testSetId: string; questions: Partial<CreateToeicQuestionData & { questionNumber: number }>[] }) => {
-    const response = await api.post(`/toeic/admin/${data.testSetId}/questions/bulk-upsert`, { questions: data.questions })
+    const response = await api.post(`/toeic/sets/${data.testSetId}/questions/bulk-upsert`, { questions: data.questions })
     return response.data
   },
   fetchQuestions: async (testSetId: string) => {
-    const response = await api.get<ToeicQuestion[]>(`/toeic/${testSetId}/questions`)
+    const response = await api.get<ToeicQuestion[]>(`/toeic/sets/${testSetId}/questions`)
     return response.data
   },
   updateTestSet: async (id: string, data: { name?: string; description?: string; audioUrl?: string; status?: string; readingPdfUrl?: string; listeningPdfUrl?: string; topics?: string[]; type?: string }) => {
-    const response = await api.patch<ToeicSet>(`/toeic/admin/${id}`, data)
+    const response = await api.patch<ToeicSet>(`/toeic/sets/${id}`, data)
     return response.data
   },
   deleteTestSet: async (id: string) => {
-    const response = await api.delete<any>(`/toeic/admin/${id}`)
+    const response = await api.delete<any>(`/toeic/sets/${id}`)
     return response.data
   },
   updateQuestion: async (questionId: string, data: Partial<ToeicQuestion>) => {
-    const response = await api.patch<ToeicQuestion>(`/toeic/admin/questions/${questionId}`, data)
+    const response = await api.patch<ToeicQuestion>(`/toeic/questions/${questionId}`, data)
     return response.data
   },
   deleteQuestion: async (questionId: string) => {
-    const response = await api.delete<any>(`/toeic/admin/questions/${questionId}`)
+    const response = await api.delete<any>(`/toeic/questions/${questionId}`)
     return response.data
   },
 }

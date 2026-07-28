@@ -14,8 +14,6 @@ import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiProperty,
-  ApiPropertyOptional,
 } from '@nestjs/swagger';
 import { InterviewService } from './interview.service';
 import { JwtAuthGuard, AdminGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,7 +27,9 @@ import { UpdateInterviewTopicDto } from './dto/update-interview-topic.dto';
 export class InterviewController {
   constructor(private readonly InterviewService: InterviewService) {}
 
-  @Get()
+  // ─── Public / User Routes ───────────────────────────────────────────────────
+
+  @Get('sets')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all test sets' })
@@ -37,7 +37,7 @@ export class InterviewController {
     return this.InterviewService.findAll(status);
   }
 
-  @Get(':id')
+  @Get('sets/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get test set metadata by ID' })
@@ -45,15 +45,7 @@ export class InterviewController {
     return this.InterviewService.findOne(id);
   }
 
-  @Get('results/:resultId')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a specific test result by ID' })
-  findResult(@Param('resultId') resultId: string) {
-    return this.InterviewService.findResult(resultId);
-  }
-
-  @Get(':id/questions')
+  @Get('sets/:id/questions')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get questions belonging to a test set' })
@@ -67,7 +59,49 @@ export class InterviewController {
     return this.InterviewService.getQuestions(id, skipNum, limitNum);
   }
 
-  @Post('admin/:id/questions/bulk-upsert')
+  @Get('results/:resultId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a specific test result by ID' })
+  findResult(@Param('resultId') resultId: string) {
+    return this.InterviewService.findResult(resultId);
+  }
+
+  @Post('sets/:id/submit')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Submit answers for a test set' })
+  submitExam(@Request() req: any, @Param('id') id: string, @Body() dto: SubmitInterviewDto) {
+    return this.InterviewService.submitExam(req.user.sub, id, dto.answers, dto.durationMinutes);
+  }
+
+  // ─── Admin Routes ───────────────────────────────────────────────────────────
+
+  @Post('sets')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new test set (Admin)' })
+  createInterviewTopic(@Body() dto: CreateInterviewTopicDto) {
+    return this.InterviewService.create(dto);
+  }
+
+  @Patch('sets/:id')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a test set (Admin)' })
+  updateInterviewTopic(@Param('id') id: string, @Body() dto: UpdateInterviewTopicDto) {
+    return this.InterviewService.update(id, dto);
+  }
+
+  @Delete('sets/:id')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a test set (Admin)' })
+  deleteInterviewTopic(@Param('id') id: string) {
+    return this.InterviewService.delete(id);
+  }
+
+  @Post('sets/:id/questions/bulk-upsert')
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Bulk upsert questions for a test set (Admin)' })
@@ -78,7 +112,7 @@ export class InterviewController {
     return this.InterviewService.upsertBulkQuestions(id, dto.questions);
   }
 
-  @Post('admin/questions')
+  @Post('questions')
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a question (Admin)' })
@@ -86,7 +120,7 @@ export class InterviewController {
     return this.InterviewService.createQuestion(dto);
   }
 
-  @Patch('admin/questions/:qId')
+  @Patch('questions/:qId')
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a question (Admin)' })
@@ -94,43 +128,11 @@ export class InterviewController {
     return this.InterviewService.updateQuestion(qId, dto);
   }
 
-  @Delete('admin/questions/:qId')
+  @Delete('questions/:qId')
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a question (Admin)' })
   deleteQuestion(@Param('qId') qId: string) {
     return this.InterviewService.deleteQuestion(qId);
-  }
-
-  @Post(':id/submit')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Submit answers for a test set' })
-  submitExam(@Request() req: any, @Param('id') id: string, @Body() dto: SubmitInterviewDto) {
-    return this.InterviewService.submitExam(req.user.sub, id, dto.answers, dto.durationMinutes);
-  }
-
-  @Post('admin/create')
-  @UseGuards(AdminGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a new test set (Admin)' })
-  createInterviewTopic(@Body() dto: CreateInterviewTopicDto) {
-    return this.InterviewService.create(dto);
-  }
-
-  @Patch('admin/:id')
-  @UseGuards(AdminGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update a test set (Admin)' })
-  updateInterviewTopic(@Param('id') id: string, @Body() dto: UpdateInterviewTopicDto) {
-    return this.InterviewService.update(id, dto);
-  }
-
-  @Delete('admin/:id')
-  @UseGuards(AdminGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete a test set (Admin)' })
-  deleteInterviewTopic(@Param('id') id: string) {
-    return this.InterviewService.delete(id);
   }
 }

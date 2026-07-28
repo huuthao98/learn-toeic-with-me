@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 
 import { useToeic } from '@/hooks/useToeic';
 import { InteractiveToeicRunner } from '@/components/feature/ToeicPractice/InteractiveToeicRunner';
+import { getListPracticeToeicRoute } from '@/constants/routes';
 
 export default function PracticeInteractivePage() {
   const { id } = useParams() as { id: string };
@@ -41,7 +42,7 @@ export default function PracticeInteractivePage() {
       questions={sortedQuestions.filter(q =>
         ['3', '4', '5', '6', '7'].includes(q.part),
       )}
-      onBack={() => router.push('/practice/practice-toeic')}
+      onBack={() => router.push(getListPracticeToeicRoute('practice'))}
     />
   );
 }

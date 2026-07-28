@@ -18,6 +18,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
 import { FirebaseModule } from './modules/firebase/firebase.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { TopicsModule } from './modules/topics/topics.module';
+import { B1Module } from './modules/b1/b1.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { TopicsModule } from './modules/topics/topics.module';
     FirebaseModule,
     NotificationsModule,
     TopicsModule,
+    B1Module,
   ],
 })
 export class AppModule {}

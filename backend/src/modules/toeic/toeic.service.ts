@@ -1,6 +1,6 @@
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ToeicSet, ToeicSetDocument } from './schemas/toeic-set.schema';
 import { TestResult, TestResultDocument } from '../dashboard/schemas/test-result.schema';
 import { ToeicQuestion, ToeicQuestionDocument } from './schemas/toeic-question.schema';
@@ -20,7 +20,8 @@ export class ToeicService {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  async getQuestions(testSetId: string, skip = 0, limit = 0) {
+  async getQuestions(testSetId: string, user?: any, skip = 0, limit = 0) {
+    await this.checkAccess(testSetId, user);
     let query = this.questionModel.find({ testSetId: new Types.ObjectId(testSetId) }).sort({ questionNumber: 1 });
     if (skip > 0) query = query.skip(skip);
     if (limit > 0) query = query.limit(limit);
@@ -96,10 +97,91 @@ export class ToeicService {
   }
 
 
-  async findAll(status?: string,type?: string) {
+  async checkAccess(testSetId: string, user?: any) {
+    const testSet = await this.ToeicSetModel.findById(testSetId).exec();
+    if (!testSet) throw new NotFoundException('Toeic set not found');
+
+    const requiredAccess = testSet.accessLevel || 'external';
+
+    // If it's public external, everyone has access
+    if (requiredAccess === 'external') {
+      return testSet;
+    }
+
+    // For any VIP level (vip0, vip1, vip2, vip3), the user must be authenticated
+    if (!user) {
+      throw new ForbiddenException('Vui lòng đăng nhập để truy cập nội dung này');
+    }
+
+    // Admin has access to all levels
+    if (user.role === 'admin') {
+      return testSet;
+    }
+
+    // vip0 means any authenticated user can access
+    if (requiredAccess === 'vip0') {
+      return testSet;
+    }
+
+    // Otherwise, check specific TOEIC VIP level
+    const dbUser = await this.usersService.findOne(user.sub);
+    const toeicPkg = dbUser.vipPackages?.find((pkg: any) => pkg.category === 'TOEIC');
+    const userVipLevel = toeicPkg?.vipLevel || 'vip0';
+
+    const VIP_MAP: Record<string, number> = {
+      vip0: 0,
+      vip1: 1,
+      vip2: 2,
+      vip3: 3,
+    };
+
+    const userScore = VIP_MAP[userVipLevel] ?? 0;
+    const requiredScore = VIP_MAP[requiredAccess] ?? 0;
+
+    if (userScore < requiredScore) {
+      throw new ForbiddenException(`Yêu cầu tài khoản đạt cấp độ ${requiredAccess.toUpperCase()} phân hệ TOEIC để truy cập đề thi này`);
+    }
+
+    return testSet;
+  }
+
+  async findAll(status?: string, type?: string, user?: any) {
     const query: any = {};
     if (status) query.status = status;
     if (type) query.type = type;
+
+    let userVipLevel = 'vip0';
+    let isAdmin = false;
+
+    if (user) {
+      if (user.role === 'admin') {
+        isAdmin = true;
+      } else {
+        try {
+          const dbUser = await this.usersService.findOne(user.sub);
+          const toeicPkg = dbUser.vipPackages?.find((pkg: any) => pkg.category === 'TOEIC');
+          userVipLevel = toeicPkg?.vipLevel || 'vip0';
+        } catch (e) {
+          // Ignore and default to vip0
+        }
+      }
+    }
+
+    if (!isAdmin) {
+      const allowedLevels = ['external'];
+      if (user) {
+        allowedLevels.push('vip0');
+        if (userVipLevel === 'vip1') {
+          allowedLevels.push('vip1');
+        } else if (userVipLevel === 'vip2') {
+          allowedLevels.push('vip1', 'vip2');
+        } else if (userVipLevel === 'vip3') {
+          allowedLevels.push('vip1', 'vip2', 'vip3');
+        }
+      }
+      query.accessLevel = { $in: allowedLevels };
+    }
+
     const matchStage = { $match: query };
 
     return this.ToeicSetModel.aggregate([
@@ -108,7 +190,7 @@ export class ToeicService {
         $lookup: {
           from: 'toeicquestions',
           localField: '_id',
-          foreignField: 'testSetId', // Note: assuming question model still uses testSetId or ToeicSetId. We should check that. Assuming foreignField is still testSetId in questions? Actually earlier rename replaced 'TestSetId' to 'ToeicSetId', but testSetId was lowercase 'testSetId'. Wait, rename script didn't touch 'testSetId', it touched 'TestSetId'. Let's keep it as testSetId.
+          foreignField: 'testSetId',
           as: 'questions',
         },
       },
@@ -126,12 +208,8 @@ export class ToeicService {
     ]);
   }
 
-  async findOne(id: string) {
-    const ToeicSet = await this.ToeicSetModel.findById(id).exec();
-    if (!ToeicSet) {
-      throw new NotFoundException('Toeic set not found');
-    }
-    return ToeicSet;
+  async findOne(id: string, user?: any) {
+    return this.checkAccess(id, user);
   }
 
   async create(dto: {
@@ -170,7 +248,8 @@ export class ToeicService {
     return savedTest;
   }
 
-  async findQuestions(testSetId: string) { // Keeping parameter name simple
+  async findQuestions(testSetId: string, user?: any) { // Keeping parameter name simple
+    await this.checkAccess(testSetId, user);
     return this.questionModel
       .find({ testSetId: new Types.ObjectId(testSetId) })
       .sort({ part: 1, createdAt: 1 })
@@ -196,10 +275,7 @@ export class ToeicService {
     timePerQuestion?: number[],
     isTest: boolean = false
   ) {
-    const ToeicSet = await this.ToeicSetModel.findById(testSetId).exec();
-    if (!ToeicSet) {
-      throw new NotFoundException('Toeic set not found');
-    }
+    await this.checkAccess(testSetId, user);
 
     // Fetch all questions for this test set
     const questions = await this.questionModel

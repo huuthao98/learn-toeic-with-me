@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react';
 import { GraduationCap, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ROUTES } from '@/constants/routes';
+import {
+  getListPracticeB1Route,
+  getListPracticeToeicRoute,
+  ROUTES,
+} from '@/constants/routes';
 import { useAuthStore } from '@/store/authStore';
 import {
   Popover,
@@ -71,10 +75,16 @@ export function HomeHeader() {
                     Luyện Phỏng Vấn
                   </Link>
                   <Link
-                    href={ROUTES.PRACTICE_EXAM_TOEIC}
+                    href={getListPracticeToeicRoute('practice')}
                     className="px-3 py-2 hover:bg-muted rounded-md text-sm font-medium transition-colors"
                   >
                     Luyện Thi TOEIC
+                  </Link>
+                  <Link
+                    href={getListPracticeB1Route('practice')}
+                    className="px-3 py-2 hover:bg-muted rounded-md text-sm font-medium transition-colors"
+                  >
+                    Luyện Thi B1
                   </Link>
                 </div>
               </PopoverContent>
@@ -87,10 +97,16 @@ export function HomeHeader() {
               <PopoverContent className="w-48 p-2" align="start">
                 <div className="flex flex-col gap-1">
                   <Link
-                    href={ROUTES.PRACTICE_TOEIC}
+                    href={getListPracticeToeicRoute('exam')}
                     className="px-3 py-2 hover:bg-muted rounded-md text-sm font-medium transition-colors"
                   >
                     Thi Thử TOEIC
+                  </Link>
+                  <Link
+                    href={getListPracticeB1Route('exam')}
+                    className="px-3 py-2 hover:bg-muted rounded-md text-sm font-medium transition-colors"
+                  >
+                    Thi Thử B1
                   </Link>
                 </div>
               </PopoverContent>

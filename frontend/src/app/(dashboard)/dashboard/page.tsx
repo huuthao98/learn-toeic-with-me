@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useDashboard } from '@/hooks/useDashboard';
+import { TodoList } from '@/components/feature/TodoList/TodoList';
 import {
   Flame,
   Target,
@@ -75,9 +76,7 @@ export default function DashboardPage() {
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[10px] font-bold text-foreground">
-            {percentage}%
-          </span>
+          <span className="text-[10px] font-bold text-foreground">{percentage}%</span>
         </div>
       </div>
     );
@@ -95,14 +94,11 @@ export default function DashboardPage() {
                 <Calendar className="w-4 h-4" />
                 <span>{formattedDate}</span>
               </div>
-              <h1 className="text-4xl font-extrabold mb-3">
-                Chào buổi sáng, Tuấn.
-              </h1>
+              <h1 className="text-4xl font-extrabold mb-3">Chào buổi sáng, Tuấn.</h1>
               <div className="flex items-center gap-2 bg-card px-4 py-2.5 rounded-full border border-border w-fit">
                 <Quote className="w-4 h-4 text-muted-foreground/60" />
                 <span className="text-sm text-muted-foreground italic">
-                  "Hành trình vạn dặm bắt đầu từ một bước chân." Hãy tiếp tục
-                  phát huy nhé!
+                  "Hành trình vạn dặm bắt đầu từ một bước chân." Hãy tiếp tục phát huy nhé!
                 </span>
               </div>
             </div>
@@ -113,14 +109,10 @@ export default function DashboardPage() {
                 <Star className="w-5 h-5 text-chart-4 fill-chart-4" />
               </div>
               <div>
-                <div className="text-[10px] font-bold text-muted-foreground uppercase">
-                  Tổng XP
-                </div>
+                <div className="text-[10px] font-bold text-muted-foreground uppercase">Tổng XP</div>
                 <div className="text-base font-bold tabular-nums">
                   {currentXp}{' '}
-                  <span className="text-muted-foreground/70 text-xs font-medium">
-                    / 5000
-                  </span>
+                  <span className="text-muted-foreground/70 text-xs font-medium">/ 5000</span>
                 </div>
               </div>
             </div>
@@ -140,11 +132,8 @@ export default function DashboardPage() {
                 </h2>
                 <p className="text-sm text-muted-foreground max-w-md">
                   Bạn chỉ còn{' '}
-                  <span className="text-foreground font-bold">
-                    {targetXp - currentXp} XP
-                  </span>{' '}
-                  nữa để lên cấp {level + 1}. Hoàn thành bài test hôm nay để
-                  nhận thưởng kép.
+                  <span className="text-foreground font-bold">{targetXp - currentXp} XP</span> nữa
+                  để lên cấp {level + 1}. Hoàn thành bài test hôm nay để nhận thưởng kép.
                 </p>
               </div>
             </div>
@@ -154,15 +143,10 @@ export default function DashboardPage() {
               <div className="flex justify-between items-end mb-2">
                 <div className="flex items-center gap-1.5">
                   <Star className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-sm font-bold text-primary">
-                    Level {level}
-                  </span>
+                  <span className="text-sm font-bold text-primary">Level {level}</span>
                 </div>
                 <div className="text-sm font-bold tabular-nums">
-                  {currentXp}{' '}
-                  <span className="text-muted-foreground/70 text-xs">
-                    / 5,000 XP
-                  </span>
+                  {currentXp} <span className="text-muted-foreground/70 text-xs">/ 5,000 XP</span>
                 </div>
               </div>
               <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
@@ -184,21 +168,15 @@ export default function DashboardPage() {
               <div>
                 <h3 className="font-bold text-base mb-1">TOEIC Mock Test</h3>
                 <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-3xl font-black">
-                    {stats?.estimatedScore || 715}
-                  </span>
-                  <span className="text-xs font-bold text-muted-foreground/70">
-                    / 990
-                  </span>
+                  <span className="text-3xl font-black">{stats?.estimatedScore || 715}</span>
+                  <span className="text-xs font-bold text-muted-foreground/70">/ 990</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold text-muted-foreground mb-2">
                   <span>Mục tiêu: {stats?.targetScore || 800}</span>
                   <span>
                     {Math.min(
                       Math.round(
-                        ((stats?.estimatedScore || 715) /
-                          (stats?.targetScore || 800)) *
-                          100,
+                        ((stats?.estimatedScore || 715) / (stats?.targetScore || 800)) * 100,
                       ),
                       100,
                     )}
@@ -220,9 +198,7 @@ export default function DashboardPage() {
                 <h3 className="font-bold text-base mb-1">English Vocabulary</h3>
                 <div className="flex items-baseline gap-1 mb-4">
                   <span className="text-3xl font-black">1,240</span>
-                  <span className="text-xs font-bold text-muted-foreground/70">
-                    từ
-                  </span>
+                  <span className="text-xs font-bold text-muted-foreground/70">từ</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold text-muted-foreground mb-2">
                   <span>Cần ôn tập: 85</span>
@@ -237,17 +213,13 @@ export default function DashboardPage() {
             {/* Card 3: Chinese */}
             <div className="bg-card border border-border rounded-2xl p-5 flex flex-col justify-between hover:bg-accent transition-colors">
               <div className="bg-chart-5/10 w-fit p-2.5 rounded-xl mb-4">
-                <span className="font-bold text-chart-5 text-lg leading-none">
-                  文
-                </span>
+                <span className="font-bold text-chart-5 text-lg leading-none">文</span>
               </div>
               <div>
                 <h3 className="font-bold text-base mb-1">Chinese (汉字)</h3>
                 <div className="flex items-baseline gap-1 mb-4">
                   <span className="text-3xl font-black">320</span>
-                  <span className="text-xs font-bold text-muted-foreground/70">
-                    chữ
-                  </span>
+                  <span className="text-xs font-bold text-muted-foreground/70">chữ</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold text-muted-foreground mb-2">
                   <span>HSK Level 2</span>
@@ -268,9 +240,7 @@ export default function DashboardPage() {
                 <h3 className="font-bold text-base mb-1">Interview Practice</h3>
                 <div className="flex items-baseline gap-1 mb-4">
                   <span className="text-3xl font-black">8</span>
-                  <span className="text-xs font-bold text-muted-foreground/70">
-                    phiên
-                  </span>
+                  <span className="text-xs font-bold text-muted-foreground/70">phiên</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold text-muted-foreground mb-2">
                   <span>Tiếp theo: STAR</span>
@@ -287,49 +257,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
             {/* COLUMN 1: Mục tiêu hôm nay + Từ mới */}
             <div className="col-span-1 lg:col-span-4 flex flex-col gap-4 md:gap-6">
-              <div className="bg-card border border-border rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-primary/10 p-2 rounded-xl">
-                      <Target className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base">Mục tiêu hôm nay</h3>
-                      <p className="text-xs text-muted-foreground">
-                        Đã hoàn thành 2/4
-                      </p>
-                    </div>
-                  </div>
-                  <CircularProgress percentage={50} size={50} strokeWidth={4} />
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex gap-3 items-start group cursor-pointer">
-                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm font-medium text-muted-foreground line-through decoration-muted-foreground/50">
-                      Hoàn thành 1 bài thi thử TOEIC
-                    </span>
-                  </div>
-                  <div className="flex gap-3 items-start group cursor-pointer">
-                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm font-medium text-muted-foreground line-through decoration-muted-foreground/50">
-                      Ôn tập 85 từ vựng tiếng Anh
-                    </span>
-                  </div>
-                  <div className="flex gap-3 items-start group cursor-pointer">
-                    <Circle className="w-5 h-5 text-muted-foreground/70 group-hover:text-muted-foreground shrink-0 mt-0.5 transition-colors" />
-                    <span className="text-sm font-medium text-foreground">
-                      Học 10 chữ Hán mới
-                    </span>
-                  </div>
-                  <div className="flex gap-3 items-start group cursor-pointer">
-                    <Circle className="w-5 h-5 text-muted-foreground/70 group-hover:text-muted-foreground shrink-0 mt-0.5 transition-colors" />
-                    <span className="text-sm font-medium text-foreground">
-                      Thực hành phỏng vấn STAR 1 phiên
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <TodoList />
 
               {/* Promo / Word of the day */}
               <div className="bg-gradient-to-b from-card to-background border border-border rounded-2xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden flex-1">
@@ -337,12 +265,8 @@ export default function DashboardPage() {
                   <Globe className="w-3 h-3" /> TỪ MỚI
                 </div>
                 <div className="mt-8 mb-6">
-                  <h4 className="text-3xl font-black tracking-tight mb-2">
-                    resilience
-                  </h4>
-                  <p className="text-primary font-mono text-sm">
-                    /rɪˈzɪl.jəns/
-                  </p>
+                  <h4 className="text-3xl font-black tracking-tight mb-2">resilience</h4>
+                  <p className="text-primary font-mono text-sm">/rɪˈzɪl.jəns/</p>
                 </div>
                 <button className="flex items-center gap-2 bg-muted hover:bg-accent transition-colors px-4 py-2 rounded-full text-xs font-bold text-muted-foreground mb-2">
                   <Volume2 className="w-4 h-4" /> NHẤN ĐỂ LẬT
@@ -359,15 +283,10 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-base">Hoạt động gần đây</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Hôm nay và Hôm qua
-                    </p>
+                    <p className="text-xs text-muted-foreground">Hôm nay và Hôm qua</p>
                   </div>
                 </div>
-                <Link
-                  href="#"
-                  className="text-xs font-bold text-primary hover:underline"
-                >
+                <Link href="#" className="text-xs font-bold text-primary hover:underline">
                   Xem tất cả
                 </Link>
               </div>
@@ -383,16 +302,12 @@ export default function DashboardPage() {
                       <h5 className="text-sm font-bold text-foreground group-hover:text-chart-1 transition-colors">
                         TOEIC Listening Part 3
                       </h5>
-                      <p className="text-xs text-muted-foreground/70">
-                        Luyện đề
-                      </p>
+                      <p className="text-xs text-muted-foreground/70">Luyện đề</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-bold text-chart-1">+45 XP</div>
-                    <div className="text-[10px] text-muted-foreground/70">
-                      10:30 AM
-                    </div>
+                    <div className="text-[10px] text-muted-foreground/70">10:30 AM</div>
                   </div>
                 </div>
 
@@ -406,21 +321,15 @@ export default function DashboardPage() {
                       <h5 className="text-sm font-bold text-foreground group-hover:text-chart-3 transition-colors">
                         Phỏng vấn: Điểm mạnh & Yếu
                       </h5>
-                      <p className="text-xs text-muted-foreground/70">
-                        Mock Interview
-                      </p>
+                      <p className="text-xs text-muted-foreground/70">Mock Interview</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-bold text-foreground">
                       8.5
-                      <span className="text-muted-foreground/70 text-xs">
-                        /10
-                      </span>
+                      <span className="text-muted-foreground/70 text-xs">/10</span>
                     </div>
-                    <div className="text-[10px] text-muted-foreground/70">
-                      Hôm qua
-                    </div>
+                    <div className="text-[10px] text-muted-foreground/70">Hôm qua</div>
                   </div>
                 </div>
 
@@ -438,12 +347,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-bold text-foreground">
-                      100%
-                    </div>
-                    <div className="text-[10px] text-muted-foreground/70">
-                      Hôm qua
-                    </div>
+                    <div className="text-sm font-bold text-foreground">100%</div>
+                    <div className="text-[10px] text-muted-foreground/70">Hôm qua</div>
                   </div>
                 </div>
 
@@ -457,16 +362,12 @@ export default function DashboardPage() {
                       <h5 className="text-sm font-bold text-foreground group-hover:text-chart-5 transition-colors">
                         HSK2: 10 chữ Hán cơ bản
                       </h5>
-                      <p className="text-xs text-muted-foreground/70">
-                        Học mới
-                      </p>
+                      <p className="text-xs text-muted-foreground/70">Học mới</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-bold text-chart-5">+30 XP</div>
-                    <div className="text-[10px] text-muted-foreground/70">
-                      Hôm qua
-                    </div>
+                    <div className="text-[10px] text-muted-foreground/70">Hôm qua</div>
                   </div>
                 </div>
 
@@ -480,21 +381,15 @@ export default function DashboardPage() {
                       <h5 className="text-sm font-bold text-foreground group-hover:text-chart-4 transition-colors">
                         TOEIC Reading Part 7
                       </h5>
-                      <p className="text-xs text-muted-foreground/70">
-                        Luyện đề
-                      </p>
+                      <p className="text-xs text-muted-foreground/70">Luyện đề</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-bold text-chart-4">
                       15
-                      <span className="text-muted-foreground/70 text-xs">
-                        /20
-                      </span>
+                      <span className="text-muted-foreground/70 text-xs">/20</span>
                     </div>
-                    <div className="text-[10px] text-muted-foreground/70">
-                      2 ngày trước
-                    </div>
+                    <div className="text-[10px] text-muted-foreground/70">2 ngày trước</div>
                   </div>
                 </div>
               </div>
@@ -510,9 +405,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-base">Xếp hạng tuần</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Nhóm 48 bạn bè
-                    </p>
+                    <p className="text-xs text-muted-foreground">Nhóm 48 bạn bè</p>
                   </div>
                 </div>
 
@@ -549,9 +442,7 @@ export default function DashboardPage() {
                       className={`flex items-center justify-between p-2.5 rounded-xl ${user.isMe ? 'bg-primary/10 border border-primary/20' : 'hover:bg-accent'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <span
-                          className={`text-xs font-bold w-4 text-center ${user.color}`}
-                        >
+                        <span className={`text-xs font-bold w-4 text-center ${user.color}`}>
                           #{user.rank}
                         </span>
                         <div
@@ -566,10 +457,7 @@ export default function DashboardPage() {
                         </span>
                       </div>
                       <div className="text-xs font-bold text-foreground tabular-nums">
-                        {user.xp}{' '}
-                        <span className="text-[9px] text-muted-foreground/70">
-                          XP
-                        </span>
+                        {user.xp} <span className="text-[9px] text-muted-foreground/70">XP</span>
                       </div>
                     </div>
                   ))}
@@ -588,40 +476,28 @@ export default function DashboardPage() {
                 <div className="space-y-3">
                   <div className="p-3 border border-border rounded-xl flex items-center gap-4 hover:border-border/80 transition-colors cursor-pointer">
                     <div className="bg-background border border-border rounded-lg w-12 h-12 flex flex-col items-center justify-center shrink-0">
-                      <span className="text-[9px] font-bold text-destructive uppercase">
-                        Th10
-                      </span>
-                      <span className="text-lg font-black leading-none">
-                        28
-                      </span>
+                      <span className="text-[9px] font-bold text-destructive uppercase">Th10</span>
+                      <span className="text-lg font-black leading-none">28</span>
                     </div>
                     <div>
-                      <h5 className="text-sm font-bold text-foreground">
-                        Thi thử TOEIC định kỳ
-                      </h5>
+                      <h5 className="text-sm font-bold text-foreground">Thi thử TOEIC định kỳ</h5>
                       <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                        <Circle className="w-1.5 h-1.5 fill-primary text-primary" />{' '}
-                        Online • 120 phút
+                        <Circle className="w-1.5 h-1.5 fill-primary text-primary" /> Online • 120
+                        phút
                       </p>
                     </div>
                   </div>
 
                   <div className="p-3 border border-border rounded-xl flex items-center gap-4 hover:border-border/80 transition-colors cursor-pointer">
                     <div className="bg-background border border-border rounded-lg w-12 h-12 flex flex-col items-center justify-center shrink-0">
-                      <span className="text-[9px] font-bold text-destructive uppercase">
-                        Th11
-                      </span>
-                      <span className="text-lg font-black leading-none">
-                        05
-                      </span>
+                      <span className="text-[9px] font-bold text-destructive uppercase">Th11</span>
+                      <span className="text-lg font-black leading-none">05</span>
                     </div>
                     <div>
-                      <h5 className="text-sm font-bold text-foreground">
-                        Mock Interview - Tech
-                      </h5>
+                      <h5 className="text-sm font-bold text-foreground">Mock Interview - Tech</h5>
                       <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                        <Circle className="w-1.5 h-1.5 fill-primary text-primary" />{' '}
-                        Cùng Mentor • 45 phút
+                        <Circle className="w-1.5 h-1.5 fill-primary text-primary" /> Cùng Mentor •
+                        45 phút
                       </p>
                     </div>
                   </div>

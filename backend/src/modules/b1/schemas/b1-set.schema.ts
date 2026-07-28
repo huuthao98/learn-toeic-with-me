@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type ToeicSetDocument = ToeicSet & Document;
+export type B1SetDocument = B1Set & Document;
 
 @Schema({ timestamps: true })
-export class ToeicSet {
+export class B1Set {
   @Prop({ required: true })
   name: string;
 
@@ -12,7 +12,7 @@ export class ToeicSet {
   description?: string;
 
   @Prop()
-  audioUrl?: string;
+  audioUrl?: string; // Listening audio
 
   @Prop({ default: 'draft', enum: ['draft', 'public', 'private'] })
   status: string;
@@ -20,17 +20,8 @@ export class ToeicSet {
   @Prop({ default: 'external', enum: ['external', 'vip0', 'vip1', 'vip2', 'vip3'] })
   accessLevel: string;
 
-  @Prop()
-  readingPdfUrl?: string;
-
-  @Prop()
-  listeningPdfUrl?: string;
-
   @Prop({ type: [String], default: [] })
   topics?: string[];
-
-  @Prop({ type: String, default: 'exam', enum: ['exam', 'practice'] })
-  type: string;
 }
 
-export const ToeicSetSchema = SchemaFactory.createForClass(ToeicSet);
+export const B1SetSchema = SchemaFactory.createForClass(B1Set);

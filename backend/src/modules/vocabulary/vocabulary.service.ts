@@ -54,6 +54,22 @@ export class VocabularyService {
     return { message: `Upserted ${questions.length} questions` };
   }
 
+  async updateQuestion(questionId: string, data: any) {
+    const question = await this.questionModel.findByIdAndUpdate(
+      questionId,
+      { $set: data },
+      { new: true },
+    ).exec();
+    if (!question) throw new NotFoundException('Question not found');
+    return question;
+  }
+
+  async deleteQuestion(questionId: string) {
+    const question = await this.questionModel.findByIdAndDelete(questionId).exec();
+    if (!question) throw new NotFoundException('Question not found');
+    return { message: 'Question deleted successfully' };
+  }
+
   async findAll(status?: string, category?: string, user?: any) {
     const query: any = {};
     if (status) query.status = status;

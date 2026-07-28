@@ -40,26 +40,38 @@ export const vocabularyApi = {
     if (category) queryParams.append('category', category)
     if (status) queryParams.append('status', status)
     const queryString = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    
-    const response = await api.get<VocabularySet[]>(`/vocabulary${queryString}`)
+
+    const response = await api.get<VocabularySet[]>(`/vocabulary/sets${queryString}`)
     return response.data
   },
-  
+
   fetchTestSet: async (id: string) => {
-    const response = await api.get<VocabularySet>(`/vocabulary/${id}`)
+    const response = await api.get<VocabularySet>(`/vocabulary/sets/${id}`)
     return response.data
   },
 
   fetchTestQuestions: async (id: string) => {
-    const response = await api.get<any[]>(`/vocabulary/${id}/questions`)
+    const response = await api.get<any[]>(`/vocabulary/sets/${id}/questions`)
     return response.data
   },
+
+  fetchQuestions: async (testSetId: string, skip?: number, limit?: number) => {
+    const params = new URLSearchParams();
+    if (skip !== undefined) params.append('skip', String(skip));
+    if (limit !== undefined) params.append('limit', String(limit));
+    const qs = params.toString();
+    const url = qs ? `/vocabulary/sets/${testSetId}/questions?${qs}` : `/vocabulary/sets/${testSetId}/questions`;
+    const response = await api.get<VocabularyQuestion[]>(url)
+    return response.data
+  },
+
   fetchTestResult: async (resultId: string) => {
     const response = await api.get<any>(`/vocabulary/results/${resultId}`)
     return response.data
   },
-  submitExam: async (id: string, data: { 
-    answers: { [questionId: string]: string }; 
+
+  submitExam: async (id: string, data: {
+    answers: { [questionId: string]: string };
     durationMinutes?: number;
     timePerQuestion?: number[];
     isTest?: boolean;
@@ -67,40 +79,37 @@ export const vocabularyApi = {
     isTestOut?: boolean;
     isRescueStreak?: boolean;
   }) => {
-    const response = await api.post(`/vocabulary/${id}/submit`, data)
+    const response = await api.post(`/vocabulary/sets/${id}/submit`, data)
     return response.data
   },
+
   createVocabularySet: async (data: any) => {
-    const response = await api.post<VocabularySet>("/vocabulary/admin/create", data)
+    const response = await api.post<VocabularySet>("/vocabulary/sets", data)
     return response.data
   },
+
   upsertBulkQuestions: async (data: { testSetId: string; questions: Partial<CreateVocabularyQuestionData & { questionNumber: number }>[] }) => {
-    const response = await api.post(`/vocabulary/admin/${data.testSetId}/questions/bulk-upsert`, { questions: data.questions })
+    const response = await api.post(`/vocabulary/sets/${data.testSetId}/questions/bulk-upsert`, { questions: data.questions })
     return response.data
   },
-  fetchQuestions: async (testSetId: string, skip?: number, limit?: number) => {
-    const params = new URLSearchParams();
-    if (skip !== undefined) params.append('skip', String(skip));
-    if (limit !== undefined) params.append('limit', String(limit));
-    const qs = params.toString();
-    const url = qs ? `/vocabulary/${testSetId}/questions?${qs}` : `/vocabulary/${testSetId}/questions`;
-    const response = await api.get<VocabularyQuestion[]>(url)
-    return response.data
-  },
+
   updateTestSet: async (id: string, data: { name?: string; description?: string; status?: string; category?: string; topics?: string[] }) => {
-    const response = await api.patch<VocabularySet>(`/vocabulary/admin/${id}`, data)
+    const response = await api.patch<VocabularySet>(`/vocabulary/sets/${id}`, data)
     return response.data
   },
+
   deleteTestSet: async (id: string) => {
-    const response = await api.delete<any>(`/vocabulary/admin/${id}`)
+    const response = await api.delete<any>(`/vocabulary/sets/${id}`)
     return response.data
   },
+
   updateQuestion: async (id: string, data: Partial<CreateVocabularyQuestionData>) => {
-    const response = await api.patch<VocabularyQuestion>(`/vocabulary/admin/questions/${id}`, data)
+    const response = await api.patch<VocabularyQuestion>(`/vocabulary/questions/${id}`, data)
     return response.data
   },
+
   deleteQuestion: async (id: string) => {
-    const response = await api.delete<any>(`/vocabulary/admin/questions/${id}`)
+    const response = await api.delete<any>(`/vocabulary/questions/${id}`)
     return response.data
   },
 }

@@ -51,6 +51,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToeic } from '@/hooks/useToeic';
 import { useVocabulary } from '@/hooks/useVocabulary';
 import { useInterview } from '@/hooks/useInterview';
+import { useB1 } from '@/hooks/useB1';
 import { useAuthStore } from '@/store/authStore';
 import {
   ROUTES,
@@ -58,6 +59,7 @@ import {
   getAdminTestDetailRoute,
   getAdminTestInterviewDetailRoute,
   getAdminDetailPracticeRoute,
+  getAdminTestB1DetailRoute,
 } from '@/constants/routes';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { toast } from 'sonner';
@@ -68,6 +70,7 @@ const editToeicSetSchema = z.object({
   description: z.string(),
   status: z.enum(['draft', 'public', 'private']).optional(),
   type: z.enum(['practice', 'exam']).optional(),
+  accessLevel: z.enum(['external', 'vip0', 'vip1', 'vip2', 'vip3']).optional(),
 });
 
 type EditToeicSetFormValues = z.infer<typeof editToeicSetSchema>;
@@ -99,13 +102,20 @@ export default function AdminPage() {
     useDeleteTestSetMutation: useDeleteInterview,
     useUpdateTestSetMutation: useUpdateInterview,
   } = useInterview();
+  const {
+    useTestSets: useB1Sets,
+    useDeleteTestSetMutation: useDeleteB1,
+    useUpdateTestSetMutation: useUpdateB1,
+  } = useB1();
 
   const { data: toeicSets, isLoading: loadingToeic } = useToeicSets();
   const { data: vocabSets, isLoading: loadingVocab } = useVocabSets();
   const { data: interviewSets, isLoading: loadingInterviewSets } =
     useInterviewSets();
+  const { data: b1Sets, isLoading: loadingB1 } = useB1Sets();
 
-  const loadingTests = loadingToeic || loadingVocab || loadingInterviewSets;
+  const loadingTests =
+    loadingToeic || loadingVocab || loadingInterviewSets || loadingB1;
 
   const allTestSets = useMemo(() => {
     return [
@@ -121,14 +131,19 @@ export default function AdminPage() {
         ...set,
         category: 'interview',
       })),
+      ...(b1Sets || []).map((set: any) => ({
+        ...set,
+        category: 'b1',
+      })),
     ];
-  }, [toeicSets, vocabSets, interviewSets]);
+  }, [toeicSets, vocabSets, interviewSets, b1Sets]);
 
   const groupedSets = useMemo(() => {
     const categories: Record<string, any[]> = {
       toeic: [],
       vocabulary: [],
       interview: [],
+      b1: [],
     };
 
     allTestSets.forEach(set => {
@@ -142,16 +157,18 @@ export default function AdminPage() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<
-    'toeic' | 'vocabulary' | 'interview' | null
+    'toeic' | 'vocabulary' | 'interview' | 'b1' | null
   >(null);
 
   const updateToeicSetMutation = useUpdateToeic(selectedId || '');
   const updateVocabSetMutation = useUpdateVocab(selectedId || '');
   const updateInterviewSetMutation = useUpdateInterview(selectedId || '');
+  const updateB1SetMutation = useUpdateB1(selectedId || '');
 
   const deleteToeicSetMutation = useDeleteToeic();
   const deleteVocabSetMutation = useDeleteVocab();
   const deleteInterviewSetMutation = useDeleteInterview();
+  const deleteB1SetMutation = useDeleteB1();
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -162,6 +179,7 @@ export default function AdminPage() {
       description: '',
       status: 'draft',
       type: 'practice',
+      accessLevel: 'external',
     },
   });
 
@@ -173,6 +191,7 @@ export default function AdminPage() {
       description: set.description || '',
       status: (set.status as 'draft' | 'public' | 'private') || 'draft',
       type: (set.type as 'practice' | 'exam') || 'practice',
+      accessLevel: (set.accessLevel as 'external' | 'vip0' | 'vip1' | 'vip2' | 'vip3') || 'external',
     });
     setEditModalOpen(true);
   };
@@ -192,6 +211,8 @@ export default function AdminPage() {
       updateVocabSetMutation.mutate(values, { onSuccess, onError });
     else if (selectedType === 'interview')
       updateInterviewSetMutation.mutate(values, { onSuccess, onError });
+    else if (selectedType === 'b1')
+      updateB1SetMutation.mutate(values, { onSuccess, onError });
   };
 
   const handleDeleteTestSet = (id: string) => {
@@ -211,6 +232,8 @@ export default function AdminPage() {
       deleteVocabSetMutation.mutate(id, { onSuccess, onError });
     else if (selectedType === 'interview')
       deleteInterviewSetMutation.mutate(id, { onSuccess, onError });
+    else if (selectedType === 'b1')
+      deleteB1SetMutation.mutate(id, { onSuccess, onError });
   };
 
   if (user && user.role !== 'admin') {
@@ -238,6 +261,12 @@ export default function AdminPage() {
       icon: Mic,
       color: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
       desc: 'Quản lý đề thi nói và thu âm trực tiếp',
+    },
+    b1: {
+      title: 'Đề Thi B1 (VSTEP)',
+      icon: BookOpen,
+      color: 'text-green-500 bg-green-500/10 border-green-500/20',
+      desc: 'Quản lý bài thi B1 VSTEP',
     },
   };
 
@@ -287,7 +316,7 @@ export default function AdminPage() {
             </div>
           ) : allTestSets && allTestSets.length > 0 ? (
             <div className="space-y-10">
-              {['toeic', 'vocabulary', 'interview'].map(catKey => {
+              {['toeic', 'vocabulary', 'interview', 'b1'].map(catKey => {
                 const sets = groupedSets[catKey] || [];
                 if (sets.length === 0) return null;
 
@@ -350,7 +379,8 @@ export default function AdminPage() {
                                 disabled={
                                   deleteToeicSetMutation.isPending ||
                                   deleteVocabSetMutation.isPending ||
-                                  deleteInterviewSetMutation.isPending
+                                  deleteInterviewSetMutation.isPending ||
+                                  deleteB1SetMutation.isPending
                                 }
                                 className="p-2 text-destructive bg-destructive/10 hover:bg-destructive/20 rounded-full transition-colors cursor-pointer"
                                 title="Xóa đề thi"
@@ -446,6 +476,8 @@ export default function AdminPage() {
                                       return getAdminTestInterviewDetailRoute(
                                         set._id,
                                       );
+                                    case 'b1':
+                                      return getAdminTestB1DetailRoute(set._id);
                                     case 'vocabulary':
                                     default:
                                       return getAdminTestDetailRoute(set._id);
@@ -505,7 +537,8 @@ export default function AdminPage() {
         isLoading={
           deleteToeicSetMutation.isPending ||
           deleteVocabSetMutation.isPending ||
-          deleteInterviewSetMutation.isPending
+          deleteInterviewSetMutation.isPending ||
+          deleteB1SetMutation.isPending
         }
       />
 
@@ -598,6 +631,39 @@ export default function AdminPage() {
                               <SelectItem value="exam">
                                 Thi thử (Exam)
                               </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {/* Access Level select for B1 sets */}
+                  {selectedType === 'b1' && (
+                    <FormField
+                      control={editForm.control}
+                      name="accessLevel"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1.5 w-40">
+                          <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                            Phạm vi truy cập
+                          </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value || 'external'}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Chọn phạm vi" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="external">External (Công khai)</SelectItem>
+                              <SelectItem value="vip0">Member (Đăng nhập)</SelectItem>
+                              <SelectItem value="vip1">VIP 1 (Silver)</SelectItem>
+                              <SelectItem value="vip2">VIP 2 (Gold)</SelectItem>
+                              <SelectItem value="vip3">VIP 3 (Platinum)</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />

@@ -31,7 +31,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
-import { ROUTES } from '@/constants/routes';
+import {
+  getListPracticeB1Route,
+  getListPracticeToeicRoute,
+  ROUTES,
+} from '@/constants/routes';
 
 interface SidebarProps extends HTMLAttributes<HTMLDivElement> {
   onCollapseToggle?: (collapsed: boolean) => void;
@@ -71,7 +75,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
           children: [
             {
               name: 'Luyện Thi TOEIC',
-              href: ROUTES.PRACTICE_EXAM_TOEIC,
+              href: getListPracticeToeicRoute('practice'),
               roles: ['user', 'admin'],
             },
             {
@@ -84,6 +88,11 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
               href: ROUTES.PRACTICE_INTERVIEW,
               roles: ['user', 'admin'],
             },
+            {
+              name: 'Luyện Thi B1',
+              href: getListPracticeB1Route('practice'),
+              roles: ['user', 'admin'],
+            },
           ],
         },
         {
@@ -93,19 +102,14 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
           children: [
             {
               name: 'Thi Thử TOEIC',
-              href: ROUTES.PRACTICE_TOEIC,
+              href: getListPracticeToeicRoute('exam'),
               roles: ['user', 'admin'],
             },
-            // {
-            //   name: 'Luyện Từ Vựng',
-            //   href: ROUTES.PRACTICE_VOCABULARY,
-            //   roles: ['user', 'admin'],
-            // },
-            // {
-            //   name: 'Luyện Phỏng Vấn',
-            //   href: ROUTES.PRACTICE_INTERVIEW,
-            //   roles: ['user', 'admin'],
-            // },
+            {
+              name: 'Thi Thử B1',
+              href: getListPracticeB1Route('exam'),
+              roles: ['user', 'admin'],
+            },
           ],
         },
       ],
@@ -132,6 +136,11 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
             {
               name: 'Tạo Đề Thi Toeic',
               href: ROUTES.ADMIN_CREATE_TEST_V2,
+              roles: ['admin'],
+            },
+            {
+              name: 'Tạo Đề Thi B1',
+              href: ROUTES.ADMIN_CREATE_TEST_B1,
               roles: ['admin'],
             },
           ],

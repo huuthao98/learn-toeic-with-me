@@ -1,0 +1,242 @@
+'use client';
+
+import Link from 'next/link';
+import { Suspense, useMemo, useState } from 'react';
+import { useToeic, ToeicSet } from '@/hooks/useToeic';
+import { useDashboard } from '@/hooks/useDashboard';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card';
+import {
+  BookOpen,
+  CheckCircle2,
+  Calendar,
+  Layers,
+  ArrowRight,
+  ClipboardList,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useB1 } from '@/hooks/useB1';
+import { useSearchParams } from 'next/navigation';
+import { getB1ExamRoute, getPracticeB1ExamRoute } from '@/constants/routes';
+
+function PracticeB1PageContent() {
+  const { useTestSets } = useB1();
+  const { useRecentTests } = useDashboard();
+  const { data: recentTests, isLoading: loadingHistory } = useRecentTests();
+
+  const searchParams = useSearchParams();
+
+  const isExamMode =
+    searchParams.has('mode') && searchParams.get('mode') === 'exam';
+  const currentMode = isExamMode ? 'exam' : 'practice';
+
+  const { data: B1Sets, isLoading: loadingTests } = useTestSets('public');
+  // Track completed test IDs
+  const completedTestIds = useMemo(() => {
+    if (!recentTests) return new Set<string>();
+    // In our backend recent tests population, test.test_sets contains populated ToeicSet,
+    // or sometimes we might have a different format, but the result has a reference.
+    // Let's inspect ToeicSetId from history
+    const completedSet = new Set<string>();
+    recentTests.forEach(r => {
+      // Find the ID of the test set
+      // It might be stored under populated test_sets._id or the old key.
+      const id = (r as any).ToeicSetId || (r.test_sets as any)?._id;
+      if (id) completedSet.add(id.toString());
+    });
+    return completedSet;
+  }, [recentTests]);
+
+  // Group tests by folder/year (e.g. "2025 Exams", "2024 Exams", "Khác")
+  const groupedExams = useMemo(() => {
+    if (!B1Sets) return {};
+    const groups: { [key: string]: ToeicSet[] } = {};
+
+    B1Sets.forEach((set: any) => {
+      // Extract year like 2024 or 2025 or default to "Bộ đề tổng hợp"
+      const yearMatch = set.name.match(/\b(202\d)\b/);
+      const groupName = yearMatch
+        ? `Đề thi năm ${yearMatch[0]}`
+        : 'Bộ đề luyện tập tổng hợp';
+
+      if (!groups[groupName]) {
+        groups[groupName] = [];
+      }
+      groups[groupName].push(set);
+    });
+
+    return groups;
+  }, [B1Sets]);
+
+  return (
+    <div className="mx-auto space-y-8 px-4 sm:px-6 lg:px-8">
+      <div>
+        <div className="flex justify-between w-full">
+          <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
+            <BookOpen className="h-6 w-6 text-primary animate-pulse" />
+            <span className="text-gradient">Thư Viện Đề Thi B1 VSTEP</span>
+          </h1>
+          {/* <div className="flex flex-col items-center md:items-end gap-2 shrink-0 self-center md:self-auto mt-4 md:mt-0">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Chế độ làm bài
+              </span>
+              <div className="bg-secondary/80 backdrop-blur-md p-1.5 rounded-2xl border border-border/60 flex shadow-inner">
+                <button
+                  onClick={() => setMode('practice')}
+                  className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 ${mode === 'practice' ? 'bg-background shadow-md text-primary scale-[1.02] border border-border/50' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'}`}
+                >
+                  <Target className="w-4 h-4" />
+                  Luyện tập
+                </button>
+                <button
+                  onClick={() => setMode('exam')}
+                  className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 ${mode === 'exam' ? 'bg-background shadow-md text-primary scale-[1.02] border border-border/50' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'}`}
+                >
+                  <Timer className="w-4 h-4" />
+                  Thi thử
+                </button>
+              </div>
+            </div> */}
+        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          Chọn một đề thi trắc nghiệm để bắt đầu làm bài kiểm tra thử.
+        </p>
+      </div>
+
+      {loadingTests || loadingHistory ? (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map(i => (
+            <div
+              key={i}
+              className="h-44 bg-secondary/80 animate-pulse rounded-xl"
+            />
+          ))}
+        </div>
+      ) : B1Sets && B1Sets.length > 0 ? (
+        <div className="space-y-10">
+          {Object.entries(groupedExams).map(([groupName, exams]) => (
+            <div key={groupName} className="space-y-4">
+              {/* Group Heading */}
+              <h3 className="text-lg font-bold flex items-center gap-2 text-[#0F2356] dark:text-[#C8982A]">
+                <ClipboardList className="h-5 w-5 text-primary shrink-0" />
+                <span>{groupName}</span>
+              </h3>
+
+              {/* Exams Grid */}
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {exams.map(set => {
+                  const isCompleted = completedTestIds.has(set._id.toString());
+
+                  return (
+                    <Card
+                      key={set._id}
+                      className="glass-card flex flex-col justify-between overflow-hidden relative group"
+                    >
+                      {/* Glowing highlight border on hover */}
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#C8982A] to-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start gap-2 mb-2">
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground flex items-center gap-1">
+                            <Layers className="h-3 w-3" />
+                          </span>
+
+                          {isCompleted ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                              <CheckCircle2 className="h-3 w-3" />
+                              <span>Đã hoàn thành</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400">
+                              <span>Chưa làm</span>
+                            </span>
+                          )}
+                        </div>
+
+                        <CardTitle
+                          className="text-base font-bold text-foreground truncate group-hover:text-primary transition-colors"
+                          title={set.name}
+                        >
+                          {set.name}
+                        </CardTitle>
+                        <CardDescription className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                          {set.description}
+                        </CardDescription>
+                      </CardHeader>
+
+                      <CardContent className="pb-4">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border/40 pt-3">
+                          <span className="font-semibold text-foreground">
+                            {set.totalQuestions} câu hỏi
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5" />
+                            <span>{new Date(set.createdAt).getFullYear()}</span>
+                          </span>
+                        </div>
+                      </CardContent>
+
+                      <CardFooter className="bg-secondary/20 px-6 py-3 border-t border-border/10 flex justify-end">
+                        <Link
+                          href={
+                            isExamMode
+                              ? getB1ExamRoute(set._id)
+                              : getPracticeB1ExamRoute(set._id)
+                          }
+                          className="w-full"
+                        >
+                          <Button
+                            className="cursor-pointer w-full text-xs font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-all flex items-center justify-center gap-1.5"
+                            variant={isCompleted ? 'secondary' : 'default'}
+                          >
+                            <span>
+                              {isCompleted
+                                ? 'Luyện tập lại'
+                                : 'Bắt đầu làm bài'}
+                            </span>
+                            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                          </Button>
+                        </Link>
+                      </CardFooter>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-20 border border-dashed border-border rounded-xl bg-secondary/15 flex flex-col items-center justify-center">
+          <ClipboardList className="h-12 w-12 text-muted-foreground/60 mb-3" />
+          <h4 className="font-bold text-lg text-foreground">
+            Thư viện đề thi trống
+          </h4>
+          <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+            Hiện tại chưa có đề thi nào được tạo. Nếu bạn là Admin, hãy truy cập
+            &quot;Tạo Đề Mới&quot; để bổ sung nội dung.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function PracticeB1Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen w-screen flex items-center justify-center bg-background">
+          <div className="h-10 bg-secondary/80 animate-pulse rounded w-32" />
+        </div>
+      }
+    >
+      <PracticeB1PageContent />
+    </Suspense>
+  );
+}

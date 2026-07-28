@@ -14,8 +14,6 @@ import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiProperty,
-  ApiPropertyOptional,
 } from '@nestjs/swagger';
 import { ToeicService } from './toeic.service';
 import { JwtAuthGuard, AdminGuard, OptionalJwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,20 +27,37 @@ import { UpdateToeicSetDto } from './dto/update-toeic-set.dto';
 export class ToeicController {
   constructor(private readonly ToeicService: ToeicService) {}
 
-  @Get()
+  // ─── Public / User Routes ───────────────────────────────────────────────────
+
+  @Get('sets')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all test sets' })
-  findAll(@Query('status') status?: string, @Query('type') type?: string) {
-    return this.ToeicService.findAll(status, type);
+  findAll(@Request() req: any, @Query('status') status?: string, @Query('type') type?: string) {
+    return this.ToeicService.findAll(status, type, req.user);
   }
 
-  @Get(':id')
+  @Get('sets/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get test set metadata by ID' })
-  findOne(@Param('id') id: string) {
-    return this.ToeicService.findOne(id);
+  findOne(@Request() req: any, @Param('id') id: string) {
+    return this.ToeicService.findOne(id, req.user);
+  }
+
+  @Get('sets/:id/questions')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get questions belonging to a test set' })
+  findQuestions(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Query('skip') skip?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const skipNum = skip ? parseInt(skip, 10) : 0;
+    const limitNum = limit ? parseInt(limit, 10) : 0;
+    return this.ToeicService.getQuestions(id, req.user, skipNum, limitNum);
   }
 
   @Get('results/:resultId')
@@ -53,21 +68,41 @@ export class ToeicController {
     return this.ToeicService.findResult(resultId);
   }
 
-  @Get(':id/questions')
-  @UseGuards(JwtAuthGuard)
+  @Post('sets/:id/submit')
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get questions belonging to a test set' })
-  findQuestions(
-    @Param('id') id: string,
-    @Query('skip') skip?: string,
-    @Query('limit') limit?: string,
-  ) {
-    const skipNum = skip ? parseInt(skip, 10) : 0;
-    const limitNum = limit ? parseInt(limit, 10) : 0;
-    return this.ToeicService.getQuestions(id, skipNum, limitNum);
+  @ApiOperation({ summary: 'Submit answers for a test set' })
+  submitExam(@Request() req: any, @Param('id') id: string, @Body() dto: SubmitToeicDto) {
+    return this.ToeicService.submitExam(req.user, id, dto.answers, dto.durationMinutes, dto.timePerQuestion, dto.isTest);
   }
 
-  @Post('admin/:id/questions/bulk-upsert')
+  // ─── Admin Routes ───────────────────────────────────────────────────────────
+
+  @Post('sets')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new test set (Admin)' })
+  createToeicSet(@Body() dto: CreateToeicSetDto) {
+    return this.ToeicService.create(dto);
+  }
+
+  @Patch('sets/:id')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a test set (Admin)' })
+  updateToeicSet(@Param('id') id: string, @Body() dto: UpdateToeicSetDto) {
+    return this.ToeicService.update(id, dto);
+  }
+
+  @Delete('sets/:id')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a test set (Admin)' })
+  deleteToeicSet(@Param('id') id: string) {
+    return this.ToeicService.delete(id);
+  }
+
+  @Post('sets/:id/questions/bulk-upsert')
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Bulk upsert questions for a test set (Admin)' })
@@ -78,7 +113,7 @@ export class ToeicController {
     return this.ToeicService.upsertBulkQuestions(id, dto.questions);
   }
 
-  @Patch('admin/questions/:questionId')
+  @Patch('questions/:questionId')
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a question by ID (Admin)' })
@@ -89,7 +124,7 @@ export class ToeicController {
     return this.ToeicService.updateQuestion(questionId, dto);
   }
 
-  @Delete('admin/questions/:questionId')
+  @Delete('questions/:questionId')
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a question by ID (Admin)' })
@@ -97,37 +132,5 @@ export class ToeicController {
     @Param('questionId') questionId: string,
   ) {
     return this.ToeicService.deleteQuestion(questionId);
-  }
-
-  @Post(':id/submit')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Submit answers for a test set' })
-  submitExam(@Request() req: any, @Param('id') id: string, @Body() dto: SubmitToeicDto) {
-    return this.ToeicService.submitExam(req.user, id, dto.answers, dto.durationMinutes, dto.timePerQuestion, dto.isTest);
-  }
-
-  @Post('admin/create')
-  @UseGuards(AdminGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a new test set (Admin)' })
-  createToeicSet(@Body() dto: CreateToeicSetDto) {
-    return this.ToeicService.create(dto);
-  }
-
-  @Patch('admin/:id')
-  @UseGuards(AdminGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update a test set (Admin)' })
-  updateToeicSet(@Param('id') id: string, @Body() dto: UpdateToeicSetDto) {
-    return this.ToeicService.update(id, dto);
-  }
-
-  @Delete('admin/:id')
-  @UseGuards(AdminGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete a test set (Admin)' })
-  deleteToeicSet(@Param('id') id: string) {
-    return this.ToeicService.delete(id);
   }
 }
