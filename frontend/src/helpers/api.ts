@@ -1,7 +1,10 @@
 import axios from "axios"
 
 let API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
-
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  // Tự động lấy IP mạng hiện tại (dù ở nhà hay công ty) - Chỉ dùng cho môi trường dev
+  API_URL = `${window.location.protocol}//${window.location.hostname}:3001/api`
+}
 
 
 export const api = axios.create({
