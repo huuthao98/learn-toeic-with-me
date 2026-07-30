@@ -461,8 +461,8 @@ export function InteractiveB1Runner({
                   return (
                     <Card key={q._id} className="shadow-md border-t-4 border-t-primary h-full">
                       <CardContent className="p-2">
-                        <div className="mb-4 flex flex-start items-center gap-2">
-                          <h2 className="text-sm font-bold text-foreground whitespace-nowrap">
+                        <div className="mb-4 flex flex-start gap-2">
+                          <h2 className="text-sm font-bold text-foreground whitespace-nowrap h-full items-start">
                             {q.questionNumber ? `Câu ${q.questionNumber}` : 'Câu hỏi'}.
                           </h2>
                           {q.questionText && (
@@ -485,7 +485,7 @@ export function InteractiveB1Runner({
                                   key={q._id + index}
                                   onClick={() => handleAnswerSelect(q._id, opt.label)}
                                   className={`
-                                    w-full text-left p-2 rounded-xl border-1 transition-all duration-200 flex items-center gap-4 group
+                                    w-full text-left p-2 sm:p-3 rounded-xl border-1 transition-all duration-200 flex items-center gap-2 sm:gap-4 group
                                     ${
                                       isCorrect
                                         ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-sm dark:bg-emerald-500/10'
@@ -543,8 +543,8 @@ export function InteractiveB1Runner({
               <Card className="shadow-lg border-t-4 border-t-primary">
                 <CardContent className="p-3">
                   {currentGroup.skill !== 'speaking' && (
-                    <div className="mb-6 flex flex-start items-center gap-2">
-                      <h2 className="text-xl font-bold text-foreground whitespace-nowrap">
+                    <div className="mb-6 flex flex-start gap-2">
+                      <h2 className="text-xl font-bold text-foreground whitespace-nowrap h-full items-start">
                         {currentQuestion.questionNumber
                           ? `Câu ${currentQuestion.questionNumber}`
                           : 'Câu hỏi'}
@@ -577,7 +577,7 @@ export function InteractiveB1Runner({
                               key={index}
                               onClick={() => handleAnswerSelect(currentQuestion._id, opt.label)}
                               className={`
-                            w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 group
+                            w-full text-left p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3 sm:gap-4 group
                             ${
                               isCorrect
                                 ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-sm dark:bg-emerald-500/10'
@@ -649,21 +649,22 @@ export function InteractiveB1Runner({
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t p-3 sm:p-4 z-50">
-        <div className="max-w-4xl mx-auto flex flex-wrap items-center gap-3 sm:gap-4">
+        <div className="max-w-4xl mx-auto flex flex-nowrap items-center gap-2 sm:gap-4">
           <Button
             variant="outline"
             size="lg"
             onClick={handlePrev}
             disabled={currentGroupIndex === 0 && safeQuestionIndex === 0}
-            className="flex-1 sm:flex-none sm:w-[120px] order-2 sm:order-1"
+            className="shrink-0 px-4 sm:px-8 sm:w-[120px] order-1"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Trước
+            <ArrowLeft className="w-4 h-4 sm:mr-2" />{' '}
+            <span className="hidden sm:inline">Trước</span>
           </Button>
 
           {/* Danh sách câu hỏi khi cùng setId */}
-          <div className="w-full sm:flex-1 sm:w-auto order-1 sm:order-2 flex justify-center max-h-24 sm:max-h-none overflow-y-auto custom-scrollbar">
+          <div className="flex-1 min-w-0 order-2 flex justify-center overflow-hidden">
             {currentGroup.questions.length > 1 ? (
-              <div className="flex items-center gap-1.5 flex-wrap justify-center py-1">
+              <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scrollbar justify-center sm:justify-center py-2 px-1 w-full max-w-full">
                 {currentGroup.questions.map((q, idx) => {
                   const isCurrentQ = idx === safeQuestionIndex;
                   const isAnswered = !!answers[q._id];
@@ -685,7 +686,7 @@ export function InteractiveB1Runner({
                 })}
               </div>
             ) : (
-              <span className="text-sm font-semibold text-primary-foreground bg-primary px-2 py-1 rounded-full my-auto">
+              <span className="text-sm font-semibold text-primary-foreground bg-primary px-3 py-1 rounded-full my-auto mx-auto shrink-0">
                 {currentQuestion.questionNumber ? `Câu ${currentQuestion.questionNumber}` : ''}
               </span>
             )}
@@ -694,7 +695,7 @@ export function InteractiveB1Runner({
           <Button
             size="lg"
             onClick={handleNext}
-            className={`flex-1 sm:flex-none sm:w-[140px] shadow-md transition-all order-3 ${
+            className={`shrink-0 px-4 sm:px-8 sm:w-[140px] shadow-md transition-all order-3 ${
               !isCurrentAnswered && currentQuestion.questionType !== 'speaking'
                 ? 'opacity-80'
                 : 'hover:scale-105'
@@ -703,11 +704,13 @@ export function InteractiveB1Runner({
             {currentGroupIndex === groups.length - 1 &&
             safeQuestionIndex === (currentGroup?.questions.length || 1) - 1 ? (
               <span className="flex items-center justify-center">
-                Hoàn thành <CheckCircle className="w-4 h-4 ml-2" />
+                <span className="hidden sm:inline">Hoàn thành</span>{' '}
+                <CheckCircle className="w-5 h-5 sm:w-4 sm:h-4 sm:ml-2" />
               </span>
             ) : (
               <span className="flex items-center justify-center">
-                Tiếp theo <ArrowRight className="w-4 h-4 ml-2" />
+                <span className="hidden sm:inline">Tiếp theo</span>{' '}
+                <ArrowRight className="w-5 h-5 sm:w-4 sm:h-4 sm:ml-2" />
               </span>
             )}
           </Button>

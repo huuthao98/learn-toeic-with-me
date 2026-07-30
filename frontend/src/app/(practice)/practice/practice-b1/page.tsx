@@ -12,14 +12,7 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card';
-import {
-  BookOpen,
-  CheckCircle2,
-  Calendar,
-  Layers,
-  ArrowRight,
-  ClipboardList,
-} from 'lucide-react';
+import { BookOpen, CheckCircle2, Calendar, Layers, ArrowRight, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useB1 } from '@/hooks/useB1';
 import { useSearchParams } from 'next/navigation';
@@ -32,8 +25,7 @@ function PracticeB1PageContent() {
 
   const searchParams = useSearchParams();
 
-  const isExamMode =
-    searchParams.has('mode') && searchParams.get('mode') === 'exam';
+  const isExamMode = searchParams.has('mode') && searchParams.get('mode') === 'exam';
   const currentMode = isExamMode ? 'exam' : 'practice';
 
   const { data: B1Sets, isLoading: loadingTests } = useTestSets('public');
@@ -61,9 +53,7 @@ function PracticeB1PageContent() {
     B1Sets.forEach((set: any) => {
       // Extract year like 2024 or 2025 or default to "Bộ đề tổng hợp"
       const yearMatch = set.name.match(/\b(202\d)\b/);
-      const groupName = yearMatch
-        ? `Đề thi năm ${yearMatch[0]}`
-        : 'Bộ đề luyện tập tổng hợp';
+      const groupName = yearMatch ? `Đề thi năm ${yearMatch[0]}` : 'Bộ đề luyện tập tổng hợp';
 
       if (!groups[groupName]) {
         groups[groupName] = [];
@@ -104,7 +94,7 @@ function PracticeB1PageContent() {
               </div>
             </div> */}
         </div>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-sm text-muted-foreground pt-4">
           Chọn một đề thi trắc nghiệm để bắt đầu làm bài kiểm tra thử.
         </p>
       </div>
@@ -112,10 +102,7 @@ function PracticeB1PageContent() {
       {loadingTests || loadingHistory ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map(i => (
-            <div
-              key={i}
-              className="h-44 bg-secondary/80 animate-pulse rounded-xl"
-            />
+            <div key={i} className="h-44 bg-secondary/80 animate-pulse rounded-xl" />
           ))}
         </div>
       ) : B1Sets && B1Sets.length > 0 ? (
@@ -185,9 +172,7 @@ function PracticeB1PageContent() {
                       <CardFooter className="bg-secondary/20 px-6 py-3 border-t border-border/10 flex justify-end">
                         <Link
                           href={
-                            isExamMode
-                              ? getB1ExamRoute(set._id)
-                              : getPracticeB1ExamRoute(set._id)
+                            isExamMode ? getB1ExamRoute(set._id) : getPracticeB1ExamRoute(set._id)
                           }
                           className="w-full"
                         >
@@ -195,11 +180,7 @@ function PracticeB1PageContent() {
                             className="cursor-pointer w-full text-xs font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-all flex items-center justify-center gap-1.5"
                             variant={isCompleted ? 'secondary' : 'default'}
                           >
-                            <span>
-                              {isCompleted
-                                ? 'Luyện tập lại'
-                                : 'Bắt đầu làm bài'}
-                            </span>
+                            <span>{isCompleted ? 'Luyện tập lại' : 'Bắt đầu làm bài'}</span>
                             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                           </Button>
                         </Link>
@@ -214,12 +195,10 @@ function PracticeB1PageContent() {
       ) : (
         <div className="text-center py-20 border border-dashed border-border rounded-xl bg-secondary/15 flex flex-col items-center justify-center">
           <ClipboardList className="h-12 w-12 text-muted-foreground/60 mb-3" />
-          <h4 className="font-bold text-lg text-foreground">
-            Thư viện đề thi trống
-          </h4>
+          <h4 className="font-bold text-lg text-foreground">Thư viện đề thi trống</h4>
           <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-            Hiện tại chưa có đề thi nào được tạo. Nếu bạn là Admin, hãy truy cập
-            &quot;Tạo Đề Mới&quot; để bổ sung nội dung.
+            Hiện tại chưa có đề thi nào được tạo. Nếu bạn là Admin, hãy truy cập &quot;Tạo Đề
+            Mới&quot; để bổ sung nội dung.
           </p>
         </div>
       )}

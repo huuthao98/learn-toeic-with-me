@@ -91,24 +91,10 @@ export function PracticeHeader() {
             >
               Thi Thử B1
             </Link>
-            {/* <a
-              href="#teachers"
-              className="text-gray-600 hover:text-primary font-medium transition-colors"
-            >
-              Giảng Viên
-            </a>
-            <a
-              href="#testimonials"
-              className="text-gray-600 hover:text-primary font-medium transition-colors"
-            >
-              Thành Tích
-            </a> */}
-            <div></div>
-            <div></div>
           </nav>
 
           <div className="flex items-center gap-4">
-            {/* <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-4">
               {mounted && isAuthenticated ? (
                 <Link
                   href={ROUTES.DASHBOARD}
@@ -132,32 +118,34 @@ export function PracticeHeader() {
                   </Link>
                 </>
               )}
-            </div> */}
-            {/* <button
+            </div>
+            <button
               className="md:hidden text-gray-900 p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Mở menu"
             >
               {mobileMenuOpen ? <X /> : <Menu />}
-            </button> */}
+            </button>
           </div>
         </div>
       </div>
 
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-lg py-4 px-4 flex flex-col gap-4">
-          <a href="#courses" className="text-lg font-medium text-gray-800 py-2 border-b">
-            Khóa Học
-          </a>
-          <a href="#exams" className="text-lg font-medium text-gray-800 py-2 border-b">
-            Thi Thử
-          </a>
-          <a href="#teachers" className="text-lg font-medium text-gray-800 py-2 border-b">
-            Giảng Viên
-          </a>
-          <a href="#testimonials" className="text-lg font-medium text-gray-800 py-2 border-b">
-            Thành Tích
-          </a>
+          <Link
+            href={getListPracticeToeicRoute('exam')}
+            className="text-lg font-medium text-gray-800 py-2 border-b"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Thi Thử TOEIC
+          </Link>
+          <Link
+            href={getListPracticeB1Route('exam')}
+            className="text-lg font-medium text-gray-800 py-2 border-b"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Thi Thử B1
+          </Link>
           {mounted && isAuthenticated ? (
             <Link href={ROUTES.DASHBOARD}>
               <Button className="w-full bg-primary hover:bg-[#0a1840] text-white mt-4 h-12 text-lg rounded-sm">

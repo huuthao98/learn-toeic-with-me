@@ -42,9 +42,7 @@ const emailLoginSchema = z.object({
 });
 
 const phoneLoginSchema = z.object({
-  phone: z
-    .string()
-    .min(10, { message: 'Số điện thoại không hợp lệ (tối thiểu 10 số)' }),
+  phone: z.string().min(10, { message: 'Số điện thoại không hợp lệ (tối thiểu 10 số)' }),
   otp: z.string().optional(),
 });
 
@@ -96,8 +94,7 @@ export default function LoginPage() {
         },
         onError: (err: any) => {
           toast.error(
-            err.response?.data?.message ||
-              'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.',
+            err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.',
           );
         },
       },
@@ -130,9 +127,7 @@ export default function LoginPage() {
           router.push(ROUTES.DASHBOARD);
         },
         onError: (err: any) => {
-          toast.error(
-            err.response?.data?.message || 'Xác thực số điện thoại thất bại.',
-          );
+          toast.error(err.response?.data?.message || 'Xác thực số điện thoại thất bại.');
         },
       },
     );
@@ -140,6 +135,21 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center lg:grid lg:grid-cols-12 overflow-hidden px-4 sm:px-0">
+      <style>{`
+        @property --btn-loading-stop {
+          syntax: '<percentage>';
+          inherits: false;
+          initial-value: 0%;
+        }
+        @keyframes loading-gradient-shift {
+          0% { --btn-loading-stop: 0%; }
+          100% { --btn-loading-stop: 100%; }
+        }
+        .btn-loading-animated {
+          background: linear-gradient(135deg, #00a3ff var(--btn-loading-stop), #06f 45%, #003cc8 100%) !important;
+          animation: loading-gradient-shift 3s ease-in-out alternate infinite;
+        }
+      `}</style>
       {/* Brand Column (Left) */}
       <div className="hidden lg:flex lg:col-span-6 xl:col-span-7 bg-slate-900 text-white items-center min-h-screen w-full flex-col justify-between p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.25),transparent_50%)] pointer-events-none" />
@@ -159,9 +169,8 @@ export default function LoginPage() {
             Kiên trì mỗi ngày
           </h1>
           <p className="text-slate-400 text-lg mb-8">
-            Thành công không đến từ sự ngẫu nhiên, mà từ nỗ lực bền bỉ. Hãy biến
-            việc học thành thói quen hàng ngày để xây dựng nền tảng vững chắc và
-            tự tin đạt mục tiêu của bạn.
+            Thành công không đến từ sự ngẫu nhiên, mà từ nỗ lực bền bỉ. Hãy biến việc học thành thói
+            quen hàng ngày để xây dựng nền tảng vững chắc và tự tin đạt mục tiêu của bạn.
           </p>
 
           <div className="space-y-4">
@@ -170,12 +179,10 @@ export default function LoginPage() {
                 <BookOpen className="h-5 w-5" />
               </span>
               <div>
-                <h4 className="font-semibold text-sm">
-                  Luyện tập không ngừng nghỉ
-                </h4>
+                <h4 className="font-semibold text-sm">Luyện tập không ngừng nghỉ</h4>
                 <p className="text-xs text-slate-400 mt-1">
-                  Kho đề thi phong phú, cập nhật liên tục giúp bạn duy trì nhịp
-                  độ học tập và cọ xát với cấu trúc đề thực tế mỗi ngày.
+                  Kho đề thi phong phú, cập nhật liên tục giúp bạn duy trì nhịp độ học tập và cọ xát
+                  với cấu trúc đề thực tế mỗi ngày.
                 </p>
               </div>
             </div>
@@ -185,13 +192,10 @@ export default function LoginPage() {
                 <ShieldCheck className="h-5 w-5" />
               </span>
               <div>
-                <h4 className="font-semibold text-sm">
-                  Ghi nhận mọi nỗ lực của bạn
-                </h4>
+                <h4 className="font-semibold text-sm">Ghi nhận mọi nỗ lực của bạn</h4>
                 <p className="text-xs text-slate-400 mt-1">
-                  Đo lường sự tiến bộ, theo dõi chuỗi ngày học tập liên tục
-                  (streak) để tiếp thêm động lực trên chặng đường chinh phục
-                  điểm số.
+                  Đo lường sự tiến bộ, theo dõi chuỗi ngày học tập liên tục (streak) để tiếp thêm
+                  động lực trên chặng đường chinh phục điểm số.
                 </p>
               </div>
             </div>
@@ -208,19 +212,11 @@ export default function LoginPage() {
       <div className="w-full lg:col-span-6 xl:col-span-5 flex items-center justify-center py-12">
         <Card className="w-full max-w-md mx-auto border-none shadow-none bg-transparent sm:bg-card sm:border sm:border-border sm:shadow-lg sm:p-4 glass-card">
           <CardHeader className="text-center sm:text-left">
-            <CardTitle className="text-2xl font-bold tracking-tight">
-              Chào mừng trở lại
-            </CardTitle>
-            <CardDescription>
-              Đăng nhập vào hệ thống để tiếp tục quá trình học tập.
-            </CardDescription>
+            <CardTitle className="text-2xl font-bold tracking-tight">Chào mừng trở lại</CardTitle>
+            <CardDescription>Đăng nhập vào hệ thống để tiếp tục quá trình học tập.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="w-full"
-            >
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               {/* <TabsList className="grid w-full grid-cols-2 mb-6 relative h-10">
                 <div
                   className={`absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] rounded-md bg-background shadow-sm dark:bg-input/30 dark:border dark:border-input ${
@@ -256,10 +252,7 @@ export default function LoginPage() {
                 <div
                   className="flex w-[200%] transition-transform"
                   style={{
-                    transform:
-                      activeTab === 'phone'
-                        ? 'translateX(-50%)'
-                        : 'translateX(0%)',
+                    transform: activeTab === 'phone' ? 'translateX(-50%)' : 'translateX(0%)',
                     transition: 'transform 380ms cubic-bezier(0.16, 1, 0.3, 1)',
                   }}
                 >
@@ -267,10 +260,7 @@ export default function LoginPage() {
                   <div
                     className={`w-1/2 shrink-0 px-0.5 ${activeTab === 'email' ? 'pointer-events-auto' : 'pointer-events-none select-none'}`}
                   >
-                    <form
-                      onSubmit={emailForm.handleSubmit(onEmailSubmit)}
-                      className="space-y-4"
-                    >
+                    <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
                       <div className="space-y-2">
                         <label className="text-xs font-semibold text-muted-foreground uppercase">
                           Địa chỉ Email
@@ -334,13 +324,14 @@ export default function LoginPage() {
 
                       <Button
                         type="submit"
-                        className="w-full mt-4"
+                        className={`w-full h-11 mt-2 border-0 text-white font-semibold transition-all duration-200 ${
+                          loginMutation.isPending
+                            ? 'btn-loading-animated disabled:opacity-100 disabled:pointer-events-none'
+                            : 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md'
+                        }`}
                         disabled={loginMutation.isPending}
                       >
-                        {loginMutation.isPending
-                          ? 'Đang đăng nhập...'
-                          : 'Đăng Nhập'}
-                        <ArrowRight className="h-4 w-4 ml-2" />
+                        {loginMutation.isPending ? 'Đang đăng nhập...' : 'Đăng Nhập'}
                       </Button>
                     </form>
                   </div>
@@ -349,10 +340,7 @@ export default function LoginPage() {
                   <div
                     className={`w-1/2 shrink-0 px-0.5 ${activeTab === 'phone' ? 'pointer-events-auto' : 'pointer-events-none select-none'}`}
                   >
-                    <form
-                      onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}
-                      className="space-y-4"
-                    >
+                    <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-4">
                       <div className="space-y-2">
                         <label className="text-xs font-semibold text-muted-foreground uppercase">
                           Số điện thoại
@@ -398,7 +386,11 @@ export default function LoginPage() {
 
                       <Button
                         type="submit"
-                        className="w-full mt-4"
+                        className={`w-full h-11 mt-4 border-0 text-white font-semibold transition-all duration-200 ${
+                          phoneMutation.isPending
+                            ? 'btn-loading-animated disabled:opacity-100 disabled:pointer-events-none'
+                            : 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md'
+                        }`}
                         disabled={phoneMutation.isPending}
                       >
                         {phoneMutation.isPending
@@ -428,10 +420,7 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col gap-4 text-center bg-white">
             <div className="text-sm">
               Chưa có tài khoản?{' '}
-              <Link
-                href={ROUTES.REGISTER}
-                className="font-semibold text-primary hover:underline"
-              >
+              <Link href={ROUTES.REGISTER} className="font-semibold text-primary hover:underline">
                 Đăng ký ngay
               </Link>
             </div>
