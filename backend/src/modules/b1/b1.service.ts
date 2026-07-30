@@ -7,6 +7,7 @@ import { B1Question, B1QuestionDocument } from './schemas/b1-question.schema';
 import { CreateB1QuestionDto } from './dto/b1-question.dto';
 import { UserStreak, UserStreakDocument } from '../dashboard/schemas/user-streak.schema';
 import { UsersService } from '../users/users.service';
+import { AccessControlService } from '../../common/services/access-control.service';
 
 @Injectable()
 export class B1Service {
@@ -16,30 +17,11 @@ export class B1Service {
     @InjectModel(B1Question.name) private questionModel: Model<B1QuestionDocument>,
     @InjectModel(UserStreak.name) private userStreakModel: Model<UserStreakDocument>,
     private readonly usersService: UsersService,
+    private readonly accessControlService: AccessControlService,
   ) {}
 
-  async checkAccess(testSetId: string, user?: any) {
-    const testSet = await this.b1SetModel.findById(testSetId).exec();
-    if (!testSet) throw new NotFoundException('B1 Test set not found');
 
-    if (testSet.accessLevel === 'internal') {
-      if (!user) {
-        throw new ForbiddenException('Vui lòng đăng nhập để truy cập đề thi nội bộ');
-      }
-      if (user.role === 'admin') {
-        return testSet;
-      }
-      const dbUser = await this.usersService.findOne(user.sub);
-      const vstepPkg = dbUser.vipPackages?.find((pkg: any) => pkg.category === 'VSTEP');
-      if (!vstepPkg || !['vip1', 'vip2', 'vip3'].includes(vstepPkg.vipLevel)) {
-        throw new ForbiddenException('Yêu cầu tài khoản VIP phân hệ VSTEP để truy cập đề thi này');
-      }
-    }
-    return testSet;
-  }
-
-  async getQuestions(testSetId: string, user?: any, skip = 0, limit = 0) {
-    await this.checkAccess(testSetId, user);
+  async getQuestions(testSetId: string, skip = 0, limit = 0) {
     let query = this.questionModel.find({ testSetId: new Types.ObjectId(testSetId) }).sort({ skill: 1, questionNumber: 1 });
     if (skip > 0) query = query.skip(skip);
     if (limit > 0) query = query.limit(limit);
@@ -107,41 +89,9 @@ export class B1Service {
     const query: any = {};
     if (status) query.status = status;
 
-    let userVipLevel = 'vip0';
-    let isAdmin = false;
+    const accessFilter = await this.accessControlService.getAccessFilterQuery(user, 'B1');
 
-    if (user) {
-      if (user.role === 'admin') {
-        isAdmin = true;
-      } else {
-        try {
-          const dbUser = await this.usersService.findOne(user.sub);
-          const vstepPkg = dbUser.vipPackages?.find((pkg: any) => pkg.category === 'VSTEP');
-          userVipLevel = vstepPkg?.vipLevel || 'vip0';
-        } catch (e) {
-          // Ignore and default to vip0
-        }
-      }
-    }
-
-    if (!isAdmin) {
-      const allowedLevels = ['external'];
-      if (user) {
-        allowedLevels.push('vip0');
-        if (userVipLevel === 'vip1') {
-          allowedLevels.push('vip1');
-        } else if (userVipLevel === 'vip2') {
-          allowedLevels.push('vip1', 'vip2');
-        } else if (userVipLevel === 'vip3') {
-          allowedLevels.push('vip1', 'vip2', 'vip3');
-        }
-      }
-      query.$or = [
-        { accessLevel: { $in: allowedLevels } },
-        { accessLevel: { $exists: false } },
-        { accessLevel: null }
-      ];
-    }
+    Object.assign(query, accessFilter);
 
     const matchStage = { $match: query };
 
@@ -169,9 +119,7 @@ export class B1Service {
     ]);
   }
 
-  async getTestSetById(id: string, user?: any) {
-    return this.checkAccess(id, user);
-  }
+
 
   async createTestSet(data: {
     name: string;
@@ -226,7 +174,6 @@ export class B1Service {
       isTest?: boolean;
     },
   ) {
-    await this.checkAccess(testSetId, user);
     const { answers, durationMinutes, timePerQuestion = [], isTest = true } = data;
 
     const questions = await this.questionModel

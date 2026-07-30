@@ -21,6 +21,9 @@ import { JwtAuthGuard, AdminGuard, OptionalJwtAuthGuard } from '../auth/guards/j
 import { SubmitVocabularyDto } from './dto/submit-vocabulary.dto';
 import { CreateVocabularySetDto } from './dto/create-vocabulary-set.dto';
 import { UpdateVocabularySetDto } from './dto/update-vocabulary-set.dto';
+import { VipAccessGuard } from '@/common/guards/vip-access.guard';
+
+import { RequireVipAccess } from '@/common/decorators/require-vip-access.decorator';
 
 @ApiTags('Vocabulary')
 @Controller('vocabulary')
@@ -38,15 +41,18 @@ export class VocabularyController {
   }
 
   @Get('sets/:id')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'VOCAB', modelName: 'VocabularySet' })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get a vocabulary set by ID' })
-  findOne(@Request() req: any, @Param('id') id: string) {
-    return this.VocabularyService.findOne(id, req.user);
+  async findOne(@Request() req: any, @Param('id') id: string) {
+    const totalQuestions = await this.VocabularyService.countQuestions(id);
+    return { ...req.testSet.toObject(), totalQuestions };
   }
 
   @Get('sets/:id/questions')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'VOCAB', modelName: 'VocabularySet' })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get questions belonging to a vocabulary set' })
   findQuestions(
@@ -57,7 +63,7 @@ export class VocabularyController {
   ) {
     const skipNum = skip ? parseInt(skip, 10) : 0;
     const limitNum = limit ? parseInt(limit, 10) : 0;
-    return this.VocabularyService.findQuestions(id, req.user, skipNum, limitNum);
+    return this.VocabularyService.findQuestions(id, skipNum, limitNum);
   }
 
   @Get('results/:resultId')
@@ -69,7 +75,8 @@ export class VocabularyController {
   }
 
   @Post('sets/:id/submit')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'VOCAB', modelName: 'VocabularySet' })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Submit answers for a vocabulary set' })
   submitExam(@Request() req: any, @Param('id') id: string, @Body() dto: SubmitVocabularyDto) {

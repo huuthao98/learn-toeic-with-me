@@ -18,7 +18,9 @@ import {
 } from '@nestjs/swagger';
 import { B1Service } from './b1.service';
 import { CreateB1QuestionDto } from './dto/b1-question.dto';
-import { JwtAuthGuard, AdminGuard, OptionalJwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { VipAccessGuard } from '@/common/guards/vip-access.guard';
+import { RequireVipAccess } from '@/common/decorators/require-vip-access.decorator';
+import { JwtAuthGuard, AdminGuard, OptionalJwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 
 @ApiTags('B1')
 @Controller('b1')
@@ -35,22 +37,25 @@ export class B1Controller {
   }
 
   @Get('sets/:id')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'B1', modelName: 'B1Set' })
   @ApiOperation({ summary: 'Get a test set by ID' })
   getTestSetById(@Request() req: any, @Param('id') id: string) {
-    return this.b1Service.getTestSetById(id, req.user);
+    // Trả về trực tiếp bài test được Guard cache lại (Tiết kiệm 1 query DB)
+    return req.testSet;
   }
 
   @Get('sets/:id/questions')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'B1', modelName: 'B1Set' })
   @ApiOperation({ summary: 'Get questions belonging to a test set' })
   getQuestions(
-    @Request() req: any,
+    // @Request() req: any,
     @Param('id') id: string,
     @Query('skip') skip?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.b1Service.getQuestions(id, req.user, skip ? Number(skip) : 0, limit ? Number(limit) : 0);
+    return this.b1Service.getQuestions(id, skip ? Number(skip) : 0, limit ? Number(limit) : 0);
   }
 
   @Get('results/:resultId')
@@ -60,7 +65,8 @@ export class B1Controller {
   }
 
   @Post('sets/:id/submit')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'B1', modelName: 'B1Set' })
   @ApiOperation({ summary: 'Submit answers for a test set' })
   submitExam(
     @Request() req: any,

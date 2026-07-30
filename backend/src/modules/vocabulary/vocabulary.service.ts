@@ -9,6 +9,7 @@ import { UserStreak, UserStreakDocument } from '../dashboard/schemas/user-streak
 
 import { NotificationsService } from '../notifications/notifications.service';
 import { UsersService } from '../users/users.service';
+import { AccessControlService } from '../../common/services/access-control.service';
 
 @Injectable()
 export class VocabularyService {
@@ -19,6 +20,7 @@ export class VocabularyService {
     @InjectModel(UserStreak.name) private userStreakModel: Model<UserStreakDocument>,
     private readonly notificationsService: NotificationsService,
     private readonly usersService: UsersService,
+    private readonly accessControlService: AccessControlService,
   ) {}
 
   async getQuestions(testSetId: string) {
@@ -76,22 +78,8 @@ export class VocabularyService {
     if (category) query.category = category;
 
     if (!user || (user.role !== 'admin' && user.role !== 'operator')) {
-      const allowedConditions: any[] = [{ accessLevel: 'external' }];
-      
-      if (user) {
-        allowedConditions.push({ accessLevel: 'vip0' });
-        
-        for (const pkg of (user.vipPackages || [])) {
-          if (pkg.vipLevel === 'vip1') {
-            allowedConditions.push({ category: pkg.category, accessLevel: 'vip1' });
-          } else if (pkg.vipLevel === 'vip2') {
-            allowedConditions.push({ category: pkg.category, accessLevel: { $in: ['vip1', 'vip2'] } });
-          } else if (pkg.vipLevel === 'vip3') {
-            allowedConditions.push({ category: pkg.category, accessLevel: { $in: ['vip1', 'vip2', 'vip3'] } });
-          }
-        }
-      }
-      query.$or = allowedConditions;
+      const accessFilter = await this.accessControlService.getAccessFilterQuery(user, 'VOCAB');
+      Object.assign(query, accessFilter);
     }
 
     const matchStage = { $match: query };
@@ -120,40 +108,8 @@ export class VocabularyService {
     ]);
   }
 
-  async findOne(id: string, user?: any) {
-    const vocabularySet = await this.vocabularySetModel.findById(id).lean().exec();
-    if (!vocabularySet) {
-      throw new NotFoundException('Vocabulary set not found');
-    }
-
-    const totalQuestions = await this.questionModel.countDocuments({ testSetId: new Types.ObjectId(id) });
-    const result = { ...vocabularySet, totalQuestions };
-
-    if (user?.role === 'admin' || user?.role === 'operator') {
-      return result;
-    }
-
-    const access = result.accessLevel || 'external';
-    if (access === 'external') return result;
-
-    if (!user) {
-      throw new ForbiddenException('You must log in to view this test');
-    }
-
-    const pkg = (user.vipPackages || []).find((p: any) => p.category === result.category) || { vipLevel: 'vip0' };
-    const level = pkg.vipLevel;
-
-    let hasAccess = false;
-    if (access === 'vip0') hasAccess = true;
-    else if (access === 'vip1' && ['vip1', 'vip2', 'vip3'].includes(level)) hasAccess = true;
-    else if (access === 'vip2' && ['vip2', 'vip3'].includes(level)) hasAccess = true;
-    else if (access === 'vip3' && level === 'vip3') hasAccess = true;
-
-    if (!hasAccess) {
-      throw new ForbiddenException(`This test requires ${access} access level.`);
-    }
-
-    return result;
+  async countQuestions(testSetId: string | Types.ObjectId) {
+    return this.questionModel.countDocuments({ testSetId: new Types.ObjectId(testSetId) });
   }
 
   async create(dto: {
@@ -187,8 +143,7 @@ export class VocabularyService {
     return savedTest;
   }
 
-  async findQuestions(testSetId: string, user?: any, skip = 0, limit = 0) {
-    await this.findOne(testSetId, user); // check access
+  async findQuestions(testSetId: string, skip = 0, limit = 0) {
     
     let query = this.questionModel
       .find({ testSetId: new Types.ObjectId(testSetId) })
@@ -222,7 +177,6 @@ export class VocabularyService {
     isTestOut?: boolean,
     isRescueStreak?: boolean,
   ) {
-    await this.findOne(testSetId, user);
 
     const questions = await this.questionModel
       .find({ testSetId: new Types.ObjectId(testSetId) })
