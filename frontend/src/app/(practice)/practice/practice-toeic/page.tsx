@@ -12,34 +12,20 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card';
-import {
-  BookOpen,
-  CheckCircle2,
-  Calendar,
-  Layers,
-  ArrowRight,
-  ClipboardList,
-} from 'lucide-react';
+import { BookOpen, CheckCircle2, Calendar, Layers, ArrowRight, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
-import {
-  getPracticeToeicExamRoute,
-  getToeicExamRoute,
-} from '@/constants/routes';
+import { getPracticeToeicExamRoute, getToeicExamRoute } from '@/constants/routes';
 
 function PracticeToeicPageContent() {
   const { useTestSets } = useToeic();
   const { useRecentTests } = useDashboard();
 
   const searchParams = useSearchParams();
-  const isExamMode =
-    searchParams.has('mode') && searchParams.get('mode') === 'exam';
+  const isExamMode = searchParams.has('mode') && searchParams.get('mode') === 'exam';
   const currentMode = isExamMode ? 'exam' : 'practice';
 
-  const { data: ToeicSets, isLoading: loadingTests } = useTestSets(
-    'public',
-    currentMode,
-  );
+  const { data: ToeicSets, isLoading: loadingTests } = useTestSets('public', currentMode);
   const { data: recentTests, isLoading: loadingHistory } = useRecentTests();
 
   const [mode, setMode] = useState<'practice' | 'exam'>('practice');
@@ -67,9 +53,7 @@ function PracticeToeicPageContent() {
     ToeicSets.forEach(set => {
       // Extract year like 2024 or 2025 or default to "Bộ đề tổng hợp"
       const yearMatch = set.name.match(/\b(202\d)\b/);
-      const groupName = yearMatch
-        ? `Đề thi năm ${yearMatch[0]}`
-        : 'Bộ đề luyện tập tổng hợp';
+      const groupName = yearMatch ? `Đề thi năm ${yearMatch[0]}` : 'Bộ đề luyện tập tổng hợp';
 
       if (!groups[groupName]) {
         groups[groupName] = [];
@@ -111,7 +95,7 @@ function PracticeToeicPageContent() {
               </div>
             </div> */}
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1 pt-2">
             Chọn một đề thi trắc nghiệm để bắt đầu làm bài kiểm tra thử.
           </p>
         </div>
@@ -119,10 +103,7 @@ function PracticeToeicPageContent() {
         {loadingTests || loadingHistory ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map(i => (
-              <div
-                key={i}
-                className="h-44 bg-secondary/80 animate-pulse rounded-xl"
-              />
+              <div key={i} className="h-44 bg-secondary/80 animate-pulse rounded-xl" />
             ))}
           </div>
         ) : ToeicSets && ToeicSets.length > 0 ? (
@@ -138,9 +119,7 @@ function PracticeToeicPageContent() {
                 {/* Exams Grid */}
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {exams.map(set => {
-                    const isCompleted = completedTestIds.has(
-                      set._id.toString(),
-                    );
+                    const isCompleted = completedTestIds.has(set._id.toString());
 
                     return (
                       <Card
@@ -186,9 +165,7 @@ function PracticeToeicPageContent() {
                             </span>
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5" />
-                              <span>
-                                {new Date(set.createdAt).getFullYear()}
-                              </span>
+                              <span>{new Date(set.createdAt).getFullYear()}</span>
                             </span>
                           </div>
                         </CardContent>
@@ -206,11 +183,7 @@ function PracticeToeicPageContent() {
                               className="cursor-pointer w-full text-xs font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-all flex items-center justify-center gap-1.5"
                               variant={isCompleted ? 'secondary' : 'default'}
                             >
-                              <span>
-                                {isCompleted
-                                  ? 'Luyện tập lại'
-                                  : 'Bắt đầu làm bài'}
-                              </span>
+                              <span>{isCompleted ? 'Luyện tập lại' : 'Bắt đầu làm bài'}</span>
                               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                             </Button>
                           </Link>
@@ -225,12 +198,10 @@ function PracticeToeicPageContent() {
         ) : (
           <div className="text-center py-20 border border-dashed border-border rounded-xl bg-secondary/15 flex flex-col items-center justify-center">
             <ClipboardList className="h-12 w-12 text-muted-foreground/60 mb-3" />
-            <h4 className="font-bold text-lg text-foreground">
-              Thư viện đề thi trống
-            </h4>
+            <h4 className="font-bold text-lg text-foreground">Thư viện đề thi trống</h4>
             <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Hiện tại chưa có đề thi nào được tạo. Nếu bạn là Admin, hãy truy
-              cập &quot;Tạo Đề Mới&quot; để bổ sung nội dung.
+              Hiện tại chưa có đề thi nào được tạo. Nếu bạn là Admin, hãy truy cập &quot;Tạo Đề
+              Mới&quot; để bổ sung nội dung.
             </p>
           </div>
         )}

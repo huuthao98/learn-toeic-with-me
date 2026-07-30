@@ -233,7 +233,7 @@ export function InteractiveB1Runner({
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 px-4 pt-2 pb-24">
-      <div className="flex flex-wrap items-center gap-2 justify-between bg-background/80 backdrop-blur-md sticky top-0 z-40 py-2">
+      <div className="flex flex-wrap items-center gap-2 justify-between bg-background/80 backdrop-blur-md sticky top-0 z-40 py-2 mb-2">
         <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="destructive"
@@ -648,7 +648,7 @@ export function InteractiveB1Runner({
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t p-3 sm:p-4 z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t p-2 sm:p-4 z-50">
         <div className="max-w-4xl mx-auto flex flex-nowrap items-center gap-2 sm:gap-4">
           <Button
             variant="outline"
@@ -664,7 +664,7 @@ export function InteractiveB1Runner({
           {/* Danh sách câu hỏi khi cùng setId */}
           <div className="flex-1 min-w-0 order-2 flex justify-center overflow-hidden">
             {currentGroup.questions.length > 1 ? (
-              <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scrollbar justify-center sm:justify-center py-2 px-1 w-full max-w-full">
+              <div className="flex items-center gap-1 flex-nowrap overflow-x-auto custom-scrollbar justify-start sm:justify-center py-2 px-1 w-full max-w-full">
                 {currentGroup.questions.map((q, idx) => {
                   const isCurrentQ = idx === safeQuestionIndex;
                   const isAnswered = !!answers[q._id];
