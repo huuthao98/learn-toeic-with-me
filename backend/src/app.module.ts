@@ -19,6 +19,7 @@ import { FirebaseModule } from './modules/firebase/firebase.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { TopicsModule } from './modules/topics/topics.module';
 import { B1Module } from './modules/b1/b1.module';
+import { AccessControlModule } from './common/access-control.module';
 
 @Module({
   imports: [
@@ -40,21 +41,28 @@ import { B1Module } from './modules/b1/b1.module';
       },
     ]),
     AuthModule,
-    UsersModule,
-
-    ToeicModule,
-    InterviewModule,
-    VocabularyModule,
-    DashboardModule,
     AdminModule,
+    UsersModule,
+    DashboardModule,
+
+    //mobile
     PlansModule,
     CheckInsModule,
     TransactionsModule,
+    
+    //Practice
+    B1Module,
+    ToeicModule,
+    InterviewModule,
+    VocabularyModule,
+    
+    TopicsModule,
     UploadModule,
     FirebaseModule,
     NotificationsModule,
-    TopicsModule,
-    B1Module,
+    
+    //common
+    AccessControlModule,
   ],
 })
 export class AppModule {}
