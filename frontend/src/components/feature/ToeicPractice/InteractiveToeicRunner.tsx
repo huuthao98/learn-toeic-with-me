@@ -11,13 +11,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useState, useMemo } from 'react';
 
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToeic, ToeicQuestion } from '@/hooks/useToeic';
@@ -81,8 +75,7 @@ export function InteractiveToeicRunner({
 
   const [isFinished, setIsFinished] = useState(false);
   const [isBackModalOpen, setIsBackModalOpen] = useState(false);
-  const [isSubmitWarningModalOpen, setIsSubmitWarningModalOpen] =
-    useState(false);
+  const [isSubmitWarningModalOpen, setIsSubmitWarningModalOpen] = useState(false);
 
   const currentGroup = groups[currentGroupIndex] || groups[0];
   const safeQuestionIndex = Math.min(
@@ -91,8 +84,7 @@ export function InteractiveToeicRunner({
   );
   const currentQuestion = currentGroup?.questions[safeQuestionIndex];
 
-  const isFirstQuestionOverall =
-    currentGroupIndex === 0 && safeQuestionIndex === 0;
+  const isFirstQuestionOverall = currentGroupIndex === 0 && safeQuestionIndex === 0;
   const isLastQuestionOverall =
     currentGroupIndex === groups.length - 1 &&
     safeQuestionIndex === (currentGroup?.questions.length || 1) - 1;
@@ -141,14 +133,10 @@ export function InteractiveToeicRunner({
 
         setTimeout(() => {
           if (res.resultId) {
-            router.push(
-              `/exam-toeic/${testSetId}/results?resultId=${res.resultId}`,
-            );
+            router.push(`/exam-toeic/${testSetId}/results?resultId=${res.resultId}`);
           } else {
             // Guest mode fallback
-            const localKeys = Object.keys(sessionStorage).filter(k =>
-              k.startsWith('local_toeic_'),
-            );
+            const localKeys = Object.keys(sessionStorage).filter(k => k.startsWith('local_toeic_'));
             if (localKeys.length >= 5) {
               localKeys
                 .sort()
@@ -167,9 +155,7 @@ export function InteractiveToeicRunner({
                 answers,
               }),
             );
-            router.push(
-              `/exam-toeic/${testSetId}/results?localResultId=${localResultId}`,
-            );
+            router.push(`/exam-toeic/${testSetId}/results?localResultId=${localResultId}`);
           }
         }, 2000);
       }
@@ -214,16 +200,20 @@ export function InteractiveToeicRunner({
                 key={part + idx}
                 className="inline-flex items-center gap-1 mx-1.5 align-baseline font-bold"
               >
-                <span className="text-muted-foreground/80 font-mono tracking-tighter">
-                  ____
-                </span>
+                <span className="text-muted-foreground/80 font-mono tracking-tighter">____</span>
                 <span className="px-2 py-0.5 bg-primary/20 text-primary rounded-md shadow-2xs border border-primary/30 text-xs sm:text-sm">
                   {part}
                 </span>
               </span>
             );
           }
-          return <span key={idx}>{part}</span>;
+          return (
+            <span
+              key={part + idx}
+              className="[&_strong]:font-bold [&_b]:font-bold"
+              dangerouslySetInnerHTML={{ __html: part }}
+            />
+          );
         })}
       </div>
     );
@@ -287,8 +277,7 @@ export function InteractiveToeicRunner({
                 />
               }
             >
-              Xem danh sách câu hỏi đã làm: {Object.keys(answers).length} /{' '}
-              {questions.length}
+              Xem danh sách câu hỏi đã làm: {Object.keys(answers).length} / {questions.length}
             </SheetTrigger>
             <SheetContent
               side="right"
@@ -299,21 +288,15 @@ export function InteractiveToeicRunner({
               </SheetHeader>
               <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-6">
                 {[2, 3, 4, 5, 6, 7].map(partNum => {
-                  const partQuestions = questions.filter(
-                    q => q.part === String(partNum),
-                  );
+                  const partQuestions = questions.filter(q => q.part === String(partNum));
                   if (partQuestions.length === 0) return null;
 
-                  const answeredPartCount = partQuestions.filter(
-                    q => !!answers[q._id],
-                  ).length;
+                  const answeredPartCount = partQuestions.filter(q => !!answers[q._id]).length;
 
                   return (
                     <div key={partNum} className="space-y-3">
                       <div className="flex items-center justify-between border-b pb-1">
-                        <h3 className="font-semibold text-sm text-foreground">
-                          Part {partNum}
-                        </h3>
+                        <h3 className="font-semibold text-sm text-foreground">Part {partNum}</h3>
                         <span className="text-xs text-muted-foreground">
                           {answeredPartCount}/{partQuestions.length}
                         </span>
@@ -326,13 +309,10 @@ export function InteractiveToeicRunner({
                           );
                           const qIndex =
                             gIndex !== -1
-                              ? groups[gIndex].questions.findIndex(
-                                  gq => gq._id === q._id,
-                                )
+                              ? groups[gIndex].questions.findIndex(gq => gq._id === q._id)
                               : -1;
                           const isCurrent =
-                            gIndex === currentGroupIndex &&
-                            qIndex === safeQuestionIndex;
+                            gIndex === currentGroupIndex && qIndex === safeQuestionIndex;
 
                           return (
                             <Button
@@ -346,9 +326,7 @@ export function InteractiveToeicRunner({
                               onClick={() => {
                                 if (gIndex !== -1) {
                                   setCurrentGroupIndex(gIndex);
-                                  setCurrentQuestionIndex(
-                                    qIndex !== -1 ? qIndex : 0,
-                                  );
+                                  setCurrentQuestionIndex(qIndex !== -1 ? qIndex : 0);
                                 }
                               }}
                             >
@@ -391,9 +369,10 @@ export function InteractiveToeicRunner({
                   {currentQuestion.part === '6' ? (
                     renderPassageWithBlanks(currentGroup.passageContext)
                   ) : (
-                    <div className="text-sm md:text-base leading-relaxed text-foreground whitespace-pre-wrap font-serif bg-secondary/10 p-2 rounded-xl border border-border/40 shadow-inner">
-                      {currentGroup.passageContext}
-                    </div>
+                    <div
+                      className="text-sm md:text-base leading-relaxed text-foreground whitespace-pre-wrap font-serif bg-secondary/10 p-2 rounded-xl border border-border/40 shadow-inner [&_strong]:font-bold [&_b]:font-bold"
+                      dangerouslySetInnerHTML={{ __html: currentGroup.passageContext }}
+                    />
                   )}
                 </CardContent>
               </Card>
@@ -414,17 +393,9 @@ export function InteractiveToeicRunner({
                           <Button
                             key={gq._id}
                             size="sm"
-                            variant={
-                              isSel
-                                ? 'default'
-                                : isAns
-                                  ? 'secondary'
-                                  : 'outline'
-                            }
+                            variant={isSel ? 'default' : isAns ? 'secondary' : 'outline'}
                             className={`h-7 px-2.5 text-xs font-bold rounded-lg transition-all ${
-                              isSel
-                                ? 'shadow-xs ring-2 ring-primary ring-offset-1'
-                                : ''
+                              isSel ? 'shadow-xs ring-2 ring-primary ring-offset-1' : ''
                             }`}
                             onClick={() => setCurrentQuestionIndex(idx)}
                           >
@@ -443,20 +414,17 @@ export function InteractiveToeicRunner({
                             Câu {currentQuestion.questionNumber}
                           </span>
                         )}
-                        <span className="leading-snug pt-1">
-                          {currentQuestion.questionText}
-                        </span>
+                        <span 
+                          className="leading-snug pt-1 [&_strong]:font-bold [&_b]:font-bold"
+                          dangerouslySetInnerHTML={{ __html: currentQuestion.questionText }}
+                        />
                       </CardTitle>
                     ))}
 
                   {currentQuestion.audioUrl && (
                     <div className="mt-2 flex items-center gap-3 p-2 rounded-lg bg-background border border-border/50">
                       <Volume2 className="w-4 h-4 text-primary shrink-0" />
-                      <audio
-                        controls
-                        src={currentQuestion.audioUrl}
-                        className="w-full h-8"
-                      />
+                      <audio controls src={currentQuestion.audioUrl} className="w-full h-8" />
                     </div>
                   )}
 
@@ -506,10 +474,7 @@ export function InteractiveToeicRunner({
                           className={btnClass}
                           onClick={() =>
                             !isCurrentAnswered || mode === 'exam'
-                              ? handleAnswerSelect(
-                                  currentQuestion._id,
-                                  opt.label,
-                                )
+                              ? handleAnswerSelect(currentQuestion._id, opt.label)
                               : undefined
                           }
                           disabled={isCurrentAnswered && mode === 'practice'}
@@ -541,18 +506,14 @@ export function InteractiveToeicRunner({
                           <>
                             <XCircle className="w-5 h-5 text-destructive shrink-0" />
                             <span className="font-bold text-destructive">
-                              Chưa chính xác! (Đáp án đúng:{' '}
-                              {currentQuestion.correctAnswer})
+                              Chưa chính xác! (Đáp án đúng: {currentQuestion.correctAnswer})
                             </span>
                           </>
                         )}
                       </div>
                       <p className="text-sm text-foreground leading-relaxed mt-2">
-                        <span className="font-semibold text-primary">
-                          Giải thích:{' '}
-                        </span>
-                        {currentQuestion.explanation ||
-                          'Không có giải thích chi tiết.'}
+                        <span className="font-semibold text-primary">Giải thích: </span>
+                        {currentQuestion.explanation || 'Không có giải thích chi tiết.'}
                       </p>
                     </div>
                   )}
@@ -572,19 +533,16 @@ export function InteractiveToeicRunner({
                     <span className="text-primary shrink-0 bg-primary/10 p-2 rounded-xl flex items-center justify-center text-sm font-extrabold">
                       Câu {currentQuestion.questionNumber}
                     </span>
-                    <span className="leading-snug pt-1">
-                      {currentQuestion.questionText}
-                    </span>
+                    <span 
+                      className="leading-snug pt-1 [&_strong]:font-bold [&_b]:font-bold"
+                      dangerouslySetInnerHTML={{ __html: currentQuestion.questionText }}
+                    />
                   </CardTitle>
 
                   {currentQuestion.audioUrl && (
                     <div className="mt-3 flex items-center gap-3 p-2 rounded-lg bg-background border border-border/50">
                       <Volume2 className="w-4 h-4 text-primary shrink-0" />
-                      <audio
-                        controls
-                        src={currentQuestion.audioUrl}
-                        className="w-full h-8"
-                      />
+                      <audio controls src={currentQuestion.audioUrl} className="w-full h-8" />
                     </div>
                   )}
 
@@ -634,10 +592,7 @@ export function InteractiveToeicRunner({
                           className={btnClass}
                           onClick={() =>
                             !isCurrentAnswered || mode === 'exam'
-                              ? handleAnswerSelect(
-                                  currentQuestion._id,
-                                  opt.label,
-                                )
+                              ? handleAnswerSelect(currentQuestion._id, opt.label)
                               : undefined
                           }
                           disabled={isCurrentAnswered && mode === 'practice'}
@@ -669,19 +624,15 @@ export function InteractiveToeicRunner({
                           <>
                             <XCircle className="w-5 h-5 text-destructive shrink-0" />
                             <span className="font-bold text-destructive">
-                              Chưa chính xác! (Đáp án đúng:{' '}
-                              {currentQuestion.correctAnswer})
+                              Chưa chính xác! (Đáp án đúng: {currentQuestion.correctAnswer})
                             </span>
                           </>
                         )}
                       </div>
                       {currentQuestion.explanation && (
                         <p className="text-sm text-foreground leading-relaxed mt-4">
-                          <span className="font-semibold text-primary">
-                            Giải thích:{' '}
-                          </span>
-                          {currentQuestion.explanation ||
-                            'Không có giải thích chi tiết.'}
+                          <span className="font-semibold text-primary">Giải thích: </span>
+                          {currentQuestion.explanation || 'Không có giải thích chi tiết.'}
                         </p>
                       )}
                     </div>

@@ -401,9 +401,10 @@ export function InteractiveB1Runner({
         {currentGroup.skill === 'listening' && currentGroup.passageContext && (
           <Card className="shadow-md border-primary/10 bg-secondary/10">
             <CardContent className="p-5">
-              <div className="text-sm leading-relaxed text-foreground whitespace-pre-wrap font-serif">
-                {currentGroup.passageContext}
-              </div>
+              <div
+                className="text-sm leading-relaxed text-foreground whitespace-pre-wrap font-serif [&_strong]:font-bold [&_b]:font-bold"
+                dangerouslySetInnerHTML={{ __html: currentGroup.passageContext }}
+              />
             </CardContent>
           </Card>
         )}
@@ -411,9 +412,10 @@ export function InteractiveB1Runner({
         {currentGroup.skill === 'reading' && currentGroup.passageContext && (
           <Card className="shadow-lg border-primary/10 bg-secondary/10">
             <CardContent className="p-6">
-              <div className="text-sm md:text-base leading-relaxed text-foreground whitespace-pre-wrap font-serif">
-                {currentGroup.passageContext}
-              </div>
+              <div
+                className="text-sm md:text-base leading-relaxed text-foreground whitespace-pre-wrap font-serif [&_strong]:font-bold [&_b]:font-bold"
+                dangerouslySetInnerHTML={{ __html: currentGroup.passageContext }}
+              />
             </CardContent>
           </Card>
         )}
@@ -425,9 +427,10 @@ export function InteractiveB1Runner({
               <h3 className="font-semibold text-base text-primary mb-3 flex items-center gap-2">
                 <PenTool className="w-4 h-4" /> Ngữ cảnh / Đề bài
               </h3>
-              <div className="text-sm leading-relaxed text-foreground whitespace-pre-wrap font-serif">
-                {currentGroup.passageContext}
-              </div>
+              <div
+                className="text-sm leading-relaxed text-foreground whitespace-pre-wrap font-serif [&_strong]:font-bold [&_b]:font-bold"
+                dangerouslySetInnerHTML={{ __html: currentGroup.passageContext }}
+              />
             </CardContent>
           </Card>
         )}
@@ -436,9 +439,10 @@ export function InteractiveB1Runner({
         {currentGroup.skill === 'speaking' && currentGroup.passageContext && (
           <Card className="shadow-md border-primary/10 bg-secondary/10">
             <CardContent className="p-5">
-              <div className="text-sm leading-relaxed text-foreground whitespace-pre-wrap font-serif">
-                {currentGroup.passageContext}
-              </div>
+              <div
+                className="text-sm leading-relaxed text-foreground whitespace-pre-wrap font-serif [&_strong]:font-bold [&_b]:font-bold"
+                dangerouslySetInnerHTML={{ __html: currentGroup.passageContext }}
+              />
             </CardContent>
           </Card>
         )}
@@ -551,9 +555,10 @@ export function InteractiveB1Runner({
                         .
                       </h2>
                       {currentQuestion.questionText && (
-                        <p className="text-lg font-medium text-foreground leading-relaxed">
-                          {currentQuestion.questionText}
-                        </p>
+                        <p 
+                          className="text-lg font-medium text-foreground leading-relaxed [&_strong]:font-bold [&_b]:font-bold"
+                          dangerouslySetInnerHTML={{ __html: currentQuestion.questionText }}
+                        />
                       )}
                     </div>
                   )}
@@ -674,7 +679,7 @@ export function InteractiveB1Runner({
                       onClick={() => setCurrentQuestionIndex(idx)}
                       className={`h-9 w-9 rounded-full text-xs font-bold border-2 transition-all shrink-0 ${
                         isCurrentQ
-                          ? 'bg-primary text-primary-foreground border-primary ring-2 ring-primary ring-offset-2'
+                          ? 'bg-primary text-primary-foreground border-primary ring-2 ring-primary'
                           : isAnswered
                             ? 'bg-emerald-500 text-white border-emerald-500'
                             : 'bg-background border-border hover:border-primary/50 text-foreground'

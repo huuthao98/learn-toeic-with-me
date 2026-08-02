@@ -110,12 +110,10 @@ export default function AdminPage() {
 
   const { data: toeicSets, isLoading: loadingToeic } = useToeicSets();
   const { data: vocabSets, isLoading: loadingVocab } = useVocabSets();
-  const { data: interviewSets, isLoading: loadingInterviewSets } =
-    useInterviewSets();
+  const { data: interviewSets, isLoading: loadingInterviewSets } = useInterviewSets();
   const { data: b1Sets, isLoading: loadingB1 } = useB1Sets();
 
-  const loadingTests =
-    loadingToeic || loadingVocab || loadingInterviewSets || loadingB1;
+  const loadingTests = loadingToeic || loadingVocab || loadingInterviewSets || loadingB1;
 
   const allTestSets = useMemo(() => {
     return [
@@ -172,6 +170,7 @@ export default function AdminPage() {
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+
   const editForm = useForm<EditToeicSetFormValues>({
     resolver: zodResolver(editToeicSetSchema),
     defaultValues: {
@@ -191,7 +190,8 @@ export default function AdminPage() {
       description: set.description || '',
       status: (set.status as 'draft' | 'public' | 'private') || 'draft',
       type: (set.type as 'practice' | 'exam') || 'practice',
-      accessLevel: (set.accessLevel as 'external' | 'vip0' | 'vip1' | 'vip2' | 'vip3') || 'external',
+      accessLevel:
+        (set.accessLevel as 'external' | 'vip0' | 'vip1' | 'vip2' | 'vip3') || 'external',
     });
     setEditModalOpen(true);
   };
@@ -205,14 +205,17 @@ export default function AdminPage() {
       toast.error(err.response?.data?.message || 'Cập nhật đề thi thất bại.');
     };
 
-    if (selectedType === 'toeic')
-      updateToeicSetMutation.mutate(values, { onSuccess, onError });
+    const payload = { ...values };
+    if (selectedType !== 'toeic') {
+      delete payload.type;
+    }
+
+    if (selectedType === 'toeic') updateToeicSetMutation.mutate(payload, { onSuccess, onError });
     else if (selectedType === 'vocabulary')
-      updateVocabSetMutation.mutate(values, { onSuccess, onError });
+      updateVocabSetMutation.mutate(payload, { onSuccess, onError });
     else if (selectedType === 'interview')
-      updateInterviewSetMutation.mutate(values, { onSuccess, onError });
-    else if (selectedType === 'b1')
-      updateB1SetMutation.mutate(values, { onSuccess, onError });
+      updateInterviewSetMutation.mutate(payload, { onSuccess, onError });
+    else if (selectedType === 'b1') updateB1SetMutation.mutate(payload, { onSuccess, onError });
   };
 
   const handleDeleteTestSet = (id: string) => {
@@ -226,24 +229,19 @@ export default function AdminPage() {
       setDeleteModalOpen(false);
     };
 
-    if (selectedType === 'toeic')
-      deleteToeicSetMutation.mutate(id, { onSuccess, onError });
+    if (selectedType === 'toeic') deleteToeicSetMutation.mutate(id, { onSuccess, onError });
     else if (selectedType === 'vocabulary')
       deleteVocabSetMutation.mutate(id, { onSuccess, onError });
     else if (selectedType === 'interview')
       deleteInterviewSetMutation.mutate(id, { onSuccess, onError });
-    else if (selectedType === 'b1')
-      deleteB1SetMutation.mutate(id, { onSuccess, onError });
+    else if (selectedType === 'b1') deleteB1SetMutation.mutate(id, { onSuccess, onError });
   };
 
   if (user && user.role !== 'admin') {
     return null;
   }
 
-  const categoryMeta: Record<
-    string,
-    { title: string; icon: any; color: string; desc: string }
-  > = {
+  const categoryMeta: Record<string, { title: string; icon: any; color: string; desc: string }> = {
     toeic: {
       title: 'Đề Thi TOEIC',
       icon: GraduationCap,
@@ -281,8 +279,7 @@ export default function AdminPage() {
               <span className="text-gradient">Cổng Quản Trị Hệ Thống</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1.5">
-              Quản lý, chỉnh sửa và khởi tạo bộ đề thi TOEIC, Từ vựng và Phỏng
-              vấn.
+              Quản lý, chỉnh sửa và khởi tạo bộ đề thi TOEIC, Từ vựng và Phỏng vấn.
             </p>
           </div>
 
@@ -337,12 +334,8 @@ export default function AdminPage() {
                           <IconComp className="h-5 w-5" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-lg text-foreground">
-                            {meta.title}
-                          </h3>
-                          <p className="text-xs text-muted-foreground">
-                            {meta.desc}
-                          </p>
+                          <h3 className="font-bold text-lg text-foreground">{meta.title}</h3>
+                          <p className="text-xs text-muted-foreground">{meta.desc}</p>
                         </div>
                       </div>
                       <Badge
@@ -410,17 +403,41 @@ export default function AdminPage() {
                                   >
                                     {set.type === 'exam' ? (
                                       <>
-                                        <Sparkles className="w-3 h-3" /> Thi thử
-                                        (Exam)
+                                        <Sparkles className="w-3 h-3" /> Thi thử (Exam)
                                       </>
                                     ) : (
                                       <>
-                                        <Target className="w-3 h-3" /> Luyện tập
-                                        (Practice)
+                                        <Target className="w-3 h-3" /> Luyện tập (Practice)
                                       </>
                                     )}
                                   </span>
                                 )}
+
+                                {/* Access Level Badge */}
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold shadow-2xs ${
+                                    set.accessLevel === 'vip3'
+                                      ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                                      : set.accessLevel === 'vip2'
+                                        ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20'
+                                        : set.accessLevel === 'vip1'
+                                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                                          : set.accessLevel === 'vip0'
+                                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                                            : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
+                                  }`}
+                                >
+                                  <ShieldCheck className="w-3 h-3" />
+                                  {set.accessLevel === 'vip3'
+                                    ? 'VIP 3'
+                                    : set.accessLevel === 'vip2'
+                                      ? 'VIP 2'
+                                      : set.accessLevel === 'vip1'
+                                        ? 'VIP 1'
+                                        : set.accessLevel === 'vip0'
+                                          ? 'Member'
+                                          : 'External'}
+                                </span>
 
                                 {/* Status Badge */}
                                 <span
@@ -444,8 +461,7 @@ export default function AdminPage() {
                             {/* Description */}
                             <div className="flex-1 mt-1 mb-4">
                               <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px] leading-relaxed">
-                                {set.description ||
-                                  'Không có mô tả chi tiết cho bộ đề thi này.'}
+                                {set.description || 'Không có mô tả chi tiết cho bộ đề thi này.'}
                               </p>
                             </div>
 
@@ -465,17 +481,11 @@ export default function AdminPage() {
                                   switch (set.category) {
                                     case 'toeic':
                                       if (set.type === 'exam') {
-                                        return getAdminTestToeicDetailRoute(
-                                          set._id,
-                                        );
+                                        return getAdminTestToeicDetailRoute(set._id);
                                       }
-                                      return getAdminDetailPracticeRoute(
-                                        set._id,
-                                      );
+                                      return getAdminDetailPracticeRoute(set._id);
                                     case 'interview':
-                                      return getAdminTestInterviewDetailRoute(
-                                        set._id,
-                                      );
+                                      return getAdminTestInterviewDetailRoute(set._id);
                                     case 'b1':
                                       return getAdminTestB1DetailRoute(set._id);
                                     case 'vocabulary':
@@ -500,12 +510,10 @@ export default function AdminPage() {
           ) : (
             <div className="text-center py-20 border-2 border-dashed border-border rounded-2xl bg-secondary/15 flex flex-col items-center justify-center">
               <Layers className="h-12 w-12 text-muted-foreground/40 mb-3" />
-              <h5 className="font-semibold text-lg text-foreground">
-                Chưa có đề thi nào
-              </h5>
+              <h5 className="font-semibold text-lg text-foreground">Chưa có đề thi nào</h5>
               <p className="text-sm text-muted-foreground mt-1 max-w-md">
-                Hiện tại hệ thống chưa có bài kiểm tra nào. Bấm vào nút "Tạo đề
-                thi mới" để bắt đầu xây dựng nội dung.
+                Hiện tại hệ thống chưa có bài kiểm tra nào. Bấm vào nút "Tạo đề thi mới" để bắt đầu
+                xây dựng nội dung.
               </p>
               <Link
                 href="#"
@@ -572,14 +580,9 @@ export default function AdminPage() {
                   <Button
                     type="submit"
                     size="sm"
-                    disabled={
-                      updateToeicSetMutation.isPending ||
-                      !editForm.formState.isDirty
-                    }
+                    disabled={updateToeicSetMutation.isPending || !editForm.formState.isDirty}
                   >
-                    {updateToeicSetMutation.isPending
-                      ? 'Đang lưu...'
-                      : 'Lưu thay đổi'}
+                    {updateToeicSetMutation.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
                   </Button>
                 </div>
               </DialogHeader>
@@ -595,10 +598,7 @@ export default function AdminPage() {
                           Tên Đề Thi
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Ví dụ: Practice TOEIC 1"
-                            {...field}
-                          />
+                          <Input placeholder="Ví dụ: Practice TOEIC 1" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -615,22 +615,15 @@ export default function AdminPage() {
                           <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
                             Chế độ đề
                           </FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value || 'practice'}
-                          >
+                          <Select onValueChange={field.onChange} value={field.value || 'practice'}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Chọn chế độ" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="practice">
-                                Luyện tập (Practice)
-                              </SelectItem>
-                              <SelectItem value="exam">
-                                Thi thử (Exam)
-                              </SelectItem>
+                              <SelectItem value="practice">Luyện tập (Practice)</SelectItem>
+                              <SelectItem value="exam">Thi thử (Exam)</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -640,37 +633,32 @@ export default function AdminPage() {
                   )}
 
                   {/* Access Level select for B1 sets */}
-                  {selectedType === 'b1' && (
-                    <FormField
-                      control={editForm.control}
-                      name="accessLevel"
-                      render={({ field }) => (
-                        <FormItem className="space-y-1.5 w-40">
-                          <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
-                            Phạm vi truy cập
-                          </FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value || 'external'}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Chọn phạm vi" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="external">External (Công khai)</SelectItem>
-                              <SelectItem value="vip0">Member (Đăng nhập)</SelectItem>
-                              <SelectItem value="vip1">VIP 1 (Silver)</SelectItem>
-                              <SelectItem value="vip2">VIP 2 (Gold)</SelectItem>
-                              <SelectItem value="vip3">VIP 3 (Platinum)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                  <FormField
+                    control={editForm.control}
+                    name="accessLevel"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5 w-40">
+                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                          Phạm vi truy cập
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || 'external'}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn phạm vi" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="external">External (Công khai)</SelectItem>
+                            <SelectItem value="vip0">Member (Đăng nhập)</SelectItem>
+                            <SelectItem value="vip1">VIP 1 (Silver)</SelectItem>
+                            <SelectItem value="vip2">VIP 2 (Gold)</SelectItem>
+                            <SelectItem value="vip3">VIP 3 (Platinum)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={editForm.control}
@@ -680,10 +668,7 @@ export default function AdminPage() {
                         <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
                           Trạng thái
                         </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Chọn trạng thái" />
@@ -733,15 +718,11 @@ export default function AdminPage() {
               Chọn Loại Đề Thi Cần Tạo
             </DialogTitle>
             <DialogDescription className="text-base mt-2">
-              Vui lòng chọn một trong các định dạng đề thi dưới đây để bắt đầu
-              biên soạn.
+              Vui lòng chọn một trong các định dạng đề thi dưới đây để bắt đầu biên soạn.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Link
-              href={ROUTES.ADMIN_CREATE_TEST_V2}
-              onClick={() => setCreateModalOpen(false)}
-            >
+            <Link href={ROUTES.ADMIN_CREATE_TEST_V2} onClick={() => setCreateModalOpen(false)}>
               <div className="flex items-start gap-4 p-5 rounded-xl border-2 border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group">
                 <div className="p-3.5 rounded-2xl bg-primary/10 text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 shadow-sm">
                   <FileSpreadsheet className="h-7 w-7" />
@@ -751,9 +732,9 @@ export default function AdminPage() {
                     Đề thi TOEIC nâng cao (Tạo bằng Excel)
                   </h4>
                   <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-                    Được khuyến nghị. Hỗ trợ tải lên đáp án hàng loạt bằng
-                    Excel, phân nhóm câu hỏi theo Part, tích hợp Audio chung và
-                    chia đôi màn hình xem file PDF song song cực kỳ tiện lợi.
+                    Được khuyến nghị. Hỗ trợ tải lên đáp án hàng loạt bằng Excel, phân nhóm câu hỏi
+                    theo Part, tích hợp Audio chung và chia đôi màn hình xem file PDF song song cực
+                    kỳ tiện lợi.
                   </p>
                 </div>
               </div>
@@ -769,9 +750,9 @@ export default function AdminPage() {
                     Đề thi Trắc nghiệm Cơ bản
                   </h4>
                   <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-                    Giao diện truyền thống để tạo đề thi trắc nghiệm. Nhập tay
-                    từng câu hỏi và đáp án trực tiếp trên trình duyệt. Thích hợp
-                    cho các bài kiểm tra ngắn hoặc ôn tập nhanh.
+                    Giao diện truyền thống để tạo đề thi trắc nghiệm. Nhập tay từng câu hỏi và đáp
+                    án trực tiếp trên trình duyệt. Thích hợp cho các bài kiểm tra ngắn hoặc ôn tập
+                    nhanh.
                   </p>
                 </div>
               </div>
@@ -790,9 +771,8 @@ export default function AdminPage() {
                     Đề thi Phỏng vấn / Speaking
                   </h4>
                   <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-                    Đề thi chuyên biệt luyện kỹ năng Nói. Hỗ trợ câu hỏi bằng
-                    văn bản kết hợp Audio. Người dùng sẽ trả lời bằng cách thu
-                    âm giọng nói trực tiếp qua Microphone.
+                    Đề thi chuyên biệt luyện kỹ năng Nói. Hỗ trợ câu hỏi bằng văn bản kết hợp Audio.
+                    Người dùng sẽ trả lời bằng cách thu âm giọng nói trực tiếp qua Microphone.
                   </p>
                 </div>
               </div>

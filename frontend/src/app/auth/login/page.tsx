@@ -1,15 +1,14 @@
 'use client';
 
 import {
+  Eye,
   Mail,
   Phone,
+  EyeOff,
   BookOpen,
-  AlertCircle,
   ArrowRight,
   ShieldCheck,
   KeyRound,
-  Eye,
-  EyeOff,
 } from 'lucide-react';
 import * as z from 'zod';
 import { toast } from 'sonner';

@@ -420,7 +420,10 @@ export function AdminTestB1Detail({ testId }: AdminTestB1DetailProps) {
               <CardContent className="p-4 space-y-4">
                 {q.passageContext && (
                   <div className="bg-secondary/20 p-4 rounded-lg text-sm border border-border/50 font-serif leading-relaxed">
-                    <p className="whitespace-pre-wrap">{q.passageContext}</p>
+                    <div 
+                      className="whitespace-pre-wrap [&_strong]:font-bold [&_b]:font-bold"
+                      dangerouslySetInnerHTML={{ __html: q.passageContext }}
+                    />
                   </div>
                 )}
 

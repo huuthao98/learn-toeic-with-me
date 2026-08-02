@@ -28,6 +28,7 @@ export interface InterviewTopic {
   createdAt: string
   totalQuestions: number
   topics?: string[]
+  accessLevel?: string
 }
 
 export const interviewApi = {

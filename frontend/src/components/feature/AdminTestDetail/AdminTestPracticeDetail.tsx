@@ -22,13 +22,7 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Dialog,
@@ -100,8 +94,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
   } = useToeic();
 
   const { data: testSet, isLoading: isTestLoading } = useTestSet(id);
-  const { data: questions, isLoading: isQuestionsLoading } =
-    useTestQuestions(id);
+  const { data: questions, isLoading: isQuestionsLoading } = useTestQuestions(id);
 
   const updateToeicSetMutation = useUpdateTestSetMutation(id);
   const deleteToeicSetMutation = useDeleteTestSetMutation();
@@ -114,20 +107,14 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   // Single question edit / delete modals
-  const [editingQuestion, setEditingQuestion] = useState<ToeicQuestion | null>(
-    null,
-  );
+  const [editingQuestion, setEditingQuestion] = useState<ToeicQuestion | null>(null);
   const [isEditQuestionModalOpen, setIsEditQuestionModalOpen] = useState(false);
 
-  const [deletingQuestionId, setDeletingQuestionId] = useState<string | null>(
-    null,
-  );
-  const [isDeleteQuestionModalOpen, setIsDeleteQuestionModalOpen] =
-    useState(false);
+  const [deletingQuestionId, setDeletingQuestionId] = useState<string | null>(null);
+  const [isDeleteQuestionModalOpen, setIsDeleteQuestionModalOpen] = useState(false);
 
   // Separate edit modal for Passage Context (edit directly from card)
-  const [editingPassageQuestion, setEditingPassageQuestion] =
-    useState<ToeicQuestion | null>(null);
+  const [editingPassageQuestion, setEditingPassageQuestion] = useState<ToeicQuestion | null>(null);
   const [editingPassageText, setEditingPassageText] = useState<string>('');
   const [isEditPassageModalOpen, setIsEditPassageModalOpen] = useState(false);
 
@@ -187,9 +174,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
           setEditDialogOpen(false);
         },
         onError: (err: any) => {
-          toast.error(
-            err.response?.data?.message || 'Cập nhật đề thi thất bại.',
-          );
+          toast.error(err.response?.data?.message || 'Cập nhật đề thi thất bại.');
         },
       },
     );
@@ -211,8 +196,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
   // Open Edit Single Question Dialog
   const handleOpenEditQuestion = (q: ToeicQuestion) => {
     setEditingQuestion(q);
-    const getOptText = (lbl: string) =>
-      q.options?.find(o => o.label === lbl)?.text || '';
+    const getOptText = (lbl: string) => q.options?.find(o => o.label === lbl)?.text || '';
 
     questionForm.reset({
       questionNumber: q.questionNumber,
@@ -312,9 +296,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      const questionsArray: any[] = Array.isArray(data)
-        ? data
-        : data.questions || [];
+      const questionsArray: any[] = Array.isArray(data) ? data : data.questions || [];
 
       if (!Array.isArray(questionsArray) || questionsArray.length === 0) {
         toast.error('File JSON không hợp lệ hoặc không có câu hỏi nào.');
@@ -334,27 +316,19 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
   };
 
   // Helper to compute question number range for a passage set based on setId or passageContext
-  const getQuestionNumbersForSet = (
-    q: ToeicQuestion,
-    allQuestions?: ToeicQuestion[],
-  ) => {
-    if (!allQuestions || allQuestions.length === 0)
-      return `${q.questionNumber}`;
+  const getQuestionNumbersForSet = (q: ToeicQuestion, allQuestions?: ToeicQuestion[]) => {
+    if (!allQuestions || allQuestions.length === 0) return `${q.questionNumber}`;
 
     let setQuestions: ToeicQuestion[] = [];
     if (q.setId) {
       setQuestions = allQuestions.filter(item => item.setId === q.setId);
     } else if (q.passageContext) {
-      setQuestions = allQuestions.filter(
-        item => item.passageContext === q.passageContext,
-      );
+      setQuestions = allQuestions.filter(item => item.passageContext === q.passageContext);
     }
 
     if (setQuestions.length === 0) setQuestions = [q];
 
-    const nums = setQuestions
-      .map(item => item.questionNumber)
-      .sort((a, b) => a - b);
+    const nums = setQuestions.map(item => item.questionNumber).sort((a, b) => a - b);
     if (nums.length === 1) return `${nums[0]}`;
     const minNum = nums[0];
     const maxNum = nums[nums.length - 1];
@@ -365,9 +339,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
   const filteredQuestions = useMemo(() => {
     if (!questions) return [];
 
-    let list = [...questions].sort(
-      (a, b) => a.questionNumber - b.questionNumber,
-    );
+    let list = [...questions].sort((a, b) => a.questionNumber - b.questionNumber);
 
     if (selectedPart !== 'all') {
       list = list.filter(q => q.part === selectedPart);
@@ -410,16 +382,20 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                 key={idx}
                 className="inline-flex items-center gap-1 mx-1.5 align-baseline font-bold"
               >
-                <span className="text-muted-foreground/80 font-mono tracking-tighter">
-                  ____
-                </span>
+                <span className="text-muted-foreground/80 font-mono tracking-tighter">____</span>
                 <span className="px-2 py-0.5 bg-primary/20 text-primary rounded-md shadow-2xs border border-primary/30 text-xs">
                   {part}
                 </span>
               </span>
             );
           }
-          return <span key={idx}>{part}</span>;
+          return (
+            <span
+              key={part + idx}
+              className="[&_strong]:font-bold [&_b]:font-bold"
+              dangerouslySetInnerHTML={{ __html: part }}
+            />
+          );
         })}
       </div>
     );
@@ -438,14 +414,8 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
   if (!testSet) {
     return (
       <div className="max-w-6xl mx-auto py-20 px-4 text-center">
-        <h2 className="text-2xl font-bold text-destructive">
-          Không tìm thấy đề thi
-        </h2>
-        <Button
-          className="mt-4"
-          variant="outline"
-          onClick={() => router.push(ROUTES.ADMIN)}
-        >
+        <h2 className="text-2xl font-bold text-destructive">Không tìm thấy đề thi</h2>
+        <Button className="mt-4" variant="outline" onClick={() => router.push(ROUTES.ADMIN)}>
           Quay lại danh sách
         </Button>
       </div>
@@ -518,9 +488,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                 {testSet.name}
               </CardTitle>
               {testSet.description && (
-                <CardDescription className="text-sm mt-1.5">
-                  {testSet.description}
-                </CardDescription>
+                <CardDescription className="text-sm mt-1.5">{testSet.description}</CardDescription>
               )}
             </div>
 
@@ -541,9 +509,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                   className="font-bold shadow-xs cursor-pointer"
                 >
                   <Upload className="w-4 h-4 mr-2" />
-                  {upsertQuestionsMutation.isPending
-                    ? 'Đang nạp...'
-                    : 'Nhập câu hỏi (JSON)'}
+                  {upsertQuestionsMutation.isPending ? 'Đang nạp...' : 'Nhập câu hỏi (JSON)'}
                 </Button>
               </label>
             </div>
@@ -553,16 +519,12 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
           <div className="flex items-center gap-6">
             <span>
               Tổng số câu hỏi:{' '}
-              <strong className="text-foreground font-bold">
-                {questions?.length || 0}
-              </strong>
+              <strong className="text-foreground font-bold">{questions?.length || 0}</strong>
             </span>
             <span>
               Cập nhật lần cuối:{' '}
               <strong className="text-foreground">
-                {new Date(
-                  (testSet as any).updatedAt || Date.now(),
-                ).toLocaleDateString('vi-VN')}
+                {new Date((testSet as any).updatedAt || Date.now()).toLocaleDateString('vi-VN')}
               </strong>
             </span>
           </div>
@@ -609,12 +571,9 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
         {filteredQuestions.length === 0 ? (
           <Card className="p-12 text-center border-dashed border-2 border-border/50 bg-secondary/10 rounded-2xl">
             <HelpCircle className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-            <h4 className="font-bold text-lg text-foreground">
-              Không tìm thấy câu hỏi nào
-            </h4>
+            <h4 className="font-bold text-lg text-foreground">Không tìm thấy câu hỏi nào</h4>
             <p className="text-sm text-muted-foreground mt-1">
-              Thử tìm kiếm với từ khóa khác hoặc tải lên câu hỏi mới từ file
-              JSON.
+              Thử tìm kiếm với từ khóa khác hoặc tải lên câu hỏi mới từ file JSON.
             </p>
           </Card>
         ) : (
@@ -629,12 +588,9 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                   <div className="mx-4 mt-4 p-4 rounded-2xl bg-secondary/30 border border-border/50 shadow-2xs space-y-2">
                     <div className="flex items-center justify-between pb-2 border-b border-border/30">
                       <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
-                        <span>
-                          Bài đọc / Đoạn văn ({q.passageType || 'Passage'}):
-                        </span>
+                        <span>Bài đọc / Đoạn văn ({q.passageType || 'Passage'}):</span>
                         <span className="text-primary font-extrabold normal-case bg-primary/10 dark:bg-primary/20 px-2 py-0.5 rounded-md text-[11px]">
-                          Nội dung bài đọc hỗ trợ câu{' '}
-                          {getQuestionNumbersForSet(q, questions)}
+                          Nội dung bài đọc hỗ trợ câu {getQuestionNumbersForSet(q, questions)}
                         </span>
                       </p>
                       <Button
@@ -650,9 +606,10 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                     {q.part === '6' ? (
                       renderPassageWithBlanks(q.passageContext)
                     ) : (
-                      <div className="text-sm leading-relaxed text-foreground whitespace-pre-wrap font-serif p-2">
-                        {q.passageContext}
-                      </div>
+                      <div
+                        className="text-sm leading-relaxed text-foreground whitespace-pre-wrap font-serif p-2 [&_strong]:font-bold [&_b]:font-bold"
+                        dangerouslySetInnerHTML={{ __html: q.passageContext }}
+                      />
                     )}
                   </div>
                 )}
@@ -666,10 +623,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                         Part {q.part}
                       </Badge>
                       {q.blankPosition && (
-                        <Badge
-                          variant="secondary"
-                          className="text-xs font-bold"
-                        >
+                        <Badge variant="secondary" className="text-xs font-bold">
                           Vị trí: {q.blankPosition}
                         </Badge>
                       )}
@@ -718,9 +672,10 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                   )}
 
                   {q.questionText && (
-                    <CardTitle className="text-base font-bold mt-3 leading-snug">
-                      {q.questionText}
-                    </CardTitle>
+                    <CardTitle
+                      className="text-base font-bold mt-3 leading-snug [&_strong]:font-bold [&_b]:font-bold"
+                      dangerouslySetInnerHTML={{ __html: q.questionText }}
+                    />
                   )}
                 </CardHeader>
 
@@ -747,9 +702,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                           >
                             {opt.label}
                           </span>
-                          <span className="leading-relaxed flex-1">
-                            {opt.text}
-                          </span>
+                          <span className="leading-relaxed flex-1">{opt.text}</span>
                           {isCorrect && (
                             <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
                           )}
@@ -762,8 +715,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                   {q.explanation && (
                     <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 animate-in fade-in">
                       <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5" /> Giải thích chi
-                        tiết:
+                        <Sparkles className="w-3.5 h-3.5" /> Giải thích chi tiết:
                       </p>
                       <p className="text-sm text-foreground leading-relaxed mt-1">
                         {q.explanation}
@@ -817,19 +769,14 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                         <FormLabel className="text-xs font-semibold uppercase text-muted-foreground">
                           Loại bộ đề
                         </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Chọn loại" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="practice">
-                              Luyện tập (Practice)
-                            </SelectItem>
+                            <SelectItem value="practice">Luyện tập (Practice)</SelectItem>
                             <SelectItem value="exam">Thi thử (Exam)</SelectItem>
                           </SelectContent>
                         </Select>
@@ -846,10 +793,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                         <FormLabel className="text-xs font-semibold uppercase text-muted-foreground">
                           Trạng thái
                         </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Chọn trạng thái" />
@@ -885,20 +829,11 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-border/40">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setEditDialogOpen(false)}
-                >
+                <Button type="button" variant="ghost" onClick={() => setEditDialogOpen(false)}>
                   Hủy
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={updateToeicSetMutation.isPending}
-                >
-                  {updateToeicSetMutation.isPending
-                    ? 'Đang lưu...'
-                    : 'Lưu thay đổi'}
+                <Button type="submit" disabled={updateToeicSetMutation.isPending}>
+                  {updateToeicSetMutation.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
                 </Button>
               </div>
             </form>
@@ -907,10 +842,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
       </Dialog>
 
       {/* Edit Single Question Modal (Cleaned, without passageContext) */}
-      <Dialog
-        open={isEditQuestionModalOpen}
-        onOpenChange={setIsEditQuestionModalOpen}
-      >
+      <Dialog open={isEditQuestionModalOpen} onOpenChange={setIsEditQuestionModalOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto custom-scrollbar bg-background/95 backdrop-blur-md">
           <Form {...questionForm}>
             <form onSubmit={questionForm.handleSubmit(onQuestionFormSubmit)}>
@@ -920,8 +852,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                   Chỉnh Sửa Câu Hỏi Số {editingQuestion?.questionNumber}
                 </DialogTitle>
                 <DialogDescription className="text-sm">
-                  Cập nhật câu hỏi, lựa chọn đáp án và nội dung giải thích chi
-                  tiết.
+                  Cập nhật câu hỏi, lựa chọn đáp án và nội dung giải thích chi tiết.
                 </DialogDescription>
               </DialogHeader>
 
@@ -951,10 +882,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                         <FormLabel className="text-xs font-semibold uppercase text-muted-foreground">
                           Part
                         </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Chọn Part" />
@@ -981,10 +909,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                         <FormLabel className="text-xs font-semibold uppercase text-muted-foreground">
                           Đáp án đúng
                         </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Chọn đáp án" />
@@ -1012,10 +937,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                         Nội dung câu hỏi
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Nhập nội dung câu hỏi..."
-                          {...field}
-                        />
+                        <Input placeholder="Nhập nội dung câu hỏi..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1130,13 +1052,8 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
                 >
                   Hủy
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={updateQuestionMutation.isPending}
-                >
-                  {updateQuestionMutation.isPending
-                    ? 'Đang lưu...'
-                    : 'Lưu thay đổi'}
+                <Button type="submit" disabled={updateQuestionMutation.isPending}>
+                  {updateQuestionMutation.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
                 </Button>
               </div>
             </form>
@@ -1145,10 +1062,7 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
       </Dialog>
 
       {/* Edit Passage Context Modal */}
-      <Dialog
-        open={isEditPassageModalOpen}
-        onOpenChange={setIsEditPassageModalOpen}
-      >
+      <Dialog open={isEditPassageModalOpen} onOpenChange={setIsEditPassageModalOpen}>
         <DialogContent className="sm:max-w-4xl md:max-w-5xl w-[95vw] max-h-[90vh] flex flex-col bg-background/95 backdrop-blur-md border border-border/50 shadow-2xl rounded-2xl p-6">
           <DialogHeader className="pb-3 border-b border-border/40 shrink-0">
             <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
@@ -1194,14 +1108,10 @@ export function AdminTestPracticeDetail({ id }: AdminTestPracticeDetailProps) {
             <Button
               type="button"
               onClick={handleSavePassage}
-              disabled={
-                updateQuestionMutation.isPending ||
-                upsertQuestionsMutation.isPending
-              }
+              disabled={updateQuestionMutation.isPending || upsertQuestionsMutation.isPending}
               className="font-bold px-5 cursor-pointer shadow-xs"
             >
-              {updateQuestionMutation.isPending ||
-              upsertQuestionsMutation.isPending
+              {updateQuestionMutation.isPending || upsertQuestionsMutation.isPending
                 ? 'Đang lưu...'
                 : 'Cập nhật bài đọc'}
             </Button>

@@ -1,15 +1,15 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { ChevronDown, GraduationCap, Menu, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { getListPracticeB1Route, getListPracticeToeicRoute, ROUTES } from '@/constants/routes';
+
 import { useAuthStore } from '@/store/authStore';
+import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { getListPracticeB1Route, getListPracticeToeicRoute, ROUTES } from '@/constants/routes';
 
 export function PracticeHeader() {
-  const user = useAuthStore(state => state.user);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
