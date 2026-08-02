@@ -48,4 +48,9 @@ export class CreateToeicSetDto {
   @IsString()
   @IsOptional()
   type: string;
+
+  @ApiPropertyOptional({ example: 'external', enum: ['external', 'vip0', 'vip1', 'vip2', 'vip3'] })
+  @IsString()
+  @IsOptional()
+  accessLevel?: string;
 }

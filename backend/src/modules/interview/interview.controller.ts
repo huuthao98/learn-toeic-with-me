@@ -16,11 +16,13 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { InterviewService } from './interview.service';
-import { JwtAuthGuard, AdminGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard, AdminGuard, OptionalJwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { VipAccessGuard } from '@/common/guards/vip-access.guard';
+import { RequireVipAccess } from '@/common/decorators/require-vip-access.decorator';
 
 import { SubmitInterviewDto } from './dto/submit-interview.dto';
-import { CreateInterviewTopicDto } from './dto/create-interview-topic.dto';
-import { UpdateInterviewTopicDto } from './dto/update-interview-topic.dto';
+import { CreateInterviewSetDto } from './dto/create-interview-set.dto';
+import { UpdateInterviewSetDto } from './dto/update-interview-set.dto';
 
 @ApiTags('Interview')
 @Controller('interview')
@@ -30,7 +32,7 @@ export class InterviewController {
   // ─── Public / User Routes ───────────────────────────────────────────────────
 
   @Get('sets')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all test sets' })
   findAll(@Query('status') status?: string) {
@@ -38,7 +40,8 @@ export class InterviewController {
   }
 
   @Get('sets/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'INTERVIEW', modelName: 'InterviewSet' })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get test set metadata by ID' })
   findOne(@Param('id') id: string) {
@@ -46,7 +49,8 @@ export class InterviewController {
   }
 
   @Get('sets/:id/questions')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'INTERVIEW', modelName: 'InterviewSet' })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get questions belonging to a test set' })
   findQuestions(
@@ -68,7 +72,8 @@ export class InterviewController {
   }
 
   @Post('sets/:id/submit')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'INTERVIEW', modelName: 'InterviewSet' })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Submit answers for a test set' })
   submitExam(@Request() req: any, @Param('id') id: string, @Body() dto: SubmitInterviewDto) {
@@ -81,7 +86,7 @@ export class InterviewController {
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new test set (Admin)' })
-  createInterviewTopic(@Body() dto: CreateInterviewTopicDto) {
+  createInterviewSet(@Body() dto: CreateInterviewSetDto) {
     return this.InterviewService.create(dto);
   }
 
@@ -89,7 +94,7 @@ export class InterviewController {
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a test set (Admin)' })
-  updateInterviewTopic(@Param('id') id: string, @Body() dto: UpdateInterviewTopicDto) {
+  updateInterviewSet(@Param('id') id: string, @Body() dto: UpdateInterviewSetDto) {
     return this.InterviewService.update(id, dto);
   }
 
@@ -97,7 +102,7 @@ export class InterviewController {
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a test set (Admin)' })
-  deleteInterviewTopic(@Param('id') id: string) {
+  deleteInterviewSet(@Param('id') id: string) {
     return this.InterviewService.delete(id);
   }
 

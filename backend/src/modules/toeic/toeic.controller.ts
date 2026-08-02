@@ -17,6 +17,8 @@ import {
 } from '@nestjs/swagger';
 import { ToeicService } from './toeic.service';
 import { JwtAuthGuard, AdminGuard, OptionalJwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { VipAccessGuard } from '@/common/guards/vip-access.guard';
+import { RequireVipAccess } from '@/common/decorators/require-vip-access.decorator';
 
 import { SubmitToeicDto } from './dto/submit-toeic.dto';
 import { CreateToeicSetDto } from './dto/create-toeic-set.dto';
@@ -30,7 +32,7 @@ export class ToeicController {
   // ─── Public / User Routes ───────────────────────────────────────────────────
 
   @Get('sets')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all test sets' })
   findAll(@Request() req: any, @Query('status') status?: string, @Query('type') type?: string) {
@@ -38,15 +40,18 @@ export class ToeicController {
   }
 
   @Get('sets/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'TOEIC', modelName: 'ToeicSet' })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get test set metadata by ID' })
-  findOne(@Request() req: any, @Param('id') id: string) {
-    return this.ToeicService.findOne(id, req.user);
+  async findOne(@Request() req: any, @Param('id') id: string) {
+    const totalQuestions = await this.ToeicService.countQuestions(id);
+    return { ...req.testSet.toObject(), totalQuestions };
   }
 
   @Get('sets/:id/questions')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'TOEIC', modelName: 'ToeicSet' })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get questions belonging to a test set' })
   findQuestions(
@@ -57,7 +62,7 @@ export class ToeicController {
   ) {
     const skipNum = skip ? parseInt(skip, 10) : 0;
     const limitNum = limit ? parseInt(limit, 10) : 0;
-    return this.ToeicService.getQuestions(id, req.user, skipNum, limitNum);
+    return this.ToeicService.getQuestions(id, skipNum, limitNum);
   }
 
   @Get('results/:resultId')
@@ -69,7 +74,8 @@ export class ToeicController {
   }
 
   @Post('sets/:id/submit')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, VipAccessGuard)
+  @RequireVipAccess({ category: 'TOEIC', modelName: 'ToeicSet' })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Submit answers for a test set' })
   submitExam(@Request() req: any, @Param('id') id: string, @Body() dto: SubmitToeicDto) {

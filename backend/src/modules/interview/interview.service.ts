@@ -1,17 +1,19 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { InterviewTopic, InterviewTopicDocument } from './schemas/interview-topic.schema';
+import { InterviewSet, InterviewSetDocument } from './schemas/interview-set.schema';
 import { TestResult, TestResultDocument } from '../dashboard/schemas/test-result.schema';
 import { InterviewQuestion, InterviewQuestionDocument } from './schemas/interview-question.schema';
 import { CreateInterviewQuestionDto } from './dto/interview-question.dto';
+import { CreateInterviewSetDto } from './dto/create-interview-set.dto';
+import { UpdateInterviewSetDto } from './dto/update-interview-set.dto';
 
 import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class InterviewService {
   constructor(
-    @InjectModel(InterviewTopic.name) private interviewTopicModel: Model<InterviewTopicDocument>,
+    @InjectModel(InterviewSet.name) private interviewSetModel: Model<InterviewSetDocument>,
     @InjectModel(TestResult.name) private TestResultModel: Model<TestResultDocument>,
     @InjectModel(InterviewQuestion.name) private questionModel: Model<InterviewQuestionDocument>,
     private readonly notificationsService: NotificationsService,
@@ -73,7 +75,7 @@ export class InterviewService {
     if (status) query.status = status;
     const matchStage = { $match: query };
 
-    return this.interviewTopicModel.aggregate([
+    return this.interviewSetModel.aggregate([
       matchStage,
       {
         $lookup: {
@@ -98,33 +100,28 @@ export class InterviewService {
   }
 
   async findOne(id: string) {
-    const interviewTopic = await this.interviewTopicModel.findById(id).exec();
-    if (!interviewTopic) {
-      throw new NotFoundException('Interview topic not found');
+    const interviewSet = await this.interviewSetModel.findById(id).exec();
+    if (!interviewSet) {
+      throw new NotFoundException('Interview set not found');
     }
-    return interviewTopic;
+    return interviewSet;
   }
 
-  async create(dto: {
-    name: string;
-    description?: string;
-    status?: string;
-    topics?: string[];
-    notifyUsers?: boolean;
-  }) {
-    const existingTest = await this.interviewTopicModel.findOne({ name: dto.name }).exec();
+  async create(dto: CreateInterviewSetDto) {
+    const existingTest = await this.interviewSetModel.findOne({ name: dto.name }).exec();
     if (existingTest) {
       throw new BadRequestException('Tên chủ đề đã tồn tại. Vui lòng chọn tên khác.');
     }
 
-    const newInterviewTopic = new this.interviewTopicModel({
+    const newInterviewSet = new this.interviewSetModel({
       name: dto.name,
       description: dto.description,
       status: dto.status || 'draft',
       topics: dto.topics || [],
+      accessLevel: dto.accessLevel || 'external',
     });
     
-    const savedTest = await newInterviewTopic.save();
+    const savedTest = await newInterviewSet.save();
 
     if (dto.notifyUsers && savedTest.status === 'public') {
       await this.handleTestNotification(savedTest as any);
@@ -160,15 +157,15 @@ export class InterviewService {
     answers: { [questionId: string]: string },
     durationMinutes?: number,
   ) {
-    const interviewTopic = await this.interviewTopicModel.findById(testSetId).exec();
-    if (!interviewTopic) {
-      throw new NotFoundException('Interview topic not found');
+    const interviewSet = await this.interviewSetModel.findById(testSetId).exec();
+    if (!interviewSet) {
+      throw new NotFoundException('Interview set not found');
     }
 
     // Save test result without score/streak for interview
     const result = new this.TestResultModel({
       userId: new Types.ObjectId(userId),
-      testType: 'InterviewTopic',
+      testType: 'InterviewSet',
       testSetId: new Types.ObjectId(testSetId),
       score: 0,
       listeningScore: 0,
@@ -185,27 +182,18 @@ export class InterviewService {
     };
   }
 
-  async update(
-    id: string,
-    dto: {
-      name?: string;
-      description?: string;
-      correctAnswer?: string;
-      status?: string;
-      topics?: string[];
-      notifyUsers?: boolean;
-    },
-  ) {
-    const interviewTopic = await this.findOne(id);
-    const wasDraft = interviewTopic.status !== 'public';
+  async update(id: string, dto: UpdateInterviewSetDto) {
+    const interviewSet = await this.findOne(id);
+    const wasDraft = interviewSet.status !== 'public';
     
-    if (dto.name !== undefined) interviewTopic.name = dto.name;
-    if (dto.description !== undefined) interviewTopic.description = dto.description;
-    if (dto.correctAnswer !== undefined) interviewTopic.correctAnswer = dto.correctAnswer;
-    if (dto.status !== undefined) interviewTopic.status = dto.status;
-    if (dto.topics !== undefined) interviewTopic.topics = dto.topics;
-    
-    const savedTest = await interviewTopic.save();
+    if (dto.name !== undefined) interviewSet.name = dto.name;
+    if (dto.description !== undefined) interviewSet.description = dto.description;
+    if (dto.correctAnswer !== undefined) interviewSet.correctAnswer = dto.correctAnswer;
+    if (dto.status !== undefined) interviewSet.status = dto.status;
+    if (dto.topics !== undefined) interviewSet.topics = dto.topics;
+    if (dto.accessLevel !== undefined) interviewSet.accessLevel = dto.accessLevel;
+
+    const savedTest = await interviewSet.save();
 
     if (dto.notifyUsers && wasDraft && savedTest.status === 'public') {
       await this.handleTestNotification(savedTest as any);
@@ -215,9 +203,9 @@ export class InterviewService {
   }
 
   async delete(id: string) {
-    const interviewTopic = await this.interviewTopicModel.findById(id).exec();
-    if (!interviewTopic) {
-      throw new NotFoundException('Interview topic not found');
+    const interviewSet = await this.interviewSetModel.findById(id).exec();
+    if (!interviewSet) {
+      throw new NotFoundException('Interview set not found');
     }
 
     // Cascading delete questions belonging to this test set
@@ -227,9 +215,9 @@ export class InterviewService {
     await this.TestResultModel.deleteMany({ testSetId: new Types.ObjectId(id) }).exec();
 
     // Delete the test set itself
-    await this.interviewTopicModel.findByIdAndDelete(id).exec();
+    await this.interviewSetModel.findByIdAndDelete(id).exec();
 
-    return { message: 'Interview topic and all associated questions/results deleted successfully' };
+    return { message: 'Interview set and all associated questions/results deleted successfully' };
   }
 
   private async handleTestNotification(savedTest: any) {

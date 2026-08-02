@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { VocabularySet, VocabularySetDocument } from './schemas/vocabulary-set.schema';
@@ -10,6 +10,8 @@ import { UserStreak, UserStreakDocument } from '../dashboard/schemas/user-streak
 import { NotificationsService } from '../notifications/notifications.service';
 import { UsersService } from '../users/users.service';
 import { AccessControlService } from '../../common/services/access-control.service';
+import { UpdateVocabularySetDto } from '@/modules/vocabulary/dto/update-vocabulary-set.dto';
+import { CreateVocabularySetDto } from '@/modules/vocabulary/dto/create-vocabulary-set.dto';
 
 @Injectable()
 export class VocabularyService {
@@ -112,14 +114,7 @@ export class VocabularyService {
     return this.questionModel.countDocuments({ testSetId: new Types.ObjectId(testSetId) });
   }
 
-  async create(dto: {
-    name: string;
-    description?: string;
-    status?: string;
-    category?: string;
-    topics?: string[];
-    notifyUsers?: boolean;
-  }) {
+  async create(dto: CreateVocabularySetDto) {
     const existingTest = await this.vocabularySetModel.findOne({ name: dto.name }).exec();
     if (existingTest) {
       throw new BadRequestException('Tên bộ từ vựng đã tồn tại. Vui lòng chọn tên khác.');
@@ -164,6 +159,51 @@ export class VocabularyService {
       throw new NotFoundException('Test result not found');
     }
     return result;
+  }
+
+  async update(
+    id: string,
+    dto: UpdateVocabularySetDto,
+  ) {
+    const vocabularySet = await this.vocabularySetModel.findById(id).exec();
+    if (!vocabularySet) {
+      throw new NotFoundException('Vocabulary set not found');
+    }
+    const wasDraft = vocabularySet.status !== 'public';
+    
+    if (dto.name !== undefined) vocabularySet.name = dto.name;
+    if (dto.description !== undefined) vocabularySet.description = dto.description;
+    if (dto.status !== undefined) vocabularySet.status = dto.status;
+    if ((dto as any).accessLevel !== undefined) vocabularySet.accessLevel = (dto as any).accessLevel;
+    if (dto.category !== undefined) vocabularySet.category = dto.category;
+    if (dto.topics !== undefined) vocabularySet.topics = dto.topics;
+    if (dto.accessLevel !== undefined) vocabularySet.accessLevel = dto.accessLevel;
+    
+    const savedTest = await vocabularySet.save();
+
+    if (dto.notifyUsers && wasDraft && savedTest.status === 'public') {
+      await this.handleTestNotification(savedTest as any);
+    }
+
+    return savedTest;
+  }
+
+  async delete(id: string) {
+    const vocabularySet = await this.vocabularySetModel.findById(id).exec();
+    if (!vocabularySet) {
+      throw new NotFoundException('Vocabulary set not found');
+    }
+
+    // Cascading delete questions belonging to this test set
+    await this.questionModel.deleteMany({ testSetId: new Types.ObjectId(id) }).exec();
+
+    // Cascading delete test results belonging to this test set
+    await this.TestResultModel.deleteMany({ testSetId: new Types.ObjectId(id) }).exec();
+
+    // Delete the test set itself
+    await this.vocabularySetModel.findByIdAndDelete(id).exec();
+
+    return { message: 'Vocabulary set and all associated questions/results deleted successfully' };
   }
 
   async submitExam(
@@ -293,57 +333,6 @@ export class VocabularyService {
       },
       currentStreak,
     };
-  }
-
-  async update(
-    id: string,
-    dto: {
-      name?: string;
-      description?: string;
-      status?: string;
-      category?: string;
-      topics?: string[];
-      notifyUsers?: boolean;
-    },
-  ) {
-    const vocabularySet = await this.vocabularySetModel.findById(id).exec();
-    if (!vocabularySet) {
-      throw new NotFoundException('Vocabulary set not found');
-    }
-    const wasDraft = vocabularySet.status !== 'public';
-    
-    if (dto.name !== undefined) vocabularySet.name = dto.name;
-    if (dto.description !== undefined) vocabularySet.description = dto.description;
-    if (dto.status !== undefined) vocabularySet.status = dto.status;
-    if ((dto as any).accessLevel !== undefined) vocabularySet.accessLevel = (dto as any).accessLevel;
-    if (dto.category !== undefined) vocabularySet.category = dto.category;
-    if (dto.topics !== undefined) vocabularySet.topics = dto.topics;
-    
-    const savedTest = await vocabularySet.save();
-
-    if (dto.notifyUsers && wasDraft && savedTest.status === 'public') {
-      await this.handleTestNotification(savedTest as any);
-    }
-
-    return savedTest;
-  }
-
-  async delete(id: string) {
-    const vocabularySet = await this.vocabularySetModel.findById(id).exec();
-    if (!vocabularySet) {
-      throw new NotFoundException('Vocabulary set not found');
-    }
-
-    // Cascading delete questions belonging to this test set
-    await this.questionModel.deleteMany({ testSetId: new Types.ObjectId(id) }).exec();
-
-    // Cascading delete test results belonging to this test set
-    await this.TestResultModel.deleteMany({ testSetId: new Types.ObjectId(id) }).exec();
-
-    // Delete the test set itself
-    await this.vocabularySetModel.findByIdAndDelete(id).exec();
-
-    return { message: 'Vocabulary set and all associated questions/results deleted successfully' };
   }
 
   private async handleTestNotification(savedTest: any) {

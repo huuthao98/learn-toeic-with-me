@@ -1,34 +1,47 @@
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+
 import { ToeicSet, ToeicSetDocument } from './schemas/toeic-set.schema';
 import { TestResult, TestResultDocument } from '../dashboard/schemas/test-result.schema';
 import { ToeicQuestion, ToeicQuestionDocument } from './schemas/toeic-question.schema';
-import { CreateToeicQuestionDto } from './dto/toeic-question.dto';
 import { UserStreak, UserStreakDocument } from '../dashboard/schemas/user-streak.schema';
-import { NotificationsService } from '../notifications/notifications.service';
+
+import { CreateToeicQuestionDto } from './dto/toeic-question.dto';
 import { UsersService } from '../users/users.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { AccessControlService } from '../../common/services/access-control.service';
+import { CreateToeicSetDto } from '@/modules/toeic/dto/create-toeic-set.dto';
+import { UpdateToeicSetDto } from '@/modules/toeic/dto/update-toeic-set.dto';
+
 
 @Injectable()
 export class ToeicService {
   constructor(
-    @InjectModel(ToeicSet.name) private ToeicSetModel: Model<ToeicSetDocument>,
-    @InjectModel(TestResult.name) private TestResultModel: Model<TestResultDocument>,
+    @InjectModel(ToeicSet.name) private toeicSetModel: Model<ToeicSetDocument>,
+    @InjectModel(TestResult.name) private testResultModel: Model<TestResultDocument>,
     @InjectModel(ToeicQuestion.name) private questionModel: Model<ToeicQuestionDocument>,
     @InjectModel(UserStreak.name) private userStreakModel: Model<UserStreakDocument>,
     private readonly usersService: UsersService,
     private readonly notificationsService: NotificationsService,
+    private readonly accessControlService: AccessControlService,
   ) {}
 
-  async getQuestions(testSetId: string, user?: any, skip = 0, limit = 0) {
-    await this.checkAccess(testSetId, user);
-    let query = this.questionModel.find({ testSetId: new Types.ObjectId(testSetId) }).sort({ questionNumber: 1 });
+  // ─── Question CRUD ───────────────────────────────────────────────────────────
+
+  async getQuestions(testSetId: string, skip = 0, limit = 0) {
+    let query = this.questionModel
+      .find({ testSetId: new Types.ObjectId(testSetId) })
+      .sort({ questionNumber: 1 });
     if (skip > 0) query = query.skip(skip);
     if (limit > 0) query = query.limit(limit);
     return query.exec();
   }
 
-  async upsertBulkQuestions(testSetId: string, questions: Partial<CreateToeicQuestionDto & { questionNumber: number }>[]) {
+  async upsertBulkQuestions(
+    testSetId: string,
+    questions: Partial<CreateToeicQuestionDto & { questionNumber: number }>[],
+  ) {
     const bulkOps = questions.map((q) => {
       const updateData: any = {};
       if (q.questionNumber !== undefined) updateData.questionNumber = q.questionNumber;
@@ -38,8 +51,8 @@ export class ToeicService {
       if (q.options !== undefined) updateData.options = q.options;
       if (q.part !== undefined) updateData.part = q.part;
       if (q.isActive !== undefined) updateData.status = q.isActive ? 'active' : 'draft';
-      
-      // New fields for reading
+
+      // Fields for reading comprehension questions
       if ((q as any).passageContext !== undefined) updateData.passageContext = (q as any).passageContext;
       if ((q as any).passageType !== undefined) updateData.passageType = (q as any).passageType;
       if ((q as any).setId !== undefined) updateData.setId = (q as any).setId;
@@ -67,9 +80,7 @@ export class ToeicService {
 
   async updateQuestion(questionId: string, dto: any) {
     const question = await this.questionModel.findById(questionId).exec();
-    if (!question) {
-      throw new NotFoundException('Question not found');
-    }
+    if (!question) throw new NotFoundException('Question not found');
 
     if (dto.questionNumber !== undefined) question.questionNumber = dto.questionNumber;
     if (dto.questionText !== undefined) question.questionText = dto.questionText;
@@ -90,102 +101,28 @@ export class ToeicService {
 
   async deleteQuestion(questionId: string) {
     const result = await this.questionModel.findByIdAndDelete(questionId).exec();
-    if (!result) {
-      throw new NotFoundException('Question not found');
-    }
+    if (!result) throw new NotFoundException('Question not found');
     return { message: 'Question deleted successfully' };
   }
 
-
-  async checkAccess(testSetId: string, user?: any) {
-    const testSet = await this.ToeicSetModel.findById(testSetId).exec();
-    if (!testSet) throw new NotFoundException('Toeic set not found');
-
-    const requiredAccess = testSet.accessLevel || 'external';
-
-    // If it's public external, everyone has access
-    if (requiredAccess === 'external') {
-      return testSet;
-    }
-
-    // For any VIP level (vip0, vip1, vip2, vip3), the user must be authenticated
-    if (!user) {
-      throw new ForbiddenException('Vui lòng đăng nhập để truy cập nội dung này');
-    }
-
-    // Admin has access to all levels
-    if (user.role === 'admin') {
-      return testSet;
-    }
-
-    // vip0 means any authenticated user can access
-    if (requiredAccess === 'vip0') {
-      return testSet;
-    }
-
-    // Otherwise, check specific TOEIC VIP level
-    const dbUser = await this.usersService.findOne(user.sub);
-    const toeicPkg = dbUser.vipPackages?.find((pkg: any) => pkg.category === 'TOEIC');
-    const userVipLevel = toeicPkg?.vipLevel || 'vip0';
-
-    const VIP_MAP: Record<string, number> = {
-      vip0: 0,
-      vip1: 1,
-      vip2: 2,
-      vip3: 3,
-    };
-
-    const userScore = VIP_MAP[userVipLevel] ?? 0;
-    const requiredScore = VIP_MAP[requiredAccess] ?? 0;
-
-    if (userScore < requiredScore) {
-      throw new ForbiddenException(`Yêu cầu tài khoản đạt cấp độ ${requiredAccess.toUpperCase()} phân hệ TOEIC để truy cập đề thi này`);
-    }
-
-    return testSet;
-  }
+  // ─── Test Set CRUD ───────────────────────────────────────────────────────────
 
   async findAll(status?: string, type?: string, user?: any) {
-    const query: any = {};
-    if (status) query.status = status;
-    if (type) query.type = type;
+    const baseQuery: any = {};
+    if (status) baseQuery.status = status;
+    if (type) baseQuery.type = type;
 
-    let userVipLevel = 'vip0';
-    let isAdmin = false;
+    // Lấy access filter từ AccessControlService (single source of truth)
+    const accessFilter = await this.accessControlService.getAccessFilterQuery(user, 'TOEIC');
 
-    if (user) {
-      if (user.role === 'admin') {
-        isAdmin = true;
-      } else {
-        try {
-          const dbUser = await this.usersService.findOne(user.sub);
-          const toeicPkg = dbUser.vipPackages?.find((pkg: any) => pkg.category === 'TOEIC');
-          userVipLevel = toeicPkg?.vipLevel || 'vip0';
-        } catch (e) {
-          // Ignore and default to vip0
-        }
-      }
-    }
+    // Kết hợp base query với access filter
+    const matchQuery =
+      Object.keys(accessFilter).length > 0
+        ? { ...baseQuery, ...accessFilter }
+        : baseQuery;
 
-    if (!isAdmin) {
-      const allowedLevels = ['external'];
-      if (user) {
-        allowedLevels.push('vip0');
-        if (userVipLevel === 'vip1') {
-          allowedLevels.push('vip1');
-        } else if (userVipLevel === 'vip2') {
-          allowedLevels.push('vip1', 'vip2');
-        } else if (userVipLevel === 'vip3') {
-          allowedLevels.push('vip1', 'vip2', 'vip3');
-        }
-      }
-      query.accessLevel = { $in: allowedLevels };
-    }
-
-    const matchStage = { $match: query };
-
-    return this.ToeicSetModel.aggregate([
-      matchStage,
+    return this.toeicSetModel.aggregate([
+      { $match: matchQuery },
       {
         $lookup: {
           from: 'toeicquestions',
@@ -208,27 +145,26 @@ export class ToeicService {
     ]);
   }
 
-  async findOne(id: string, user?: any) {
-    return this.checkAccess(id, user);
+  async countQuestions(testSetId: string | Types.ObjectId) {
+    return this.questionModel.countDocuments({ testSetId: new Types.ObjectId(testSetId) });
   }
 
-  async create(dto: {
-    name: string;
-    description?: string;
-    audioUrl?: string;
-    status?: string;
-    readingPdfUrl?: string;
-    listeningPdfUrl?:string;
-    topics?: string[];
-    notifyUsers?: boolean;
-    type?: string;
-  }) {
-    const existingTest = await this.ToeicSetModel.findOne({ name: dto.name }).exec();
+  async findResult(resultId: string) {
+    const result = await this.testResultModel
+      .findById(resultId)
+      .populate({ path: 'testSetId', model: 'ToeicSet', select: 'name totalQuestions partsCount' })
+      .exec();
+    if (!result) throw new NotFoundException('Test result not found');
+    return result;
+  }
+
+  async create(dto: CreateToeicSetDto) {
+    const existingTest = await this.toeicSetModel.findOne({ name: dto.name }).exec();
     if (existingTest) {
       throw new BadRequestException('Tên đề thi đã tồn tại. Vui lòng chọn tên khác.');
     }
 
-    const newToeicSet = new this.ToeicSetModel({
+    const newToeicSet = new this.toeicSetModel({
       name: dto.name,
       description: dto.description,
       audioUrl: dto.audioUrl,
@@ -237,8 +173,9 @@ export class ToeicService {
       listeningPdfUrl: dto.listeningPdfUrl,
       topics: dto.topics || [],
       type: dto.type,
+      accessLevel: dto.accessLevel || 'external',
     });
-    
+
     const savedTest = await newToeicSet.save();
 
     if (dto.notifyUsers && savedTest.status === 'public') {
@@ -248,24 +185,48 @@ export class ToeicService {
     return savedTest;
   }
 
-  async findQuestions(testSetId: string, user?: any) { // Keeping parameter name simple
-    await this.checkAccess(testSetId, user);
-    return this.questionModel
-      .find({ testSetId: new Types.ObjectId(testSetId) })
-      .sort({ part: 1, createdAt: 1 })
-      .exec();
+  async update(
+    id: string,
+    dto: UpdateToeicSetDto
+  ) {
+    // Fetch entity trực tiếp — không cần kiểm tra quyền vì đây là Admin-only route
+    const toeicSet = await this.toeicSetModel.findById(id).exec();
+    if (!toeicSet) throw new NotFoundException('Toeic set not found');
+
+    const wasDraft = toeicSet.status !== 'public';
+
+    if (dto.name !== undefined) toeicSet.name = dto.name;
+    if (dto.description !== undefined) toeicSet.description = dto.description;
+    if (dto.audioUrl !== undefined) toeicSet.audioUrl = dto.audioUrl;
+    if (dto.status !== undefined) toeicSet.status = dto.status;
+    if (dto.readingPdfUrl !== undefined) toeicSet.readingPdfUrl = dto.readingPdfUrl;
+    if (dto.listeningPdfUrl !== undefined) toeicSet.listeningPdfUrl = dto.listeningPdfUrl;
+    if (dto.topics !== undefined) toeicSet.topics = dto.topics;
+    if (dto.type !== undefined) (toeicSet as any).type = dto.type;
+    if (dto.accessLevel !== undefined) toeicSet.accessLevel = dto.accessLevel;
+
+    const savedTest = await toeicSet.save();
+
+    if (dto.notifyUsers && wasDraft && savedTest.status === 'public') {
+      await this.handleTestNotification(savedTest as any);
+    }
+
+    return savedTest;
   }
 
-  async findResult(resultId: string) {
-    const result = await this.TestResultModel
-      .findById(resultId)
-      .populate({ path: 'testSetId', model: 'ToeicSet', select: 'name total_questions parts_count' })
-      .exec();
-    if (!result) {
-      throw new NotFoundException('Test result not found');
-    }
-    return result;
+  async delete(id: string) {
+    const toeicSet = await this.toeicSetModel.findById(id).exec();
+    if (!toeicSet) throw new NotFoundException('Toeic set not found');
+
+    // Cascading delete: questions → results → test set
+    await this.questionModel.deleteMany({ testSetId: new Types.ObjectId(id) }).exec();
+    await this.testResultModel.deleteMany({ testSetId: new Types.ObjectId(id) }).exec();
+    await this.toeicSetModel.findByIdAndDelete(id).exec();
+
+    return { message: 'Toeic set and all associated questions/results deleted successfully' };
   }
+
+  // ─── Submit & Scoring ────────────────────────────────────────────────────────
 
   async submitExam(
     user: any,
@@ -273,11 +234,9 @@ export class ToeicService {
     answers: { [questionId: string]: string },
     durationMinutes?: number,
     timePerQuestion?: number[],
-    isTest: boolean = false
+    isTest: boolean = false,
   ) {
-    await this.checkAccess(testSetId, user);
 
-    // Fetch all questions for this test set
     const questions = await this.questionModel
       .find({ testSetId: new Types.ObjectId(testSetId) })
       .exec();
@@ -295,8 +254,9 @@ export class ToeicService {
 
     questions.forEach((q, index) => {
       const userAnswer = answers[q._id.toString()];
-      const isCorrect = userAnswer && userAnswer.trim().toUpperCase() === q.correctAnswer.trim().toUpperCase();
-      
+      const isCorrect =
+        userAnswer && userAnswer.trim().toUpperCase() === q.correctAnswer.trim().toUpperCase();
+
       if (isCorrect) correctCount++;
 
       const part = q.part || '';
@@ -310,8 +270,9 @@ export class ToeicService {
         readingTotal++;
         if (isCorrect) readingCorrect++;
       }
-      
-      const timeSpent = timePerQuestion && timePerQuestion.length > index ? timePerQuestion[index] : 10000;
+
+      const timeSpent =
+        timePerQuestion && timePerQuestion.length > index ? timePerQuestion[index] : 10000;
       if (isCorrect && timeSpent <= 5000) {
         currentSpeedStreak++;
         if (currentSpeedStreak > maxConsecutiveSpeed) {
@@ -322,37 +283,23 @@ export class ToeicService {
       }
     });
 
-    let score = 0;
-    let listeningScore = 0;
-    let readingScore = 0;
+    // TOEIC Score (ratio-based approximation)
+    let listeningScore = listeningTotal > 0 ? Math.round((listeningCorrect / listeningTotal) * 495) : 0;
+    let readingScore = readingTotal > 0 ? Math.round((readingCorrect / readingTotal) * 495) : 0;
+    let score = Math.min(listeningScore + readingScore, 990);
 
-    // Simplified TOEIC Score Calculation (Approximate based on correct answers percentage)
-    // Actually standard is mapping, but using ratio * 495 is okay for gamification
-    listeningScore = listeningTotal > 0 ? Math.round((listeningCorrect / listeningTotal) * 495) : 0;
-    readingScore = readingTotal > 0 ? Math.round((readingCorrect / readingTotal) * 495) : 0;
-    score = listeningScore + readingScore;
-    if (score > 990) score = 990;
-    
-    // Gamification Points Calculation
-    let pointsCorrect = correctCount * 2;
-    let pointsCompletion = isTest ? 150 : 15;
-    let pointsPerfect = 0;
-    let pointsSpeed = 0;
+    // Gamification Points
+    const pointsCorrect = correctCount * 2;
+    const pointsCompletion = isTest ? 150 : 15;
+    const pointsPerfect = correctCount === questions.length && questions.length > 0 ? 20 : 0;
+    const pointsSpeed = maxConsecutiveSpeed >= 5 ? 10 : 0;
     let pointsStreak = 0;
-    
-    if (correctCount === questions.length && questions.length > 0) {
-      pointsPerfect = 20;
-    }
-    
-    if (maxConsecutiveSpeed >= 5) {
-      pointsSpeed = 10;
-    }
 
+    // Anonymous user — trả kết quả không lưu DB
     if (!user) {
-      const totalEarned = pointsCorrect + pointsCompletion + pointsPerfect + pointsSpeed;
       return {
         resultId: null,
-        totalEarned,
+        totalEarned: pointsCorrect + pointsCompletion + pointsPerfect + pointsSpeed,
         breakdown: {
           correctAnswers: pointsCorrect,
           lessonCompletion: pointsCompletion,
@@ -370,8 +317,8 @@ export class ToeicService {
       };
     }
 
-    // Save test result
-    const result = new this.TestResultModel({
+    // Lưu kết quả thi
+    const result = new this.testResultModel({
       userId: new Types.ObjectId(user.sub),
       testType: 'ToeicSet',
       testSetId: new Types.ObjectId(testSetId),
@@ -382,15 +329,12 @@ export class ToeicService {
       status: 'completed',
       answers,
     });
-
     await result.save();
 
     const currentStreak = await this.updateUserStreak(user.sub);
     pointsStreak = currentStreak > 0 ? Math.min(currentStreak, 10) * 2 : 0;
 
     const totalEarned = pointsCorrect + pointsCompletion + pointsPerfect + pointsSpeed + pointsStreak;
-
-    // Give XP
     await this.usersService.addPoints(user.sub, 'TOEIC', totalEarned);
 
     return {
@@ -409,77 +353,30 @@ export class ToeicService {
         streakBonus: pointsStreak,
         speedDemon: pointsSpeed,
         testOut: 0,
-      }
+      },
     };
   }
 
-  async update(
-    id: string,
-    dto: {
-      name?: string;
-      description?: string;
-      audioUrl?: string;
-      status?: string;
-      readingPdfUrl?: string;
-      listeningPdfUrl?: string;
-      topics?: string[];
-      notifyUsers?: boolean;
-      type?: string;
-    },
-  ) {
-    const ToeicSet = await this.findOne(id);
-    const wasDraft = ToeicSet.status !== 'public';
-    
-    if (dto.name !== undefined) ToeicSet.name = dto.name;
-    if (dto.description !== undefined) ToeicSet.description = dto.description;
-    if (dto.audioUrl !== undefined) ToeicSet.audioUrl = dto.audioUrl;
-    if (dto.status !== undefined) ToeicSet.status = dto.status;
-    if (dto.readingPdfUrl !== undefined) ToeicSet.readingPdfUrl = dto.readingPdfUrl;
-    if (dto.listeningPdfUrl !== undefined) ToeicSet.listeningPdfUrl = dto.listeningPdfUrl;
-    if (dto.topics !== undefined) ToeicSet.topics = dto.topics;
-    if (dto.type !== undefined) (ToeicSet as any).type = dto.type;
-    
-    const savedTest = await ToeicSet.save();
-
-    if (dto.notifyUsers && wasDraft && savedTest.status === 'public') {
-      await this.handleTestNotification(savedTest as any);
-    }
-
-    return savedTest;
-  }
-
-  async delete(id: string) {
-    const ToeicSet = await this.ToeicSetModel.findById(id).exec();
-    if (!ToeicSet) {
-      throw new NotFoundException('Toeic set not found');
-    }
-
-    // Cascading delete questions belonging to this test set
-    await this.questionModel.deleteMany({ testSetId: new Types.ObjectId(id) }).exec();
-
-    // Cascading delete test results belonging to this test set
-    await this.TestResultModel.deleteMany({ testSetId: new Types.ObjectId(id) }).exec();
-
-    // Delete the test set itself
-    await this.ToeicSetModel.findByIdAndDelete(id).exec();
-
-    return { message: 'Toeic set and all associated questions/results deleted successfully' };
-  }
+  // ─── Private Helpers ─────────────────────────────────────────────────────────
 
   private async handleTestNotification(savedTest: any) {
     if (savedTest.topics && savedTest.topics.length > 0) {
-      this.notificationsService.sendNotification({
-        title: 'Bài thi TOEIC mới!',
-        body: `Đề thi TOEIC "${savedTest.name}" thuộc chủ đề bạn quan tâm vừa được công khai.`,
-        topics: savedTest.topics,
-        data: { testId: savedTest._id.toString(), type: 'toeic' },
-      }).catch(err => console.error('Error triggering notification:', err));
+      this.notificationsService
+        .sendNotification({
+          title: 'Bài thi TOEIC mới!',
+          body: `Đề thi TOEIC "${savedTest.name}" thuộc chủ đề bạn quan tâm vừa được công khai.`,
+          topics: savedTest.topics,
+          data: { testId: savedTest._id.toString(), type: 'toeic' },
+        })
+        .catch((err) => console.error('Error triggering notification:', err));
     }
   }
 
   private async updateUserStreak(userId: string): Promise<number> {
     const todayStr = new Date().toISOString().split('T')[0];
-    let streak = await this.userStreakModel.findOne({ userId: new Types.ObjectId(userId) }).exec();
+    let streak = await this.userStreakModel
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .exec();
 
     if (!streak) {
       streak = new this.userStreakModel({
@@ -510,6 +407,7 @@ export class ToeicService {
         streak.lastStudyDate = new Date(todayStr);
       }
     }
+
     await streak.save();
     return streak.currentStreak;
   }

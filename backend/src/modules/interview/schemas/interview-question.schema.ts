@@ -5,7 +5,7 @@ export type InterviewQuestionDocument = InterviewQuestion & Document;
 
 @Schema({ timestamps: true })
 export class InterviewQuestion {
-  @Prop({ type: Types.ObjectId, ref: 'InterviewTopic', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'InterviewSet', required: true })
   testSetId: Types.ObjectId; // Keep testSetId for frontend compatibility
 
   @Prop()

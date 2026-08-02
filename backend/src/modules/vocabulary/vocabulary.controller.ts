@@ -56,7 +56,7 @@ export class VocabularyController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get questions belonging to a vocabulary set' })
   findQuestions(
-    @Request() req: any,
+    // @Request() req: any,
     @Param('id') id: string,
     @Query('skip') skip?: string,
     @Query('limit') limit?: string,
