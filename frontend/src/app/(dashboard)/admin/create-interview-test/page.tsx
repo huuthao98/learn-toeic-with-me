@@ -51,12 +51,11 @@ import { Button } from '@/components/ui/button';
 import { AddInterviewQuestionDialog } from '@/components/admin/AddInterviewQuestionDialog';
 import { ROUTES } from '@/constants/routes';
 
-// Schema cho InterviewTopic
 const testSetSchema = z.object({
   name: z.string().trim().min(1, 'Tên đề thi không được để trống'),
   description: z.string(),
   status: z.enum(['draft', 'public', 'private']),
-
+  accessLevel: z.enum(['external', 'vip0', 'vip1', 'vip2', 'vip3']),
   notifyUsers: z.string().optional(),
   topicsString: z.string().optional(),
 });
@@ -129,7 +128,7 @@ function CreateInterviewTestContent() {
       name: '',
       description: '',
       status: 'draft',
-
+      accessLevel: 'external',
       notifyUsers: 'false',
       topicsString: '',
     } as InterviewTopicFormValues,
@@ -139,6 +138,41 @@ function CreateInterviewTestContent() {
     const file = e.target.files?.[0];
     if (!file) {
       setParsedQuestions([]);
+      return;
+    }
+
+    if (file.name.toLowerCase().endsWith('.json')) {
+      const reader = new FileReader();
+      reader.onload = evt => {
+        try {
+          const jsonStr = evt.target?.result as string;
+          const data = JSON.parse(jsonStr);
+          const questionsArray = Array.isArray(data) ? data : (data.questions || []);
+          if (questionsArray && Array.isArray(questionsArray)) {
+            const questionsToUpsert = questionsArray
+              .map((q: any) => ({
+                questionNumber: parseInt(q.questionNumber || q.qNum || q.id || q.Số_thứ_tự_câu || q['số thứ tự'] || 0, 10),
+                questionText: q.questionText || q.question || q.Câu_hỏi || q['câu hỏi'] || '',
+                correctAnswer: q.correctAnswer || q.answer || q.Câu_trả_lời_mẫu || q['câu trả lời'] || '',
+                explanation: q.explanation || q.Giải_thích || q['giải thích'] || '',
+                isActive: true,
+              }))
+              .filter((q) => !isNaN(q.questionNumber) && q.questionNumber > 0 && q.questionText !== '');
+
+            if (questionsToUpsert.length > 0) {
+              setParsedQuestions(questionsToUpsert);
+              toast.success(`Đã tải file JSON thành công (${questionsToUpsert.length} câu).`);
+            } else {
+              toast.error('File JSON không chứa câu hỏi hợp lệ.');
+            }
+          } else {
+            toast.error('File JSON không hợp lệ (cần là mảng câu hỏi).');
+          }
+        } catch (err) {
+          toast.error('Lỗi khi đọc file JSON. Vui lòng kiểm tra lại định dạng.');
+        }
+      };
+      reader.readAsText(file);
       return;
     }
 
@@ -211,7 +245,7 @@ function CreateInterviewTestContent() {
         name: values.name,
         description: values.description,
         status: values.status,
-
+        accessLevel: values.accessLevel,
         notifyUsers: values.notifyUsers === 'true',
         topics: values.topicsString
           ? values.topicsString
@@ -326,7 +360,7 @@ function CreateInterviewTestContent() {
                         control={testSetForm.control}
                         name="status"
                         render={({ field }) => (
-                          <FormItem className="w-[35%]">
+                          <FormItem className="flex-1">
                             <FormLabel>Trạng thái hiển thị</FormLabel>
                             <Select
                               onValueChange={field.onChange}
@@ -369,6 +403,30 @@ function CreateInterviewTestContent() {
                                 </SelectItem>
                               </SelectContent>
                             </Select>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={testSetForm.control}
+                        name="accessLevel"
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormLabel>Phạm vi truy cập</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Chọn phạm vi" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="external">External (Công khai)</SelectItem>
+                                <SelectItem value="vip0">Member (Đăng nhập)</SelectItem>
+                                <SelectItem value="vip1">VIP 1 (Silver)</SelectItem>
+                                <SelectItem value="vip2">VIP 2 (Gold)</SelectItem>
+                                <SelectItem value="vip3">VIP 3 (Platinum)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
@@ -526,7 +584,7 @@ function CreateInterviewTestContent() {
                     <div className="space-y-2 md:col-span-2 pt-4 border-t">
                       <div className="flex items-center justify-between mb-2">
                         <FormLabel className="text-base font-semibold">
-                          File Excel Dữ Liệu Phỏng Vấn *
+                          File Excel / JSON Dữ Liệu Phỏng Vấn *
                         </FormLabel>
                         <Button
                           type="button"
@@ -541,7 +599,7 @@ function CreateInterviewTestContent() {
                       </div>
                       <Input
                         type="file"
-                        accept=".xlsx,.xls"
+                        accept=".xlsx,.xls,.json"
                         onChange={handleInterviewUpload}
                         disabled={isSubmitting}
                       />

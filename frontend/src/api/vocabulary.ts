@@ -93,7 +93,7 @@ export const vocabularyApi = {
     return response.data
   },
 
-  updateTestSet: async (id: string, data: { name?: string; description?: string; status?: string; category?: string; topics?: string[] }) => {
+  updateTestSet: async (id: string, data: { name?: string; description?: string; status?: string; category?: string; topics?: string[]; accessLevel?: string }) => {
     const response = await api.patch<VocabularySet>(`/vocabulary/sets/${id}`, data)
     return response.data
   },

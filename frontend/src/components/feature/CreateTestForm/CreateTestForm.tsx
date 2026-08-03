@@ -54,6 +54,7 @@ const VocabularySetSchema = z.object({
   name: z.string().trim().min(1, 'Tên bộ đề không được để trống'),
   description: z.string(),
   status: z.enum(['draft', 'public', 'private']),
+  accessLevel: z.enum(['external', 'vip0', 'vip1', 'vip2', 'vip3']),
   category: z.string().min(1, 'Vui lòng chọn ngôn ngữ'),
   notifyUsers: z.string().optional(),
   topicsString: z.string().optional(),
@@ -133,6 +134,7 @@ export const CreateTestForm = () => {
       name: '',
       description: '',
       status: 'draft',
+      accessLevel: 'external',
       category: 'english',
       notifyUsers: 'false',
       topicsString: '',
@@ -143,6 +145,53 @@ export const CreateTestForm = () => {
     const file = e.target.files?.[0];
     if (!file) {
       setParsedQuestions([]);
+      return;
+    }
+
+    if (file.name.toLowerCase().endsWith('.json')) {
+      const reader = new FileReader();
+      reader.onload = evt => {
+        try {
+          const jsonStr = evt.target?.result as string;
+          const data = JSON.parse(jsonStr);
+          const questionsArray = Array.isArray(data) ? data : (data.questions || []);
+          if (questionsArray && Array.isArray(questionsArray)) {
+            const questionsToUpsert = questionsArray
+              .map((q: any) => {
+                const options = q.options || [
+                  { label: 'A', text: q.optionA || q.choiceA || q['đáp án A'] || '' },
+                  { label: 'B', text: q.optionB || q.choiceB || q['đáp án B'] || '' },
+                  { label: 'C', text: q.optionC || q.choiceC || q['đáp án C'] || '' },
+                  { label: 'D', text: q.optionD || q.choiceD || q['đáp án D'] || '' },
+                ].filter((o: any) => o.text !== '');
+
+                return {
+                  questionNumber: parseInt(q.questionNumber || q.qNum || q.id || q.Số_thứ_tự_câu || 0, 10),
+                  questionType: 'multiple_choice',
+                  questionText: q.questionText || q.question || q.Câu_hỏi || q['câu hỏi'] || '',
+                  options: options,
+                  correctAnswer: String(q.correctAnswer || q.answer || q.Đáp_án_đúng || q['đáp án đúng'] || 'A').toUpperCase().trim(),
+                  explanation: q.explanation || q.Giải_thích || q['giải thích'] || '',
+                  isActive: true,
+                  pinyin: q.pinyin || '',
+                };
+              })
+              .filter((q) => !isNaN(q.questionNumber) && q.questionNumber > 0 && q.questionText !== '' && q.options.length > 0);
+
+            if (questionsToUpsert.length > 0) {
+              setParsedQuestions(questionsToUpsert);
+              toast.success(`Đã tải file JSON thành công (${questionsToUpsert.length} câu).`);
+            } else {
+              toast.error('File JSON không chứa câu hỏi hợp lệ.');
+            }
+          } else {
+            toast.error('File JSON không hợp lệ (cần là mảng câu hỏi).');
+          }
+        } catch (err) {
+          toast.error('Lỗi khi đọc file JSON. Vui lòng kiểm tra lại định dạng.');
+        }
+      };
+      reader.readAsText(file);
       return;
     }
 
@@ -232,7 +281,7 @@ export const CreateTestForm = () => {
         description: values.description,
         status: values.status,
         category: values.category,
-        accessLevel: 'external',
+        accessLevel: values.accessLevel,
         notifyUsers: values.notifyUsers === 'true',
         topics: values.topicsString
           ? values.topicsString
@@ -345,7 +394,7 @@ export const CreateTestForm = () => {
                       control={VocabularySetForm.control}
                       name="category"
                       render={({ field }) => (
-                        <FormItem className="w-[25%]">
+                        <FormItem className="w-[20%]">
                           <FormLabel>Ngôn ngữ</FormLabel>
                           <Select
                             onValueChange={field.onChange}
@@ -387,7 +436,7 @@ export const CreateTestForm = () => {
                       control={VocabularySetForm.control}
                       name="status"
                       render={({ field }) => (
-                        <FormItem className="w-[25%]">
+                        <FormItem className="w-[20%]">
                           <FormLabel>Trạng thái hiển thị</FormLabel>
                           <Select
                             onValueChange={field.onChange}
@@ -428,6 +477,29 @@ export const CreateTestForm = () => {
                               >
                                 Riêng Tư (Private)
                               </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={VocabularySetForm.control}
+                      name="accessLevel"
+                      render={({ field }) => (
+                        <FormItem className="w-[20%]">
+                          <FormLabel>Phạm vi truy cập</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Chọn phạm vi" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="external">External</SelectItem>
+                              <SelectItem value="vip0">Member</SelectItem>
+                              <SelectItem value="vip1">VIP 1</SelectItem>
+                              <SelectItem value="vip2">VIP 2</SelectItem>
+                              <SelectItem value="vip3">VIP 3</SelectItem>
                             </SelectContent>
                           </Select>
                         </FormItem>
@@ -574,7 +646,7 @@ export const CreateTestForm = () => {
                   <div className="space-y-2 md:col-span-2">
                     <div className="flex items-center justify-between mb-2">
                       <FormLabel className="text-base font-semibold">
-                        File Excel Câu Hỏi *
+                        File Excel / JSON Câu Hỏi *
                       </FormLabel>
                       <Button
                         type="button"
@@ -589,7 +661,7 @@ export const CreateTestForm = () => {
                     </div>
                     <Input
                       type="file"
-                      accept=".xlsx,.xls"
+                      accept=".xlsx,.xls,.json"
                       onChange={handleVocabularyUpload}
                       disabled={isSubmitting}
                     />

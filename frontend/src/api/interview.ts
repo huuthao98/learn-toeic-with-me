@@ -60,7 +60,7 @@ export const interviewApi = {
     const response = await api.post(`/interview/sets/${id}/submit`, data)
     return response.data
   },
-  createInterviewTopic: async (data: { name: string; description?: string; status?: string; notifyUsers?: boolean; topics?: string[] }) => {
+  createInterviewTopic: async (data: { name: string; description?: string; status?: string; notifyUsers?: boolean; topics?: string[]; accessLevel?: string }) => {
     const response = await api.post<InterviewTopic>("/interview/sets", data)
     return response.data
   },
@@ -80,7 +80,7 @@ export const interviewApi = {
     const response = await api.delete(`/interview/questions/${id}`)
     return response.data
   },
-  updateTestSet: async (id: string, data: { name?: string; description?: string; status?: string; topics?: string[] }) => {
+  updateTestSet: async (id: string, data: { name?: string; description?: string; status?: string; topics?: string[]; accessLevel?: string }) => {
     const response = await api.patch<InterviewTopic>(`/interview/sets/${id}`, data)
     return response.data
   },

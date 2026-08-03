@@ -163,13 +163,13 @@ export default function PracticeV2Page() {
   // );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
-      <div className="flex-1 border-r bg-slate-200/50 dark:bg-slate-800/50 flex flex-col relative">
+    <div className="flex flex-col lg:flex-row h-[100dvh] overflow-hidden bg-slate-50 dark:bg-slate-950">
+      <div className="flex-1 lg:border-r border-b lg:border-b-0 bg-slate-200/50 dark:bg-slate-800/50 flex flex-col relative min-h-[40vh] lg:min-h-0">
         {/* PDF Tabs */}
         {(testSet.readingPdfUrl || testSet.listeningPdfUrl) && (
           <>
-            <div className="flex p-2 gap-2 bg-white dark:bg-slate-900 border-b shrink-0 z-10 justify-between items-center">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-wrap p-2 gap-2 bg-white dark:bg-slate-900 border-b shrink-0 z-10 justify-between items-center">
+              <div className="flex items-center gap-2">
                 <div className="flex gap-2">
                   {testSet.listeningPdfUrl && (
                     <Button
@@ -203,39 +203,43 @@ export default function PracticeV2Page() {
                   {formatTime(timeLeft)}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 overflow-x-auto pb-1">
                 <Button
                   variant="outline"
                   size="sm"
+                  className="px-2 h-8"
                   onClick={() => setPdfScale(s => Math.max(0.5, s - 0.2))}
                 >
                   <Minimize2 className="h-4 w-4" />
                 </Button>
-                <span className="text-xs w-12 text-center">
+                <span className="text-xs w-10 text-center shrink-0">
                   {Math.round(pdfScale * 100)}%
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
+                  className="px-2 h-8"
                   onClick={() => setPdfScale(s => Math.min(2.5, s + 0.2))}
                 >
                   <Maximize2 className="h-4 w-4" />
                 </Button>
-                <div className="w-px h-4 bg-border mx-2" />
+                <div className="w-px h-4 bg-border mx-1 shrink-0" />
                 <Button
                   variant="outline"
                   size="sm"
+                  className="px-2 h-8"
                   disabled={pageNumber <= 1}
                   onClick={() => setPageNumber(p => p - 1)}
                 >
                   Prev
                 </Button>
-                <span className="text-xs">
+                <span className="text-xs shrink-0">
                   Trang {pageNumber} / {numPages || '-'}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
+                  className="px-2 h-8"
                   disabled={pageNumber >= (numPages || 1)}
                   onClick={() => setPageNumber(p => p + 1)}
                 >
@@ -270,25 +274,27 @@ export default function PracticeV2Page() {
 
       <div className="w-full lg:w-[45%] flex-1 lg:flex-none flex flex-col bg-white dark:bg-slate-900 min-h-0">
         {/* Top Header */}
-        <header className="h-16 flex items-center justify-between px-6 bg-white dark:bg-slate-900 shrink-0 z-10">
-          <div className="flex items-center gap-4">
+        <header className="h-16 flex items-center justify-between px-2 sm:px-6 bg-white dark:bg-slate-900 shrink-0 z-10">
+          <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
             <Button
               variant="ghost"
+              size="sm"
               onClick={() => router.back()}
-              className="bg-slate-200/50 dark:bg-slate-800/50"
+              className="bg-slate-200/50 dark:bg-slate-800/50 shrink-0"
             >
               Back
             </Button>
-            <div>
-              <h1 className="font-bold text-lg">{testSet.name}</h1>
+            <div className="min-w-0">
+              <h1 className="font-bold text-sm sm:text-lg truncate">{testSet.name}</h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 sm:gap-6 shrink-0 ml-2">
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="gap-2 font-bold px-6 shadow-md"
+              size="sm"
+              className="gap-1 sm:gap-2 font-bold px-3 sm:px-6 shadow-md"
             >
               {isSubmitting ? 'Đang nộp...' : 'Nộp Bài'}
             </Button>

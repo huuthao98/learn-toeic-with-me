@@ -48,6 +48,7 @@ const testSetSchema = z.object({
   name: z.string().trim().min(1, 'Tên đề thi không được để trống'),
   description: z.string(),
   status: z.enum(['draft', 'public', 'private']),
+  accessLevel: z.enum(['external', 'vip0', 'vip1', 'vip2', 'vip3']),
   audioUrl: z.string().optional(),
   readingPdfUrl: z.string().optional(),
   listeningPdfUrl: z.string().optional(),
@@ -105,6 +106,7 @@ export default function CreateTestToeicPage() {
       name: '',
       description: '',
       status: 'draft',
+      accessLevel: 'external',
       audioUrl: '',
       readingPdfUrl: '',
       listeningPdfUrl: '',
@@ -125,8 +127,9 @@ export default function CreateTestToeicPage() {
         try {
           const jsonStr = evt.target?.result as string;
           const data = JSON.parse(jsonStr);
-          if (data && Array.isArray(data.questions)) {
-            const questionsToUpsert = data.questions.filter(
+          const questionsArray = Array.isArray(data) ? data : (data.questions || []);
+          if (questionsArray && Array.isArray(questionsArray)) {
+            const questionsToUpsert = questionsArray.filter(
               (q: any) => !isNaN(parseInt(q.questionNumber, 10)),
             );
             setParsedQuestions(questionsToUpsert);
@@ -134,7 +137,7 @@ export default function CreateTestToeicPage() {
               `Đã tải file JSON thành công (${questionsToUpsert.length} câu).`,
             );
           } else {
-            toast.error('File JSON không hợp lệ (thiếu mảng questions).');
+            toast.error('File JSON không hợp lệ (cần là mảng câu hỏi).');
           }
         } catch (err) {
           toast.error('Lỗi khi đọc file JSON.');
@@ -357,7 +360,7 @@ export default function CreateTestToeicPage() {
                     control={testSetForm.control}
                     name="type"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex-1">
                         <FormLabel>Type</FormLabel>
                         <Select
                           onValueChange={field.onChange}
@@ -383,7 +386,7 @@ export default function CreateTestToeicPage() {
                     control={testSetForm.control}
                     name="status"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex-1">
                         <FormLabel>Trạng thái</FormLabel>
                         <Select
                           onValueChange={field.onChange}
@@ -404,6 +407,30 @@ export default function CreateTestToeicPage() {
                             <SelectItem value="private">
                               Riêng tư (Private)
                             </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={testSetForm.control}
+                    name="accessLevel"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Phạm vi truy cập</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn phạm vi" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="external">External (Công khai)</SelectItem>
+                            <SelectItem value="vip0">Member (Đăng nhập)</SelectItem>
+                            <SelectItem value="vip1">VIP 1 (Silver)</SelectItem>
+                            <SelectItem value="vip2">VIP 2 (Gold)</SelectItem>
+                            <SelectItem value="vip3">VIP 3 (Platinum)</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

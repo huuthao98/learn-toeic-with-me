@@ -98,7 +98,7 @@ export const toeicApi = {
     const response = await api.get<ToeicQuestion[]>(`/toeic/sets/${testSetId}/questions`)
     return response.data
   },
-  updateTestSet: async (id: string, data: { name?: string; description?: string; audioUrl?: string; status?: string; readingPdfUrl?: string; listeningPdfUrl?: string; topics?: string[]; type?: string }) => {
+  updateTestSet: async (id: string, data: { name?: string; description?: string; audioUrl?: string; status?: string; readingPdfUrl?: string; listeningPdfUrl?: string; topics?: string[]; type?: string; accessLevel?: string }) => {
     const response = await api.patch<ToeicSet>(`/toeic/sets/${id}`, data)
     return response.data
   },

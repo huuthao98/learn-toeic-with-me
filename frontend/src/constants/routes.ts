@@ -27,7 +27,7 @@ export const ROUTES = {
   ADMIN_USERS: '/admin/users',
   ADMIN_TOPICS: '/admin/topics',
   ADMIN_NOTIFICATIONS: '/admin/notifications',
-  ADMIN_CREATE_TEST: '/admin/create-test',
+  ADMIN_CREATE_TEST: '/admin/create-test-multiple-choice',
   ADMIN_CREATE_TEST_V2: '/admin/create-test-toeic',
   ADMIN_CREATE_TEST_B1: '/admin/create-test-b1',
   ADMIN_CREATE_INTERVIEW_TEST: '/admin/create-interview-test',
