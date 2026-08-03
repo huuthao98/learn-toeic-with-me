@@ -167,12 +167,12 @@ export function InteractiveB1Runner({
         setTimeout(() => {
           if (res.resultId) {
             // Logged-in user: redirect với resultId từ server
-            router.push(`/exam-b1/${testSetId}/results?resultId=${res.resultId}`);
+            router.push(`/exam-b1/${testSetId}/results?resultId=${res.resultId}&mode=${isExamMode ? 'exam' : 'practice'}`);
           } else {
             // Guest mode: lưu kết quả vào sessionStorage rồi redirect với localResultId
             const localResultId = `b1_result_${Date.now()}`;
             sessionStorage.setItem(localResultId, JSON.stringify(res));
-            router.push(`/exam-b1/${testSetId}/results?localResultId=${localResultId}`);
+            router.push(`/exam-b1/${testSetId}/results?localResultId=${localResultId}&mode=${isExamMode ? 'exam' : 'practice'}`);
           }
         }, 2000);
       }

@@ -2,27 +2,27 @@
 
 import { toast } from 'sonner';
 import {
+  Mic,
+  Zap,
+  Star,
+  Flame,
+  Trophy,
+  PenTool,
+  XCircle,
+  BookOpen,
   ArrowLeft,
   Headphones,
-  BookOpen,
-  PenTool,
-  Mic,
-  Star,
-  Trophy,
   CheckCircle,
-  XCircle,
-  Flame,
-  Zap,
   ChevronRight,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useB1 } from '@/hooks/useB1';
 import { B1Question } from '@/api/b1';
+import { getListPracticeB1Route } from '@/constants/routes';
 
 const SKILLS = ['listening', 'reading', 'writing', 'speaking'] as const;
 type Skill = (typeof SKILLS)[number];
@@ -76,6 +76,7 @@ export default function B1ResultsPage() {
   const searchParams = useSearchParams();
   const resultId = searchParams.get('resultId');
   const localResultId = searchParams.get('localResultId');
+  const mode = (searchParams.get('mode') as 'practice' | 'exam') || 'practice';
   const router = useRouter();
 
   const { useTestSet, useTestQuestions, useTestResult } = useB1();
@@ -183,7 +184,7 @@ export default function B1ResultsPage() {
           <Button
             variant="destructive"
             className="shrink-0"
-            onClick={() => router.push('/exam-english')}
+            onClick={() => router.push(getListPracticeB1Route(mode))}
           >
             <ArrowLeft className="w-4 h-4 mr-2" /> Thoát
           </Button>
