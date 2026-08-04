@@ -10,12 +10,7 @@ import {
   Check,
   Trophy,
 } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
@@ -30,13 +25,8 @@ interface CasualQuizRunnerProps {
   onRestart: () => void;
 }
 
-export function CasualQuizRunner({
-  testSetId,
-  mode = 'practice',
-  onBack,
-}: CasualQuizRunnerProps) {
-  const { useTestSet, useTestQuestionsInfinite, useSubmitExamMutation } =
-    useVocabulary();
+export function CasualQuizRunner({ testSetId, mode = 'practice', onBack }: CasualQuizRunnerProps) {
+  const { useTestSet, useTestQuestionsInfinite, useSubmitExamMutation } = useVocabulary();
 
   const { data: testSet, isLoading: isTestSetLoading } = useTestSet(testSetId);
   const {
@@ -57,6 +47,9 @@ export function CasualQuizRunner({
       type: 'vocabulary',
       pinyin: q.pinyin,
       correctAnswer: q.correctAnswer,
+      explanation: q.explanation,
+      setId: q.setId,
+      passageContext: q.passageContext,
       options:
         q.options?.map((opt: any) => ({
           id: opt.label,
@@ -68,9 +61,7 @@ export function CasualQuizRunner({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [timePerQuestion, setTimePerQuestion] = useState<number[]>([]);
-  const [questionStartTime, setQuestionStartTime] = useState<number>(
-    Date.now(),
-  );
+  const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -79,26 +70,21 @@ export function CasualQuizRunner({
   const [showPinyin, setShowPinyin] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isBackModalOpen, setIsBackModalOpen] = useState(false);
-  const [isSubmitWarningModalOpen, setIsSubmitWarningModalOpen] =
-    useState(false);
+  const [isSubmitWarningModalOpen, setIsSubmitWarningModalOpen] = useState(false);
 
   useEffect(() => {
-    if (
-      currentIndex >= currentQuestions.length - 5 &&
-      hasNextPage &&
-      !isFetchingNextPage
-    ) {
+    if (currentIndex >= currentQuestions.length - 5 && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [
-    currentIndex,
-    currentQuestions.length,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  ]);
+  }, [currentIndex, currentQuestions.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const currentQuestion = currentQuestions[currentIndex] || currentQuestions[0];
+  const passageContext =
+    currentQuestion?.passageContext ||
+    (currentQuestion?.setId
+      ? currentQuestions.find((q: any) => q.setId === currentQuestion.setId && q.passageContext)
+          ?.passageContext
+      : null);
 
   const handleSelectAnswer = (answerId: string) => {
     if (mode === 'practice' && isAnswered) return;
@@ -170,16 +156,12 @@ export function CasualQuizRunner({
 
         setTimeout(() => {
           if (res.resultId) {
-            router.push(
-              `/practice/vocabulary/${testSetId}/results?resultId=${res.resultId}`,
-            );
+            router.push(`/practice/vocabulary/${testSetId}/results?resultId=${res.resultId}`);
           } else {
             // Guest user: save local result to sessionStorage and redirect
 
             // Xử lý dọn dẹp sessionStorage (chỉ giữ lại 5 kết quả gần nhất để tránh tràn bộ nhớ)
-            const localKeys = Object.keys(sessionStorage).filter(k =>
-              k.startsWith('local_'),
-            );
+            const localKeys = Object.keys(sessionStorage).filter(k => k.startsWith('local_'));
             if (localKeys.length >= 5) {
               // Xóa các kết quả cũ nhất, chỉ giữ lại 4 kết quả mới nhất để chừa chỗ cho kết quả thứ 5
               localKeys
@@ -199,9 +181,7 @@ export function CasualQuizRunner({
                 answers,
               }),
             );
-            router.push(
-              `/practice/vocabulary/${testSetId}/results?localResultId=${localResultId}`,
-            );
+            router.push(`/practice/vocabulary/${testSetId}/results?localResultId=${localResultId}`);
           }
         }, 3000);
       }
@@ -236,10 +216,7 @@ export function CasualQuizRunner({
       return 'border-emerald-500 bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.2)] scale-[1.02] transition-transform';
     }
 
-    if (
-      optionId === selectedAnswer &&
-      selectedAnswer !== currentQuestion?.correctAnswer
-    ) {
+    if (optionId === selectedAnswer && selectedAnswer !== currentQuestion?.correctAnswer) {
       return 'border-destructive bg-destructive/10 opacity-80';
     }
 
@@ -251,9 +228,7 @@ export function CasualQuizRunner({
       <div className="max-w-3xl mx-auto space-y-8 pt-32 px-4">
         <Card className="p-12 text-center border-border/40 bg-secondary/10 shadow-sm rounded-2xl">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4" />
-          <p className="text-muted-foreground font-medium">
-            Đang tải câu hỏi...
-          </p>
+          <p className="text-muted-foreground font-medium">Đang tải câu hỏi...</p>
         </Card>
       </div>
     );
@@ -275,8 +250,8 @@ export function CasualQuizRunner({
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 pt-24 px-4 pb-20">
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+    <div className="max-w-3xl mx-auto space-y-6 pt-6 md:pt-24 px-3 md:px-4 pb-20">
+      <div className="hidden md:flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
           <Button
             variant="ghost"
@@ -296,10 +271,7 @@ export function CasualQuizRunner({
           {mode === 'practice' && (
             <div className="bg-secondary/40 backdrop-blur-md px-5 py-2.5 rounded-xl border border-border/50 text-sm font-medium shadow-sm flex items-center gap-2">
               <Trophy className="w-4 h-4 text-primary" />
-              <span className="text-primary font-bold text-base">
-                {score}
-              </span>{' '}
-              đúng
+              <span className="text-primary font-bold text-base">{score}</span> đúng
             </div>
           )}
         </div>
@@ -316,31 +288,44 @@ export function CasualQuizRunner({
             />
           </div>
 
-          <Card className="overflow-hidden border-border/40 shadow-2xl shadow-primary/5 bg-gradient-to-b from-background to-secondary/10 backdrop-blur-xl rounded-2xl">
-            <CardHeader className="flex justify-between items-center border-b border-border/10 bg-secondary/30 pb-6 pt-6">
-              <Badge
-                variant="outline"
-                className="px-3 py-1 text-sm font-medium bg-background/50 backdrop-blur-sm border-primary/20 text-primary shadow-sm"
-              >
-                Câu hỏi {currentIndex + 1} / {testSet?.totalQuestions || '...'}
-              </Badge>
-              <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
-                Choose the correct answer
-              </div>
+          <Card className="overflow-hidden md:mt-0 mt-12 border-border/50 shadow-2xl shadow-primary/5 bg-gradient-to-b from-background to-secondary/10 backdrop-blur-xl rounded-2xl">
+            <CardHeader className="flex flex-col md:flex-row flex-wrap justify-between items-start md:items-center gap-2 border-b border-border/10 bg-secondary/30 pb-4 pt-4 md:pb-6 md:pt-6">
+              {passageContext ? (
+                <div className="text-sm md:text-base font-medium text-foreground/90 whitespace-pre-wrap leading-relaxed w-full">
+                  {passageContext}
+                </div>
+              ) : (
+                <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
+                  Choose the correct answer
+                </div>
+              )}
             </CardHeader>
 
-            <CardContent className="flex flex-col items-center relative">
-              <div className="text-center mb-12 relative z-10 w-full">
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <h2 className="text-5xl md:text-6xl font-black text-slate-800 dark:text-slate-100 tracking-tight drop-shadow-sm px-4">
-                    {currentQuestion.word}
-                  </h2>
+            <CardContent className="flex flex-col items-center relative p-2 md:p-6">
+              <div className="text-center mb-2 md:mb-8 w-full">
+                <div className="flex items-center justify-center gap-2 md:gap-3 mb-4">
+                  {testSet?.category?.toLowerCase() === 'japanese' ||
+                  testSet?.category?.toLowerCase() === 'jlpt' ? (
+                    <h2
+                      className="text-xl sm:text-2xl md:text-3xl leading-relaxed md:leading-relaxed font-bold text-slate-800 dark:text-slate-100 drop-shadow-sm px-2 md:px-4 [&_strong]:text-red-500 dark:[&_strong]:text-red-400 [&_strong]:underline [&_strong]:underline-offset-4 [&_rt]:text-[0.5em] [&_rt]:font-medium [&_rt]:text-muted-foreground/80"
+                      dangerouslySetInnerHTML={{ __html: currentQuestion.word }}
+                    />
+                  ) : (
+                    <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-800 dark:text-slate-100 tracking-tight drop-shadow-sm px-2 md:px-4">
+                      {currentQuestion.word}
+                    </h2>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-10 w-10 rounded-full hover:bg-primary/10 text-muted-foreground transition-all"
                     onClick={() => {
-                      navigator.clipboard.writeText(currentQuestion.word);
+                      const plainText =
+                        testSet?.category?.toLowerCase() === 'japanese' ||
+                        testSet?.category?.toLowerCase() === 'jlpt'
+                          ? (currentQuestion.word || '').replace(/<[^>]*>?/gm, '')
+                          : currentQuestion.word;
+                      navigator.clipboard.writeText(plainText);
                       setIsCopied(true);
                       setTimeout(() => setIsCopied(false), 2000);
                     }}
@@ -368,33 +353,34 @@ export function CasualQuizRunner({
                       className="h-8 w-8 text-muted-foreground hover:text-teal-600 rounded-full"
                       onClick={() => setShowPinyin(!showPinyin)}
                     >
-                      {showPinyin ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      {showPinyin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
                 )}
               </div>
 
-              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto z-10">
+              <div className="w-full grid grid-cols-2 gap-1 max-w-2xl mx-auto z-10">
                 {currentQuestion.options.map((option: any) => (
                   <button
                     key={option.id}
                     onClick={() => handleSelectAnswer(option.id)}
                     disabled={mode === 'practice' && isAnswered}
-                    className={`relative p-5 rounded-2xl border-2 text-left transition-all duration-300 flex items-center justify-between group ${getOptionStatusClass(option.id)}`}
+                    className={`relative p-2 rounded-2xl border-2 text-left transition-all duration-300 flex items-center justify-between group ${getOptionStatusClass(option.id)}`}
                   >
-                    <div>
-                      <span className="font-semibold text-foreground/90 group-hover:text-foreground text-lg">
-                        {option.value}
-                      </span>
-                      {option.pinyin && (
-                        <span className="block text-sm text-muted-foreground mt-1">
-                          {option.pinyin}
+                    <div className="flex items-center gap-1">
+                      <div className="flex shrink-0 items-center justify-center w-8 h-8 rounded-full border-2 border-current font-bold text-sm opacity-70 group-hover:opacity-100 transition-opacity">
+                        {option.id}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-foreground/90 group-hover:text-foreground text-lg">
+                          {option.value}
                         </span>
-                      )}
+                        {option.pinyin && (
+                          <span className="block text-sm text-muted-foreground mt-1">
+                            {option.pinyin}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {mode === 'practice' &&
                       isAnswered &&
@@ -411,92 +397,87 @@ export function CasualQuizRunner({
                 ))}
               </div>
             </CardContent>
+            <div className="bg-card md:rounded-2xl rounded-none border border-border/40 shadow-sm p-2 md:p-3 animate-in slide-in-from-bottom-4">
+              <h3 className="font-bold text-foreground mb-4 md:flex hidden">Danh sách câu hỏi</h3>
+              <div className="flex overflow-x-auto flex-nowrap justify-start gap-2 pb-2 snap-x">
+                {currentQuestions.map((q: any, idx: number) => {
+                  const isCurrent = idx === currentIndex;
+                  const hasAnswer = !!answers[q.id];
 
-            <CardFooter className="bg-secondary/30 border-t border-border/10 flex justify-between items-center px-8 pt-0">
-              <div className="text-sm font-bold flex gap-4">
-                {mode === 'exam' && (
-                  <Button
-                    onClick={handlePrev}
-                    disabled={currentIndex === 0}
-                    variant="outline"
-                    size="lg"
-                    className="gap-2 rounded-xl font-bold px-6"
+                  let btnClass =
+                    'bg-secondary text-secondary-foreground hover:bg-secondary/80 border-transparent';
+                  if (isCurrent) {
+                    btnClass =
+                      'ring-2 ring-primary ring-offset-background bg-primary/10 text-primary border-primary/20';
+                  } else if (hasAnswer) {
+                    btnClass =
+                      'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 border-transparent';
+                  }
+
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => {
+                        setCurrentIndex(idx);
+                        const ans = answers[q.id] || null;
+                        setSelectedAnswer(ans);
+                        setIsAnswered(mode === 'practice' ? !!ans : false);
+                      }}
+                      className={`w-9 h-9 shrink-0 m-1 rounded-full font-bold text-sm border flex items-center justify-center transition-all ${btnClass}`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+                {hasNextPage && (
+                  <button
+                    onClick={() => fetchNextPage()}
+                    className="w-10 h-10 shrink-0 rounded-xl font-bold text-sm border border-dashed border-primary/50 text-primary/70 flex items-center justify-center hover:bg-primary/5"
+                    title="Tải thêm câu hỏi"
                   >
-                    <ArrowLeft className="h-4 w-4" />
-                    Câu trước
-                  </Button>
+                    ...
+                  </button>
                 )}
-                {mode === 'practice' &&
-                  isAnswered &&
-                  (selectedAnswer === currentQuestion.correctAnswer ? (
-                    <span className="text-emerald-500 flex items-center gap-2 animate-in slide-in-from-left-2">
-                      <CheckCircle className="w-5 h-5" /> Tuyệt vời!
-                    </span>
-                  ) : (
-                    <span className="text-destructive flex items-center gap-2 animate-in slide-in-from-left-2">
-                      <XCircle className="w-5 h-5" /> Sai rồi!
-                    </span>
-                  ))}
               </div>
+            </div>
+            <CardFooter
+              className={`bg-secondary/30 border-t border-border/10 flex flex-row items-center gap-2 px-2 py-2 md:px-8 md:py-6 ${mode === 'practice' ? 'justify-end' : 'justify-between'}`}
+            >
+              {mode === 'exam' && (
+                <Button
+                  onClick={handlePrev}
+                  disabled={currentIndex === 0}
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 rounded-xl font-bold px-4 sm:px-6"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Câu trước</span>
+                </Button>
+              )}
+              {mode === 'practice' && (
+                <div
+                  className={`w-full max-w-2xl mx-auto z-10 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 p-4 rounded-xl text-sm border border-blue-200 dark:border-blue-800 transition-all duration-300 ${
+                    isAnswered ? 'opacity-100' : 'opacity-0 invisible'
+                  }`}
+                >
+                  <span className="font-bold block mb-1">Giải thích:</span>
+                  <div className="whitespace-pre-wrap">{currentQuestion.explanation}</div>
+                </div>
+              )}
               <Button
                 onClick={handleNext}
                 disabled={mode === 'practice' ? !isAnswered : false}
                 size="lg"
-                className="gap-2 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 font-bold px-8"
+                className="gap-2 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 font-bold px-4 sm:px-8"
               >
-                {currentIndex === currentQuestions.length - 1
-                  ? 'Hoàn thành'
-                  : 'Câu tiếp theo'}
+                <span className="hidden sm:inline">
+                  {currentIndex === currentQuestions.length - 1 ? 'Hoàn thành' : 'Câu tiếp theo'}
+                </span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </CardFooter>
           </Card>
-
-          <div className="mt-2 bg-card rounded-2xl border border-border/40 shadow-sm p-6 animate-in slide-in-from-bottom-4">
-            <h3 className="font-bold text-foreground mb-4">
-              Danh sách câu hỏi
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {currentQuestions.map((q: any, idx: number) => {
-                const isCurrent = idx === currentIndex;
-                const hasAnswer = !!answers[q.id];
-
-                let btnClass =
-                  'bg-secondary text-secondary-foreground hover:bg-secondary/80 border-transparent';
-                if (isCurrent) {
-                  btnClass =
-                    'ring-2 ring-primary ring-offset-background bg-primary/10 text-primary border-primary/20';
-                } else if (hasAnswer) {
-                  btnClass =
-                    'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 border-transparent';
-                }
-
-                return (
-                  <button
-                    key={q.id}
-                    onClick={() => {
-                      setCurrentIndex(idx);
-                      const ans = answers[q.id] || null;
-                      setSelectedAnswer(ans);
-                      setIsAnswered(mode === 'practice' ? !!ans : false);
-                    }}
-                    className={`w-10 h-10 rounded-full font-bold text-sm border flex items-center justify-center transition-all ${btnClass}`}
-                  >
-                    {idx + 1}
-                  </button>
-                );
-              })}
-              {hasNextPage && (
-                <button
-                  onClick={() => fetchNextPage()}
-                  className="w-10 h-10 rounded-xl font-bold text-sm border border-dashed border-primary/50 text-primary/70 flex items-center justify-center hover:bg-primary/5"
-                  title="Tải thêm câu hỏi"
-                >
-                  ...
-                </button>
-              )}
-            </div>
-          </div>
         </div>
       ) : (
         <div className="max-w-3xl mx-auto space-y-8 pt-32 px-4">

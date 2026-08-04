@@ -25,6 +25,12 @@ export class VocabularyQuestion {
   questionNumber?: number;
 
   @Prop()
+  setId?: string;
+
+  @Prop()
+  passageContext?: string;
+
+  @Prop()
   pinyin?: string;
 
   @Prop({ required: true, enum: ['multiple_choice', 'fill_in_the_blank'], default: 'multiple_choice' })

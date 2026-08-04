@@ -28,8 +28,8 @@ export function PracticeHeader() {
     <header
       className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
         isScrolled
-          ? 'bg-white/95 backdrop-blur-sm border-gray-200 shadow-sm py-3'
-          : 'bg-white border-transparent py-5'
+          ? 'bg-white/95 backdrop-blur-sm border-gray-200 shadow-sm py-2'
+          : 'bg-white border-transparent py-3'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

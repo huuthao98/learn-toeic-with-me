@@ -109,8 +109,7 @@ const downloadVocabularyTemplate = () => {
 export const CreateTestForm = () => {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { useCreateTestSetMutation, useUpsertBulkQuestionsMutation } =
-    useVocabulary();
+  const { useCreateTestSetMutation, useUpsertBulkQuestionsMutation } = useVocabulary();
 
   const createVocabularySetMutation = useCreateTestSetMutation();
   const upsertQuestionsMutation = useUpsertBulkQuestionsMutation();
@@ -154,29 +153,46 @@ export const CreateTestForm = () => {
         try {
           const jsonStr = evt.target?.result as string;
           const data = JSON.parse(jsonStr);
-          const questionsArray = Array.isArray(data) ? data : (data.questions || []);
+          const questionsArray = Array.isArray(data) ? data : data.questions || [];
           if (questionsArray && Array.isArray(questionsArray)) {
             const questionsToUpsert = questionsArray
               .map((q: any) => {
-                const options = q.options || [
-                  { label: 'A', text: q.optionA || q.choiceA || q['đáp án A'] || '' },
-                  { label: 'B', text: q.optionB || q.choiceB || q['đáp án B'] || '' },
-                  { label: 'C', text: q.optionC || q.choiceC || q['đáp án C'] || '' },
-                  { label: 'D', text: q.optionD || q.choiceD || q['đáp án D'] || '' },
-                ].filter((o: any) => o.text !== '');
+                const options =
+                  q.options ||
+                  [
+                    { label: 'A', text: q.optionA || q.choiceA || q['đáp án A'] || '' },
+                    { label: 'B', text: q.optionB || q.choiceB || q['đáp án B'] || '' },
+                    { label: 'C', text: q.optionC || q.choiceC || q['đáp án C'] || '' },
+                    { label: 'D', text: q.optionD || q.choiceD || q['đáp án D'] || '' },
+                  ].filter((o: any) => o.text !== '');
 
                 return {
-                  questionNumber: parseInt(q.questionNumber || q.qNum || q.id || q.Số_thứ_tự_câu || 0, 10),
+                  questionNumber: parseInt(
+                    q.questionNumber || q.qNum || q.id || q.Số_thứ_tự_câu || 0,
+                    10,
+                  ),
                   questionType: 'multiple_choice',
                   questionText: q.questionText || q.question || q.Câu_hỏi || q['câu hỏi'] || '',
                   options: options,
-                  correctAnswer: String(q.correctAnswer || q.answer || q.Đáp_án_đúng || q['đáp án đúng'] || 'A').toUpperCase().trim(),
+                  correctAnswer: String(
+                    q.correctAnswer || q.answer || q.Đáp_án_đúng || q['đáp án đúng'] || 'A',
+                  )
+                    .toUpperCase()
+                    .trim(),
                   explanation: q.explanation || q.Giải_thích || q['giải thích'] || '',
                   isActive: true,
                   pinyin: q.pinyin || '',
+                  setId: q.setId || null,
+                  passageContext: q.passageContext || '',
                 };
               })
-              .filter((q) => !isNaN(q.questionNumber) && q.questionNumber > 0 && q.questionText !== '' && q.options.length > 0);
+              .filter(
+                q =>
+                  !isNaN(q.questionNumber) &&
+                  q.questionNumber > 0 &&
+                  q.questionText !== '' &&
+                  q.options.length > 0,
+              );
 
             if (questionsToUpsert.length > 0) {
               setParsedQuestions(questionsToUpsert);
@@ -199,8 +215,7 @@ export const CreateTestForm = () => {
     reader.onload = evt => {
       const bstr = evt.target?.result;
       const wb = XLSX.read(bstr, { type: 'binary' });
-      const wsName =
-        wb.SheetNames.find(n => n.includes('Template')) || wb.SheetNames[0];
+      const wsName = wb.SheetNames.find(n => n.includes('Template')) || wb.SheetNames[0];
       const ws = wb.Sheets[wsName];
       const data = XLSX.utils.sheet_to_json<any>(ws);
 
@@ -211,9 +226,7 @@ export const CreateTestForm = () => {
             const k = Object.keys(row).find(
               key =>
                 !usedKeys.has(key) &&
-                searchKeys.some(sk =>
-                  key.toLowerCase().includes(sk.toLowerCase()),
-                ),
+                searchKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase())),
             );
             if (k) usedKeys.add(k);
             return k ? row[k] : undefined;
@@ -309,8 +322,7 @@ export const CreateTestForm = () => {
     );
   };
 
-  const isSubmitting =
-    createVocabularySetMutation.isPending || upsertQuestionsMutation.isPending;
+  const isSubmitting = createVocabularySetMutation.isPending || upsertQuestionsMutation.isPending;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -319,9 +331,7 @@ export const CreateTestForm = () => {
           <Layers className="h-6 w-6" />
         </div>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Tạo Bộ Đề Trắc Nghiệm Mới
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">Tạo Bộ Đề Trắc Nghiệm Mới</h1>
           <p className="text-sm text-muted-foreground">
             Khởi tạo thông tin và tải lên câu hỏi trắc nghiệm / từ vựng.
           </p>
@@ -368,9 +378,7 @@ export const CreateTestForm = () => {
             </CardDescription>
           </CardHeader>
           <Form {...VocabularySetForm}>
-            <form
-              onSubmit={VocabularySetForm.handleSubmit(onVocabularySetSubmit)}
-            >
+            <form onSubmit={VocabularySetForm.handleSubmit(onVocabularySetSubmit)}>
               <CardContent className="space-y-6 py-6">
                 <div className="space-y-4">
                   <div className="flex justify-between gap-4">
@@ -381,10 +389,7 @@ export const CreateTestForm = () => {
                         <FormItem className="flex-1">
                           <FormLabel>Tên bộ đề</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="Ví dụ: Vocabulary Test 1"
-                              {...field}
-                            />
+                            <Input placeholder="Ví dụ: Vocabulary Test 1" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -447,34 +452,22 @@ export const CreateTestForm = () => {
                               <SelectTrigger>
                                 <SelectValue placeholder="Chọn trạng thái">
                                   {(val: any) => {
-                                    if (val === 'draft')
-                                      return 'Bản Nháp (Draft)';
-                                    if (val === 'public')
-                                      return 'Công Khai (Public)';
-                                    if (val === 'private')
-                                      return 'Riêng Tư (Private)';
+                                    if (val === 'draft') return 'Bản Nháp (Draft)';
+                                    if (val === 'public') return 'Công Khai (Public)';
+                                    if (val === 'private') return 'Riêng Tư (Private)';
                                     return val || 'Chọn trạng thái';
                                   }}
                                 </SelectValue>
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem
-                                value="draft"
-                                label="Bản Nháp (Draft)"
-                              >
+                              <SelectItem value="draft" label="Bản Nháp (Draft)">
                                 Bản Nháp (Draft)
                               </SelectItem>
-                              <SelectItem
-                                value="public"
-                                label="Công Khai (Public)"
-                              >
+                              <SelectItem value="public" label="Công Khai (Public)">
                                 Công Khai (Public)
                               </SelectItem>
-                              <SelectItem
-                                value="private"
-                                label="Riêng Tư (Private)"
-                              >
+                              <SelectItem value="private" label="Riêng Tư (Private)">
                                 Riêng Tư (Private)
                               </SelectItem>
                             </SelectContent>
@@ -513,10 +506,7 @@ export const CreateTestForm = () => {
                       <FormItem>
                         <FormLabel>Mô tả chung</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Dùng để ôn tập từ vựng..."
-                            {...field}
-                          />
+                          <Input placeholder="Dùng để ôn tập từ vựng..." {...field} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -554,26 +544,19 @@ export const CreateTestForm = () => {
                                 ) : topics && topics.length > 0 ? (
                                   <div className="flex flex-wrap gap-2">
                                     {topics.map((topic: any) => {
-                                      const isSelected =
-                                        selectedTopics.includes(topic.code);
+                                      const isSelected = selectedTopics.includes(topic.code);
                                       return (
                                         <Badge
                                           key={topic.code}
-                                          variant={
-                                            isSelected ? 'default' : 'outline'
-                                          }
+                                          variant={isSelected ? 'default' : 'outline'}
                                           className={`cursor-pointer transition-all px-3 py-1.5 text-xs select-none ${
                                             isSelected
                                               ? 'shadow-md ring-2 ring-primary/20'
                                               : 'hover:bg-secondary/80'
                                           }`}
-                                          onClick={() =>
-                                            toggleTopic(topic.code)
-                                          }
+                                          onClick={() => toggleTopic(topic.code)}
                                         >
-                                          {isSelected && (
-                                            <Check className="h-3 w-3 mr-1.5" />
-                                          )}
+                                          {isSelected && <Check className="h-3 w-3 mr-1.5" />}
                                           {topic.name}
                                         </Badge>
                                       );
@@ -581,8 +564,7 @@ export const CreateTestForm = () => {
                                   </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground italic">
-                                    Hiện chưa có chủ đề nào được thiết lập trên
-                                    hệ thống.
+                                    Hiện chưa có chủ đề nào được thiết lập trên hệ thống.
                                   </p>
                                 )}
                               </div>
@@ -611,8 +593,7 @@ export const CreateTestForm = () => {
                                 <SelectValue placeholder="Không">
                                   {(val: any) => {
                                     if (val === 'false') return 'Không';
-                                    if (val === 'true')
-                                      return 'Có (Gửi ngay khi tạo)';
+                                    if (val === 'true') return 'Có (Gửi ngay khi tạo)';
                                     return val || 'Không';
                                   }}
                                 </SelectValue>
@@ -622,18 +603,14 @@ export const CreateTestForm = () => {
                               <SelectItem value="false" label="Không">
                                 Không
                               </SelectItem>
-                              <SelectItem
-                                value="true"
-                                label="Có (Gửi ngay khi tạo)"
-                              >
+                              <SelectItem value="true" label="Có (Gửi ngay khi tạo)">
                                 Có (Gửi ngay khi tạo)
                               </SelectItem>
                             </SelectContent>
                           </Select>
                           <CardDescription className="text-xs">
-                            Nếu "Có" và trạng thái là "Công khai", những người
-                            dùng quan tâm đến các chủ đề trên sẽ nhận được thông
-                            báo.
+                            Nếu "Có" và trạng thái là "Công khai", những người dùng quan tâm đến các
+                            chủ đề trên sẽ nhận được thông báo.
                           </CardDescription>
                         </FormItem>
                       )}
@@ -667,18 +644,14 @@ export const CreateTestForm = () => {
                     />
                     {parsedQuestions.length > 0 && (
                       <p className="text-sm text-emerald-600 font-medium mt-2">
-                        ✓ Đã đọc được {parsedQuestions.length} câu hỏi từ file
-                        Excel.
+                        ✓ Đã đọc được {parsedQuestions.length} câu hỏi từ file Excel.
                       </p>
                     )}
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end pt-4 border-t">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting || parsedQuestions.length === 0}
-                >
+                <Button type="submit" disabled={isSubmitting || parsedQuestions.length === 0}>
                   {isSubmitting ? 'Đang xử lý...' : 'Hoàn Tất & Tạo Đề'}{' '}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -697,19 +670,14 @@ export const CreateTestForm = () => {
             </div>
             <h2 className="text-2xl font-bold">Hoàn Tất Tạo Bộ Đề!</h2>
             <p className="text-muted-foreground max-w-md">
-              Bộ câu hỏi đã được tạo và tải lên thành công. Bạn có thể kiểm tra
-              lại trong danh sách bộ đề.
+              Bộ câu hỏi đã được tạo và tải lên thành công. Bạn có thể kiểm tra lại trong danh sách
+              bộ đề.
             </p>
             <div className="flex gap-4 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => router.push(ROUTES.ADMIN)}
-              >
+              <Button variant="outline" onClick={() => router.push(ROUTES.ADMIN)}>
                 Về Danh Sách Đề
               </Button>
-              <Button onClick={() => window.location.reload()}>
-                Tạo Bộ Mới
-              </Button>
+              <Button onClick={() => window.location.reload()}>Tạo Bộ Mới</Button>
             </div>
           </CardContent>
         </Card>

@@ -11,6 +11,8 @@ export interface VocabularyQuestion {
   explanation?: string;
   pinyin?: string;
   status: string;
+  setId?: string;
+  passageContext?: string;
 }
 
 export interface CreateVocabularyQuestionData {
@@ -21,6 +23,8 @@ export interface CreateVocabularyQuestionData {
   isActive?: boolean;
   pinyin?: string;
   options?: { label: string; text: string; pinyin?: string }[];
+  setId?: string;
+  passageContext?: string;
 }
 
 export interface VocabularySet {

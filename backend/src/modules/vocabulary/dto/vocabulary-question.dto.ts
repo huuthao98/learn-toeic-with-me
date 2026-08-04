@@ -43,6 +43,16 @@ export class CreateVocabularyQuestionDto {
   @IsOptional()
   questionNumber?: number;
 
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  setId?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  passageContext?: string;
+
   @ApiProperty()
   @IsString()
   questionText: string;
@@ -84,6 +94,16 @@ export class UpdateVocabularyQuestionDto {
   @IsNumber()
   @IsOptional()
   questionNumber?: number;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  setId?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  passageContext?: string;
 
   @ApiPropertyOptional()
   @IsString()

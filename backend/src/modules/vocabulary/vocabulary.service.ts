@@ -39,6 +39,8 @@ export class VocabularyService {
       if (q.options !== undefined) updateData.options = q.options;
       if (q.pinyin !== undefined) updateData.pinyin = q.pinyin;
       if (q.isActive !== undefined) updateData.status = q.isActive ? 'active' : 'draft';
+      if (q.setId !== undefined) updateData.setId = q.setId ? String(q.setId) : null;
+      if (q.passageContext !== undefined) updateData.passageContext = q.passageContext || '';
 
       return {
         updateOne: {

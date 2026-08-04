@@ -19,6 +19,7 @@ import { FirebaseModule } from './modules/firebase/firebase.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { TopicsModule } from './modules/topics/topics.module';
 import { B1Module } from './modules/b1/b1.module';
+import { JLPTModule } from './modules/JLPT/JLPT.module';
 import { AccessControlModule } from './common/access-control.module';
 
 @Module({
@@ -52,6 +53,7 @@ import { AccessControlModule } from './common/access-control.module';
     
     //Practice
     B1Module,
+    JLPTModule,
     ToeicModule,
     InterviewModule,
     VocabularyModule,

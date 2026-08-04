@@ -1,7 +1,7 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { UsersService } from '../../modules/users/users.service';
 
-export type VipCategory = 'TOEIC' | 'B1' | 'VOCAB' | 'INTERVIEW';
+export type VipCategory = 'TOEIC' | 'B1' | 'VOCAB' | 'INTERVIEW' | 'JLPT';
 export type VipLevel = 'vip0' | 'vip1' | 'vip2' | 'vip3';
 
 export const VIP_LEVEL_MAP: Record<string, number> = {

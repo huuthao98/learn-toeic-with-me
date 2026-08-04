@@ -1,7 +1,7 @@
 import { SetMetadata } from '@nestjs/common';
 
 export interface VipAccessOptions {
-  category: 'TOEIC' | 'B1' | 'VOCAB' | 'INTERVIEW'; // Phân hệ để check VIP
+  category: 'TOEIC' | 'B1' | 'VOCAB' | 'INTERVIEW' | 'JLPT'; // Phân hệ để check VIP
   modelName: string;                     // Tên Mongoose Schema (vd: 'ToeicSet', 'B1Set')
 }
 
