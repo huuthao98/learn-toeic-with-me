@@ -176,39 +176,53 @@ export default function VocabularyResultPage() {
               const options = q.options || [];
 
               return (
-                <Card
-                  key={q._id}
-                  className={`overflow-hidden transition-all border-l-4 ${isCorrect ? 'border-l-emerald-500 shadow-emerald-500/10 hover:shadow-emerald-500/20' : 'border-l-rose-500 shadow-rose-500/10 hover:shadow-rose-500/20'}`}
-                >
-                  <CardHeader className="bg-secondary/20">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <Badge
-                          variant="outline"
-                          className="font-bold bg-background"
-                        >
-                          Câu {idx + 1}
-                        </Badge>
-                        <span className="text-xl font-bold">
-                          {q.questionText}
-                        </span>
-                        {q.pinyin && (
-                          <span className="text-sm text-muted-foreground">
-                            ({q.pinyin})
-                          </span>
+                <div key={q._id} className="space-y-4">
+                  {q.passageContext && (
+                    <div className="bg-secondary/20 p-4 rounded-xl border border-border/50 mt-4">
+                      <div className="text-sm md:text-base font-medium whitespace-pre-wrap leading-relaxed text-foreground/90">
+                        {q.passageContext}
+                      </div>
+                    </div>
+                  )}
+                  <Card
+                    className={`overflow-hidden transition-all border-l-4 ${isCorrect ? 'border-l-emerald-500 shadow-emerald-500/10 hover:shadow-emerald-500/20' : 'border-l-rose-500 shadow-rose-500/10 hover:shadow-rose-500/20'}`}
+                  >
+                    <CardHeader className="bg-secondary/20">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start md:items-center gap-3 flex-col md:flex-row">
+                          <Badge
+                            variant="outline"
+                            className="font-bold bg-background shrink-0"
+                          >
+                            Câu {idx + 1}
+                          </Badge>
+                          {testSet?.category?.toLowerCase() === 'japanese' || testSet?.category?.toLowerCase() === 'jlpt' ? (
+                            <span 
+                              className="text-base md:text-lg font-bold leading-relaxed [&_strong]:text-red-500 dark:[&_strong]:text-red-400 [&_strong]:underline [&_strong]:underline-offset-4 [&_rt]:text-[0.5em] [&_rt]:font-medium [&_rt]:text-muted-foreground/80"
+                              dangerouslySetInnerHTML={{ __html: q.questionText }}
+                            />
+                          ) : (
+                            <span className="text-xl font-bold">
+                              {q.questionText}
+                            </span>
+                          )}
+                          {q.pinyin && (
+                            <span className="text-sm text-muted-foreground">
+                              ({q.pinyin})
+                            </span>
+                          )}
+                        </div>
+                        {isCorrect ? (
+                          <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-500 font-bold bg-emerald-500/10 px-3 py-1 rounded-full text-sm shrink-0">
+                            <CheckCircle2 className="w-4 h-4" /> Đúng
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-500 font-bold bg-rose-500/10 px-3 py-1 rounded-full text-sm shrink-0">
+                            <XCircle className="w-4 h-4" /> Sai
+                          </div>
                         )}
                       </div>
-                      {isCorrect ? (
-                        <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-500 font-bold bg-emerald-500/10 px-3 py-1 rounded-full text-sm">
-                          <CheckCircle2 className="w-4 h-4" /> Đúng
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-500 font-bold bg-rose-500/10 px-3 py-1 rounded-full text-sm">
-                          <XCircle className="w-4 h-4" /> Sai
-                        </div>
-                      )}
-                    </div>
-                  </CardHeader>
+                    </CardHeader>
 
                   <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-1">
@@ -263,13 +277,14 @@ export default function VocabularyResultPage() {
                         <span className="font-bold text-sm text-primary flex items-center gap-2 mb-1">
                           <BookOpen className="w-4 h-4" /> Giải thích:
                         </span>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                        <div className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
                           {q.explanation}
-                        </p>
+                        </div>
                       </div>
                     )}
                   </CardContent>
                 </Card>
+              </div>
               );
             })}
           </div>
