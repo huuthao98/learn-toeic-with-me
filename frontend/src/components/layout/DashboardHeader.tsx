@@ -23,12 +23,16 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
 
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sidebar } from './Sidebar';
+
 export function DashboardHeader() {
   const { user } = useAuthStore();
   const isCollapsed = useLayoutStore(state => state.isCollapsed);
   const toggleCollapse = useLayoutStore(state => state.toggleCollapse);
 
   const [isDark, setIsDark] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const {
     useNotificationsList,
@@ -72,7 +76,21 @@ export function DashboardHeader() {
     <header className="bg-background/80 backdrop-blur-md border-b border-border/40 h-16 sticky top-0 z-20 px-6 flex items-center justify-between">
       {/* Welcome Title */}
       <div className="flex items-center gap-4">
-        {/* Sidebar Toggle Button */}
+        {/* Mobile Sidebar Toggle Button (Sheet) */}
+        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <SheetTrigger
+            render={
+              <button className="p-1.5 rounded-md hover:bg-accent transition-all flex md:hidden items-center justify-center shrink-0 text-muted-foreground hover:text-foreground" />
+            }
+          >
+            <Menu className="h-5 w-5" />
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-[280px]">
+            <Sidebar isMobile onMobileClose={() => setIsMobileMenuOpen(false)} />
+          </SheetContent>
+        </Sheet>
+
+        {/* Desktop Sidebar Toggle Button */}
         <button
           onClick={toggleCollapse}
           className="p-1.5 rounded-md hover:bg-accent transition-all hidden md:flex items-center justify-center shrink-0 text-muted-foreground hover:text-foreground"

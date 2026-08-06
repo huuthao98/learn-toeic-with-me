@@ -135,6 +135,40 @@ export function CasualQuizRunner({ testSetId, mode = 'practice', onBack }: Casua
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isFinished || isBackModalOpen || isSubmitWarningModalOpen) return;
+
+      if (e.key === 'ArrowRight') {
+        handleNext();
+      } else if (e.key === 'ArrowLeft') {
+        handlePrev();
+      } else {
+        const keyMap: Record<string, string> = {
+          a: 'A',
+          s: 'B',
+          d: 'C',
+          f: 'D',
+        };
+        const mappedOption = keyMap[e.key.toLowerCase()];
+        if (mappedOption && currentQuestion?.options?.some((o: any) => o.id === mappedOption)) {
+          handleSelectAnswer(mappedOption);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    isFinished,
+    isBackModalOpen,
+    isSubmitWarningModalOpen,
+    handleNext,
+    handlePrev,
+    handleSelectAnswer,
+    currentQuestion,
+  ]);
+
   const router = useRouter();
 
   const executeFinish = async () => {
@@ -397,7 +431,7 @@ export function CasualQuizRunner({ testSetId, mode = 'practice', onBack }: Casua
                 ))}
               </div>
             </CardContent>
-            <div className="bg-card md:rounded-2xl rounded-none border border-border/40 shadow-sm p-2 md:p-3 animate-in slide-in-from-bottom-4">
+            <div className="bg-card rounded-none border border-border/40 shadow-sm p-2 md:p-3 animate-in slide-in-from-bottom-4">
               <h3 className="font-bold text-foreground mb-4 md:flex hidden">Danh sách câu hỏi</h3>
               <div className="flex overflow-x-auto flex-nowrap justify-start gap-2 pb-2 snap-x">
                 {currentQuestions.map((q: any, idx: number) => {
@@ -441,21 +475,19 @@ export function CasualQuizRunner({ testSetId, mode = 'practice', onBack }: Casua
               </div>
             </div>
             <CardFooter
-              className={`bg-secondary/30 border-t border-border/10 flex flex-row items-center gap-2 px-2 py-2 md:px-8 md:py-6 ${mode === 'practice' ? 'justify-end' : 'justify-between'}`}
+              className={`bg-secondary/30 border-t border-border/10 flex flex-row items-center gap-2 px-2 py-2 md:px-8 md:py-6 justify-between`}
             >
-              {mode === 'exam' && (
-                <Button
-                  onClick={handlePrev}
-                  disabled={currentIndex === 0}
-                  variant="outline"
-                  size="lg"
-                  className="gap-2 rounded-xl font-bold px-4 sm:px-6"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Câu trước</span>
-                </Button>
-              )}
-              {mode === 'practice' && (
+              <Button
+                onClick={handlePrev}
+                disabled={currentIndex === 0}
+                variant="outline"
+                size="lg"
+                className="gap-2 rounded-xl font-bold w-16 sm:w-44 shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Câu trước</span>
+              </Button>
+              {mode === 'practice' && currentQuestion.explanation && (
                 <div
                   className={`w-full max-w-2xl mx-auto z-10 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 p-4 rounded-xl text-sm border border-blue-200 dark:border-blue-800 transition-all duration-300 ${
                     isAnswered ? 'opacity-100' : 'opacity-0 invisible'
@@ -467,9 +499,9 @@ export function CasualQuizRunner({ testSetId, mode = 'practice', onBack }: Casua
               )}
               <Button
                 onClick={handleNext}
-                disabled={mode === 'practice' ? !isAnswered : false}
+                // disabled={mode === 'practice' ? !isAnswered : false}
                 size="lg"
-                className="gap-2 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 font-bold px-4 sm:px-8"
+                className="gap-2 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 font-bold w-16 sm:w-44 shrink-0"
               >
                 <span className="hidden sm:inline">
                   {currentIndex === currentQuestions.length - 1 ? 'Hoàn thành' : 'Câu tiếp theo'}

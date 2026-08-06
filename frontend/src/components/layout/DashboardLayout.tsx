@@ -44,14 +44,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar navigation */}
-      <Sidebar />
+      {/* Desktop Sidebar navigation */}
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
 
       {/* Main viewport */}
       <div
         className={cn(
           'flex flex-col min-h-screen transition-all duration-300',
-          isCollapsed ? 'pl-16' : 'pl-64',
+          isCollapsed ? 'md:pl-16 pl-0' : 'md:pl-64 pl-0',
         )}
       >
         <DashboardHeader />

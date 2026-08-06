@@ -21,6 +21,7 @@
   },
   {
     "id": 3,
+    "questionNumber": 2,
     "question": "What is the capital of Japan?",
     "options": [
       { "label": "A", "text": "Kyoto" },

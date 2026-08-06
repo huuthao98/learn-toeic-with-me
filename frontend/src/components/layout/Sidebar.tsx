@@ -25,32 +25,31 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 import { useLayoutStore } from '@/store/layoutStore';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
-import {
-  getListPracticeB1Route,
-  getListPracticeToeicRoute,
-  ROUTES,
-} from '@/constants/routes';
+import { getListPracticeB1Route, getListPracticeToeicRoute, ROUTES } from '@/constants/routes';
 
 interface SidebarProps extends HTMLAttributes<HTMLDivElement> {
   onCollapseToggle?: (collapsed: boolean) => void;
+  isMobile?: boolean;
+  onMobileClose?: () => void;
 }
 
-export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
+export function Sidebar({ className, onCollapseToggle, isMobile, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
   const { user } = useAuthStore();
-  const isCollapsed = useLayoutStore(state => state.isCollapsed);
+  const storeIsCollapsed = useLayoutStore(state => state.isCollapsed);
+  const isCollapsed = isMobile ? false : storeIsCollapsed;
+
+  const handleLinkClick = () => {
+    if (isMobile && onMobileClose) {
+      onMobileClose();
+    }
+  };
 
   // Track expanded menu items (using their names or hrefs)
-  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
-    {},
-  );
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const toggleExpand = (name: string, e: React.MouseEvent) => {
@@ -196,8 +195,9 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col h-screen fixed left-0 top-0 z-30 transition-all duration-300',
-        isCollapsed ? 'w-16' : 'w-64',
+        'bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col transition-all duration-300',
+        isMobile ? 'h-full w-full static' : 'h-screen fixed left-0 top-0 z-30',
+        !isMobile && (isCollapsed ? 'w-16' : 'w-64'),
         className,
       )}
     >
@@ -247,8 +247,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
                   const Icon = item.icon;
                   const isActive =
                     pathname === item.href ||
-                    (pathname.startsWith(item.href + '/') &&
-                      item.href !== '/dashboard');
+                    (pathname.startsWith(item.href + '/') && item.href !== '/dashboard');
 
                   const filteredChildren =
                     item.children?.filter((child: any) =>
@@ -284,9 +283,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
                               )}
                             />
                             {!isCollapsed && (
-                              <span className="font-medium text-gray">
-                                {item.name}
-                              </span>
+                              <span className="font-medium text-gray">{item.name}</span>
                             )}
                           </div>
                           {!isCollapsed &&
@@ -306,6 +303,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
                       ) : (
                         <Link
                           href={item.href}
+                          onClick={handleLinkClick}
                           className={cn(
                             'flex items-center rounded-md text-sm transition-all group relative',
                             isCollapsed
@@ -325,9 +323,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
                             )}
                           />
                           {!isCollapsed && (
-                            <span className="font-medium text-gray">
-                              {item.name}
-                            </span>
+                            <span className="font-medium text-gray">{item.name}</span>
                           )}
 
                           {/* Tooltip for collapsed state */}
@@ -357,6 +353,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
                                   <Link
                                     key={child.name}
                                     href={child.href}
+                                    onClick={handleLinkClick}
                                     className={cn(
                                       'flex items-center rounded-md text-sm transition-all group relative gap-3 px-3 py-1.5 w-full',
                                       isChildActive
@@ -367,9 +364,7 @@ export function Sidebar({ className, onCollapseToggle }: SidebarProps) {
                                     {child.icon && (
                                       <child.icon className="h-4 w-4 shrink-0 opacity-70" />
                                     )}
-                                    <span className="font-medium text-gray">
-                                      {child.name}
-                                    </span>
+                                    <span className="font-medium text-gray">{child.name}</span>
                                   </Link>
                                 );
                               })}

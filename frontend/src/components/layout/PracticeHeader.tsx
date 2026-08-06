@@ -133,6 +133,34 @@ export function PracticeHeader() {
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-lg py-4 px-4 flex flex-col gap-4">
           <Link
+            href={ROUTES.PRACTICE_VOCABULARY}
+            className="text-lg font-medium text-gray-800 py-2 border-b"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Luyện Từ Vựng
+          </Link>
+          <Link
+            href={ROUTES.PRACTICE_INTERVIEW}
+            className="text-lg font-medium text-gray-800 py-2 border-b"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Luyện Phỏng Vấn
+          </Link>
+          <Link
+            href={ROUTES.PRACTICE_EXAM_TOEIC}
+            className="text-lg font-medium text-gray-800 py-2 border-b"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Luyện Thi TOEIC
+          </Link>
+          <Link
+            href={getListPracticeB1Route('practice')}
+            className="text-lg font-medium text-gray-800 py-2 border-b"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Luyện Thi B1
+          </Link>
+          <Link
             href={getListPracticeToeicRoute('exam')}
             className="text-lg font-medium text-gray-800 py-2 border-b"
             onClick={() => setMobileMenuOpen(false)}
