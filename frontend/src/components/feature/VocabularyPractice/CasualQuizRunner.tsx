@@ -39,7 +39,7 @@ export function CasualQuizRunner({ testSetId, mode = 'practice', onBack }: Casua
 
   const submitExamMutation = useSubmitExamMutation(testSetId);
 
-  const apiQuestions = infiniteData?.pages.flat() || [];
+  const apiQuestions = infiniteData?.pages ? infiniteData.pages.reduce((acc: any[], page: any[]) => acc.concat(page), []) : [];
   const currentQuestions =
     apiQuestions.map((q: any) => ({
       id: q._id,
