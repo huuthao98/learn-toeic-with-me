@@ -1,0 +1,31 @@
+[
+  {
+    "testSetId": "65b8c9d1e2f3a4b5c6d7e8f9",
+    "skill": "reading",
+    "part": "Translation",
+    "questionNumber": 1,
+    "questionType": "multiple_choice",
+    "questionText": "Tôi đã học tiếng Anh được 3 năm rồi.",
+    "options": [
+      {
+        "label": "A",
+        "text": "I learn English for 3 years."
+      },
+      {
+        "label": "B",
+        "text": "I have been learning English for 3 years."
+      },
+      {
+        "label": "C",
+        "text": "I learned English since 3 years."
+      },
+      {
+        "label": "D",
+        "text": "I am learning English since 3 years."
+      }
+    ],
+    "correctAnswer": "B",
+    "explanation": "Hành động học tiếng Anh bắt đầu trong quá khứ và vẫn đang tiếp diễn ở hiện tại nên dùng thì Hiện tại hoàn thành tiếp diễn (Present Perfect Continuous: S + have/has + been + V-ing) kết hợp với giới từ 'for' chỉ khoảng thời gian 'for 3 years'.",
+    "isActive": true
+  }
+]
