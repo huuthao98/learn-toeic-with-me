@@ -60,14 +60,29 @@ export default function PracticeInterviewPage() {
         {/* Two-Column Layout */}
         <div className="flex flex-1 gap-6 overflow-hidden pb-4">
           {/* Left Column: List of Tests */}
-          {testSets && testSets.length > 0 && (
+          {isTestsLoading ? (
+            <Card className="w-50 flex flex-col h-full border-2 border-indigo-500/20 bg-background/50">
+              <CardContent className="flex-1 overflow-y-auto p-3 space-y-2">
+                <div className="flex flex-col items-center justify-center py-6 gap-2 text-muted-foreground">
+                  <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
+                  <span className="text-xs font-medium">Đang tải danh sách...</span>
+                </div>
+                {[1, 2, 3, 4].map(i => (
+                  <div
+                    key={i}
+                    className="h-10 rounded-md bg-secondary/40 animate-pulse"
+                  />
+                ))}
+              </CardContent>
+            </Card>
+          ) : testSets && testSets.length > 0 ? (
             <Card className="w-50 flex flex-col h-full border-2 border-indigo-500/20 bg-background/50 ">
               <CardContent className="flex-1 overflow-y-auto p-3 space-y-2">
                 {testSets.map(test => (
                   <div
                     key={test._id}
                     onClick={() => setSelectedTestId(test._id)}
-                    className={`flex justify-between item-center cursor-pointer px-4 py-2 rounded-md border transition-all duration-200 group ${
+                    className={`flex justify-between items-center cursor-pointer px-4 py-2 rounded-md border transition-all duration-200 group ${
                       selectedTestId === test._id
                         ? 'border-indigo-500 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.15)]'
                         : 'border-border/40 hover:border-indigo-300 hover:bg-secondary/50'
@@ -94,10 +109,15 @@ export default function PracticeInterviewPage() {
                 ))}
               </CardContent>
             </Card>
-          )}
+          ) : null}
 
           <Card className="flex-1 flex flex-col h-full border-2 border-indigo-500/20 bg-background/50">
-            {selectedTest ? (
+            {isTestsLoading ? (
+              <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                <p>Đang tải dữ liệu...</p>
+              </div>
+            ) : selectedTest ? (
               <>
                 <CardContent className="flex-1 overflow-y-auto p-2">
                   {isQuestionsLoading ? (
@@ -190,7 +210,7 @@ export default function PracticeInterviewPage() {
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                 <Bot className="w-16 h-16 mb-4 text-muted-foreground/30" />
                 <h3 className="text-lg font-medium text-foreground">
-                  Hiện chưa có câu hỏi nào.
+                  Hiện chưa có đề phỏng vấn nào.
                 </h3>
               </div>
             )}
